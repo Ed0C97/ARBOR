@@ -81,7 +81,7 @@ export default function AnalyticsPage() {
         {cards.map((card) => (
           <div
             key={card.label}
-            className="rounded-xl border border-gray-200 bg-white p-6 shadow-render hover:shadow-render-md transition-shadow"
+            className="rounded border border-gray-200 bg-white p-6 shadow-render hover:shadow-render-md transition-shadow"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
                   {card.value.toLocaleString()}
                 </p>
               </div>
-              <div className={`p-2.5 rounded-lg ${card.bg}`}>
+              <div className={`p-2.5 ${card.bg}`}>
                 <card.icon className={`h-5 w-5 ${card.color}`} />
               </div>
             </div>
@@ -105,12 +105,12 @@ export default function AnalyticsPage() {
       )}
 
       {/* Chart Area */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-render">
+      <div className="rounded border border-gray-200 bg-white p-6 shadow-render">
         <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Activity className="h-4 w-4 text-[#4353FF]" />
           Query Volume (24h)
         </h3>
-        <div className="h-64 w-full rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-sm text-gray-400">
+        <div className="h-64 w-full bg-gray-50 border border-gray-100 flex items-center justify-center text-sm text-gray-400">
           Chart visualization placeholder
         </div>
       </div>

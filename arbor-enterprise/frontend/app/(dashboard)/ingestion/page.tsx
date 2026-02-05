@@ -59,7 +59,7 @@ export default function IngestionPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Control Panel */}
-        <div className="col-span-1 rounded-xl border border-gray-200 bg-white p-6 shadow-render h-fit">
+        <div className="col-span-1 border border-gray-200 bg-white p-6 shadow-render h-fit">
           <h2 className="text-sm font-semibold text-gray-900 mb-6 flex items-center gap-2">
             <Database className="h-4 w-4 text-[#4353FF]" />
             Parameters
@@ -76,7 +76,7 @@ export default function IngestionPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="e.g. sartoria artigianale"
-                  className="flex h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+                  className="flex h-10 w-full border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
                   required
                 />
               </div>
@@ -92,7 +92,7 @@ export default function IngestionPage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Milan, IT"
-                  className="flex h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+                  className="flex h-10 w-full border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
                   required
                 />
               </div>
@@ -104,7 +104,7 @@ export default function IngestionPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+                className="flex h-10 w-full border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
               >
                 <option value="tailoring">Tailoring</option>
                 <option value="accessories">Accessories</option>
@@ -118,7 +118,7 @@ export default function IngestionPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 mt-2 bg-[#4353FF] font-medium text-white text-sm rounded-lg hover:bg-[#3643E0] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full h-10 mt-2 bg-[#4353FF] font-medium text-white text-sm hover:bg-[#3643E0] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               {loading ? (
                 <>
@@ -143,8 +143,8 @@ export default function IngestionPage() {
               <span>system_output.log</span>
             </div>
             <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
+              <div className="w-2.5 h-2.5 bg-gray-300" />
+              <div className="w-2.5 h-2.5 bg-gray-300" />
             </div>
           </div>
           <div className="flex-1 bg-gray-900 border-x border-b border-gray-200 rounded-b-xl p-5 font-mono text-sm overflow-hidden relative">

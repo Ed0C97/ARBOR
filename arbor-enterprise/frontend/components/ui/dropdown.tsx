@@ -48,7 +48,7 @@ export function Dropdown({
     <div ref={ref} className={cn("relative", className)}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-9 w-full items-center justify-between rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        className="flex h-9 w-full items-center justify-between border border-border bg-background px-3 text-sm transition-colors hover:bg-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
       >
         <span className={selected ? "text-foreground" : "text-muted-foreground"}>
           {selected ? (
@@ -66,7 +66,7 @@ export function Dropdown({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-card py-1 shadow-xl">
+        <div className="absolute z-50 mt-1 w-full border border-border bg-card py-1 shadow-xl">
           {options.map((option) => (
             <button
               key={option.value}

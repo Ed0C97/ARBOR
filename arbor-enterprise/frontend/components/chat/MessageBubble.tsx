@@ -17,7 +17,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     >
       <div
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded",
           isUser
             ? "bg-[#4353FF] text-white"
             : "bg-blue-50"
@@ -31,7 +31,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       </div>
       <div
         className={cn(
-          "max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed",
+          "max-w-[80%] px-4 py-3 text-sm leading-relaxed",
           isUser
             ? "bg-[#4353FF] text-white"
             : "bg-gray-50 text-gray-700 border border-gray-200"

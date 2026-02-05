@@ -109,7 +109,7 @@ export default function EntitiesAdminPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-render">
+      <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white p-4 shadow-render">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -119,7 +119,7 @@ export default function EntitiesAdminPage() {
               setPage(0);
             }}
             placeholder="Search by name..."
-            className="flex h-9 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+            className="flex h-9 w-full border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
           />
         </div>
 
@@ -131,7 +131,7 @@ export default function EntitiesAdminPage() {
             setEntityType(e.target.value as EntityType | "all");
             setPage(0);
           }}
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
+          className="h-9 border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
         >
           {ENTITY_TYPES.map((t) => (
             <option key={t} value={t}>
@@ -146,7 +146,7 @@ export default function EntitiesAdminPage() {
             setCategory(e.target.value);
             setPage(0);
           }}
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
+          className="h-9 border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -159,7 +159,7 @@ export default function EntitiesAdminPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-render">
+      <div className="rounded border border-gray-200 bg-white overflow-hidden shadow-render">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-gray-200 bg-gray-50">
             <tr>
@@ -230,7 +230,7 @@ export default function EntitiesAdminPage() {
                     <div className="flex items-center justify-end">
                       <Link
                         href={`/entity/${entity.id}`}
-                        className="p-2 text-gray-400 hover:bg-gray-100 hover:text-[#4353FF] rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:bg-gray-100 hover:text-[#4353FF] transition-colors"
                       >
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -258,7 +258,7 @@ export default function EntitiesAdminPage() {
                 setLimit(Number(e.target.value));
                 setPage(0);
               }}
-              className="h-8 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none"
+              className="h-8 border border-gray-300 bg-white px-2 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none"
             >
               {ROWS_PER_PAGE_OPTIONS.map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -270,14 +270,14 @@ export default function EntitiesAdminPage() {
             <button
               disabled={page === 0}
               onClick={() => setPage(0)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
             <button
               disabled={page === 0}
               onClick={() => setPage(page - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -294,7 +294,7 @@ export default function EntitiesAdminPage() {
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center text-sm rounded-lg transition-colors ${
+                  className={`flex h-8 w-8 items-center justify-center text-sm transition-colors ${
                     p === page
                       ? "bg-[#4353FF] text-white"
                       : "text-gray-600 hover:bg-gray-100"
@@ -308,14 +308,14 @@ export default function EntitiesAdminPage() {
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage(page + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage(totalPages - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>

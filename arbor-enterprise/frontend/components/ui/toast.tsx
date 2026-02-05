@@ -67,7 +67,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div
             key={t.id}
             className={cn(
-              "flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-xl",
+              "flex items-start gap-3 border border-border bg-card px-4 py-3 shadow-xl",
               "border-l-4 animate-in slide-in-from-right-5",
               borderColors[t.type],
             )}

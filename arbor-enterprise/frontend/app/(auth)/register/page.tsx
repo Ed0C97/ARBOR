@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
         {/* Header Logo */}
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-gradient-to-br from-jetbrains-blue to-jetbrains-purple text-white shadow-glow">
+          <div className="flex h-12 w-12 items-center justify-center bg-gradient-to-br from-jetbrains-blue to-jetbrains-purple text-white shadow-glow">
             <span className="font-mono text-2xl font-bold">A</span>
           </div>
           <div className="space-y-1">

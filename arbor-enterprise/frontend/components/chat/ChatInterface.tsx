@@ -96,10 +96,10 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps) {
           ))}
           {isLoading && (
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-blue-50">
                 <Sparkles className="h-4 w-4 text-[#4353FF]" />
               </div>
-              <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3">
+              <div className="flex items-center gap-2 bg-gray-50 px-4 py-3">
                 <Loader2 className="h-4 w-4 animate-spin text-[#4353FF]" />
                 <span className="text-sm text-gray-500">
                   Searching the knowledge graph...

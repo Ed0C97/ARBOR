@@ -15,7 +15,7 @@ export function RecommendationCard({
 
   return (
     <Link href={`/entity/${recommendation.id}`} className="block h-full">
-      <div className="group relative h-full flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-[#4353FF]/30 hover:shadow-render-md">
+      <div className="group relative h-full flex flex-col justify-between border border-gray-200 bg-white p-4 transition-all hover:border-[#4353FF]/30 hover:shadow-render-md">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">

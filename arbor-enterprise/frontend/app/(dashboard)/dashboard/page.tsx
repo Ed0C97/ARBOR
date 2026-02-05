@@ -108,7 +108,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/discover"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4353FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#3643E0] transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 bg-[#4353FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#3643E0] transition-colors shadow-sm"
         >
           <Search className="h-4 w-4" />
           New Discovery
@@ -120,14 +120,14 @@ export default function DashboardPage() {
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="rounded-xl border border-gray-200 bg-white p-5 shadow-render"
+            className="rounded border border-gray-200 bg-white p-5 shadow-render"
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">
                 {card.label}
               </span>
               <div
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${card.color}`}
+                className={`inline-flex h-8 w-8 items-center justify-center ${card.color}`}
               >
                 <card.icon className="h-4 w-4" />
               </div>
@@ -164,9 +164,9 @@ export default function DashboardPage() {
           <Link
             key={action.title}
             href={action.href}
-            className="group flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-render transition-all hover:border-gray-300 hover:shadow-render-md"
+            className="group flex items-start gap-4 border border-gray-200 bg-white p-5 shadow-render transition-all hover:border-gray-300 hover:shadow-render-md"
           >
-            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
+            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
               <action.icon className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -181,7 +181,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Entities */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-render">
+      <div className="rounded border border-gray-200 bg-white shadow-render">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-sm font-semibold text-gray-900">
             Recent Entities
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                 className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition-colors"
               >
                 <div
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-xs font-medium ${
+                  className={`inline-flex h-9 w-9 items-center justify-center text-xs font-medium ${
                     entity.entity_type === "brand"
                       ? "bg-orange-50 text-orange-600"
                       : "bg-blue-50 text-blue-600"
@@ -229,12 +229,12 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   {entity.vibe_dna ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                    <span className="inline-flex items-center gap-1 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
                       <Sparkles className="h-3 w-3" />
                       Enriched
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                    <span className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
                       Pending
                     </span>
                   )}

@@ -38,7 +38,7 @@ export function TabsList({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 bg-secondary p-1",
+        "inline-flex items-center gap-0 bg-transparent border-b border-border",
         className,
       )}
     >
@@ -61,10 +61,10 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
     <button
       onClick={() => onValueChange(value)}
       className={cn(
-        "inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium transition-colors",
+        "inline-flex items-center justify-center px-4 py-2 text-sm font-medium font-mono transition-colors border-b-2 border-transparent",
         isActive
-          ? "bg-primary/10 text-primary border-b-2 border-primary shadow-none"
-          : "text-muted-foreground hover:text-foreground",
+          ? "text-primary border-primary"
+          : "text-muted-foreground hover:text-foreground hover:border-border",
         className,
       )}
     >

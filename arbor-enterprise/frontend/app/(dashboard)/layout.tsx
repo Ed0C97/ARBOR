@@ -17,6 +17,7 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const sidebarSections = [
   {
@@ -50,20 +51,20 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-foreground font-sans">
+    <div className="flex min-h-screen bg-background text-foreground">
       {/* ─── Sidebar ─── */}
-      <aside className="sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r border-gray-200 bg-white">
+      <aside className="sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r-2 border-border bg-card">
         {/* Workspace Selector */}
-        <div className="flex h-14 items-center gap-3 border-b border-gray-200 px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4353FF] to-[#7C3AED] text-white text-sm font-bold">
+        <div className="flex h-14 items-center gap-3 border-b-2 border-border px-4">
+          <div className="flex h-8 w-8 items-center justify-center bg-[#4361FF] text-white text-sm font-bold">
             A
           </div>
           <div className="flex flex-1 items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-gray-900">ARBOR</div>
-              <div className="text-xs text-gray-500">Enterprise</div>
+              <div className="text-sm font-semibold text-foreground font-mono">ARBOR</div>
+              <div className="text-xs text-muted-foreground font-mono">Enterprise</div>
             </div>
-            <ChevronDown className="h-4 w-4 text-gray-400" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </div>
         </div>
 
@@ -71,7 +72,7 @@ export default function DashboardLayout({
         <div className="px-3 pt-3 pb-1">
           <Link
             href="/ingestion"
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center justify-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700  hover:bg-gray-50 transition-colors"
           >
             <Plus className="h-4 w-4" />
             New Entity
@@ -96,7 +97,7 @@ export default function DashboardLayout({
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                        "group flex items-center gap-3 px-3 py-2 text-sm font-mono transition-colors",
                         isActive
                           ? "bg-blue-50 text-[#4353FF] font-medium"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -120,19 +121,19 @@ export default function DashboardLayout({
         </nav>
 
         {/* Bottom user section */}
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-t-2 border-border p-3">
           <Link
             href="/profile"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 hover:bg-accent transition-colors"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-medium text-white">
+            <div className="flex h-8 w-8 items-center justify-center bg-primary text-xs font-medium font-mono text-white">
               U
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">
+              <div className="text-sm font-medium font-mono text-foreground truncate">
                 User
               </div>
-              <div className="text-xs text-gray-500 truncate">
+              <div className="text-xs font-mono text-muted-foreground truncate">
                 user@arbor.ai
               </div>
             </div>
@@ -143,25 +144,26 @@ export default function DashboardLayout({
       {/* ─── Main content ─── */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/dashboard" className="hover:text-gray-700 transition-colors">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b-2 border-border bg-background px-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
+            <Link href="/dashboard" className="hover:text-foreground transition-colors">
               Dashboard
             </Link>
             {pathname !== "/dashboard" && (
               <>
-                <span className="text-gray-300">/</span>
-                <span className="text-gray-900 font-medium capitalize">
+                <span className="text-border">/</span>
+                <span className="text-foreground font-medium capitalize">
                   {pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
                 </span>
               </>
             )}
           </div>
           <div className="flex items-center gap-4">
-            <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+            <ThemeToggle />
+            <button className="relative p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
               <Bell className="h-4 w-4" />
             </button>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-medium text-white cursor-pointer">
+            <div className="flex h-8 w-8 items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-medium text-white cursor-pointer">
               U
             </div>
           </div>
@@ -177,3 +179,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+export const dynamic = 'force-dynamic';

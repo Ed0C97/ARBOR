@@ -280,7 +280,7 @@ export default function MapPage() {
 
       <div
         ref={containerRef}
-        className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-render"
+        className="relative flex-1 overflow-hidden border border-gray-200 bg-white shadow-render"
         style={{ minHeight: 500 }}
         onMouseMove={handleMouseMove}
       >
@@ -307,7 +307,7 @@ export default function MapPage() {
         )}
 
         {/* Search */}
-        <div className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-render-md">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2 border border-gray-200 bg-white p-2 shadow-render-md">
           <Search className="h-4 w-4 text-gray-400 ml-1" />
           <input
             value={query}
@@ -318,7 +318,7 @@ export default function MapPage() {
         </div>
 
         {/* Legend */}
-        <div className="absolute left-4 top-4 z-10 rounded-lg border border-gray-200 bg-white p-4 shadow-render-md max-h-[80%] overflow-y-auto scrollbar-thin">
+        <div className="absolute left-4 top-4 z-10 border border-gray-200 bg-white p-4 shadow-render-md max-h-[80%] overflow-y-auto scrollbar-thin">
           <div className="mb-3 text-xs font-medium uppercase tracking-wider text-gray-400">
             Categories
           </div>
@@ -326,7 +326,7 @@ export default function MapPage() {
             {legendCategories.map(([cat, color]) => (
               <div key={cat} className="flex items-center gap-3">
                 <div
-                  className="h-3 w-3 shrink-0 rounded-full"
+                  className="h-3 w-3 shrink-0 rounded"
                   style={{ backgroundColor: color }}
                 />
                 <span className="text-xs text-gray-600 capitalize">
@@ -365,7 +365,7 @@ export default function MapPage() {
             <button
               key={i}
               onClick={btn.fn}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 shadow-sm transition-colors"
+              className="flex h-8 w-8 items-center justify-center border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 shadow-sm transition-colors"
             >
               <btn.icon className="h-4 w-4" />
             </button>
@@ -375,7 +375,7 @@ export default function MapPage() {
         {/* Tooltip */}
         {hoveredNode && (
           <div
-            className="absolute z-50 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-render-md"
+            className="absolute z-50 border border-gray-200 bg-white px-3 py-2 text-xs shadow-render-md"
             style={{
               left:
                 tooltipPos.x -

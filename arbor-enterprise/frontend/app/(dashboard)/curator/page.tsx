@@ -118,14 +118,14 @@ export default function CuratorPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center rounded-xl border border-gray-200 bg-white p-4 shadow-render">
+      <div className="flex flex-wrap gap-3 items-center border border-gray-200 bg-white p-4 shadow-render">
         <Filter className="h-4 w-4 text-gray-400 mr-1" />
         <select
           value={filter.entity_type}
           onChange={(e) =>
             setFilter({ ...filter, entity_type: e.target.value as EntityType | "" })
           }
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
+          className="h-9 border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
         >
           <option value="">All types</option>
           <option value="brand">Brand</option>
@@ -134,7 +134,7 @@ export default function CuratorPage() {
         <select
           value={filter.category}
           onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
+          className="h-9 border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
         >
           <option value="">All categories</option>
           <option value="tailoring">Tailoring</option>
@@ -152,7 +152,7 @@ export default function CuratorPage() {
           onChange={(e) =>
             setFilter({ ...filter, is_featured: e.target.value })
           }
-          className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
+          className="h-9 border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20"
         >
           <option value="">All entities</option>
           <option value="true">Featured</option>
@@ -161,7 +161,7 @@ export default function CuratorPage() {
       </div>
 
       {/* Entity table */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-render">
+      <div className="rounded border border-gray-200 bg-white overflow-hidden shadow-render">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-gray-200 bg-gray-50">
             <tr>
@@ -237,7 +237,7 @@ export default function CuratorPage() {
                         <button
                           onClick={() => handleEnrich(entity.id)}
                           disabled={enriching === entity.id}
-                          className="flex items-center gap-1.5 bg-[#4353FF] text-white px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-[#3643E0] disabled:opacity-50 transition-colors"
+                          className="flex items-center gap-1.5 bg-[#4353FF] text-white px-3 py-1.5 text-xs font-medium hover:bg-[#3643E0] disabled:opacity-50 transition-colors"
                         >
                           {enriching === entity.id ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
@@ -249,7 +249,7 @@ export default function CuratorPage() {
                       )}
                       <a
                         href={`/entity/${entity.id}`}
-                        className="border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-colors"
+                        className="border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-colors"
                       >
                         View
                       </a>
@@ -273,14 +273,14 @@ export default function CuratorPage() {
             <button
               disabled={page === 0}
               onClick={() => setPage(0)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
             <button
               disabled={page === 0}
               onClick={() => setPage(page - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -297,7 +297,7 @@ export default function CuratorPage() {
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center text-sm rounded-lg transition-colors ${
+                  className={`flex h-8 w-8 items-center justify-center text-sm transition-colors ${
                     p === page
                       ? "bg-[#4353FF] text-white"
                       : "text-gray-600 hover:bg-gray-100"
@@ -311,14 +311,14 @@ export default function CuratorPage() {
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage(page + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage(totalPages - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
+              className="flex h-8 w-8 items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 transition-colors"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>

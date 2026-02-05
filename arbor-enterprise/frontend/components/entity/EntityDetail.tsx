@@ -282,7 +282,7 @@ export function EntityDetail({ entity }: EntityDetailProps) {
                         key={item}
                         className="flex items-center gap-2 text-sm text-muted-foreground"
                       >
-                        <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        <div className="h-1.5 w-1.5 shrink-0 bg-primary" />
                         {item}
                       </li>
                     ))}

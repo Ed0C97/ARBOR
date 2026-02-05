@@ -19,7 +19,7 @@ export default function DiscoverPage() {
 
       {/* Empty state */}
       {!hasStarted ? (
-        <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-10 shadow-render">
+        <div className="flex-1 flex flex-col items-center justify-center border border-gray-200 bg-white p-10 shadow-render">
           <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
             <Search className="h-7 w-7" />
           </div>
@@ -43,7 +43,7 @@ export default function DiscoverPage() {
               <button
                 key={i}
                 onClick={() => setHasStarted(true)}
-                className="group flex flex-col items-start gap-1 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-[#4353FF]/30 hover:bg-blue-50/50 hover:shadow-sm"
+                className="group flex flex-col items-start gap-1 border border-gray-200 bg-white p-4 text-left transition-all hover:border-[#4353FF]/30 hover:bg-blue-50/50 hover:shadow-sm"
               >
                 <span className="text-sm font-medium text-gray-900 group-hover:text-[#4353FF] transition-colors">
                   {item.label}
@@ -54,7 +54,7 @@ export default function DiscoverPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white overflow-hidden shadow-render">
+        <div className="flex-1 min-h-0 border border-gray-200 bg-white overflow-hidden shadow-render">
           <ChatInterface onFirstMessage={() => {}} />
         </div>
       )}

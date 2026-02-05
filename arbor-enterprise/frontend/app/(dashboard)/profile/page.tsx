@@ -154,7 +154,7 @@ export default function ProfilePage() {
       </div>
 
       {successMsg && (
-        <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+        <div className="rounded bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
           {successMsg}
         </div>
       )}
@@ -166,7 +166,7 @@ export default function ProfilePage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg text-left transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-colors ${
                 activeTab === tab.id
                   ? "bg-blue-50 text-[#4353FF] font-medium"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -179,11 +179,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 rounded-xl border border-gray-200 bg-white p-8 shadow-render min-h-[450px]">
+        <div className="flex-1 border border-gray-200 bg-white p-8 shadow-render min-h-[450px]">
           {activeTab === "general" && (
             <div className="space-y-8 animate-fade-in">
               <div className="flex items-center gap-6 pb-6 border-b border-gray-200">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-2xl font-bold text-white">
+                <div className="flex h-16 w-16 items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500 text-2xl font-bold text-white">
                   {name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -197,13 +197,13 @@ export default function ProfilePage() {
               <div className="grid gap-6 max-w-md">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Display Name</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all" />
+                  <input value={name} onChange={(e) => setName(e.target.value)} className="flex h-10 w-full border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Location</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input value={city} onChange={(e) => setCity(e.target.value)} className="flex h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all" />
+                    <input value={city} onChange={(e) => setCity(e.target.value)} className="flex h-10 w-full border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all" />
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                 <label className="text-sm font-medium text-gray-700">Interests</label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => (
-                    <button key={cat} onClick={() => toggleCategory(cat)} className={`px-3 py-1.5 text-sm rounded-lg border capitalize transition-colors ${selectedCategories.includes(cat) ? "bg-blue-50 border-[#4353FF]/30 text-[#4353FF]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                    <button key={cat} onClick={() => toggleCategory(cat)} className={`px-3 py-1.5 text-sm border capitalize transition-colors ${selectedCategories.includes(cat) ? "bg-blue-50 border-[#4353FF]/30 text-[#4353FF]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
                       {cat}
                     </button>
                   ))}
@@ -226,15 +226,15 @@ export default function ProfilePage() {
                 <label className="text-sm font-medium text-gray-700">Theme</label>
                 <div className="flex gap-2">
                   {(["light", "dark", "system"] as const).map((t) => (
-                    <button key={t} onClick={() => setTheme(t)} className={`px-4 py-2 text-sm capitalize rounded-lg border transition-colors ${theme === t ? "bg-gray-900 text-white border-gray-900" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                    <button key={t} onClick={() => setTheme(t)} className={`px-4 py-2 text-sm capitalize border transition-colors ${theme === t ? "bg-gray-900 text-white border-gray-900" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
                       {t}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between border border-gray-200 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-50">
+                  <div className="p-2 bg-blue-50">
                     <Bell className="h-4 w-4 text-blue-600" />
                   </div>
                   <div>
@@ -242,8 +242,8 @@ export default function ProfilePage() {
                     <div className="text-xs text-gray-500 mt-0.5">Receive real-time updates</div>
                   </div>
                 </div>
-                <button onClick={() => setNotificationsOn(!notificationsOn)} className={`relative h-6 w-11 rounded-full transition-colors ${notificationsOn ? "bg-[#4353FF]" : "bg-gray-300"}`}>
-                  <div className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${notificationsOn ? "translate-x-6" : "translate-x-1"}`} />
+                <button onClick={() => setNotificationsOn(!notificationsOn)} className={`relative h-6 w-11 transition-colors ${notificationsOn ? "bg-[#4353FF]" : "bg-gray-300"}`}>
+                  <div className={`absolute top-1 h-4 w-4 bg-white transition-transform ${notificationsOn ? "translate-x-6" : "translate-x-1"}`} />
                 </button>
               </div>
             </div>
@@ -251,14 +251,14 @@ export default function ProfilePage() {
 
           {activeTab === "security" && (
             <div className="space-y-4 animate-fade-in">
-              <button className="flex w-full items-center justify-between rounded-lg border border-gray-200 p-4 text-left group hover:bg-gray-50 transition-colors">
+              <button className="flex w-full items-center justify-between border border-gray-200 p-4 text-left group hover:bg-gray-50 transition-colors">
                 <div>
                   <div className="text-sm font-medium text-gray-900 group-hover:text-[#4353FF] transition-colors">Change Password</div>
                   <div className="text-xs text-gray-500 mt-0.5">Last updated 30 days ago</div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-gray-400" />
               </button>
-              <button className="flex w-full items-center justify-between rounded-lg border border-gray-200 p-4 text-left group hover:bg-gray-50 transition-colors">
+              <button className="flex w-full items-center justify-between border border-gray-200 p-4 text-left group hover:bg-gray-50 transition-colors">
                 <div>
                   <div className="text-sm font-medium text-gray-900 group-hover:text-[#4353FF] transition-colors">Two-Factor Authentication</div>
                   <div className="text-xs text-gray-500 mt-0.5">Add an extra layer of security</div>
@@ -266,7 +266,7 @@ export default function ProfilePage() {
                 <ChevronRight className="h-4 w-4 text-gray-400" />
               </button>
               <div className="border-t border-gray-200 my-6" />
-              <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+              <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                 <LogOut className="h-4 w-4" />
                 Sign out
               </button>
@@ -275,7 +275,7 @@ export default function ProfilePage() {
 
           {activeTab !== "security" && (
             <div className="flex justify-end pt-8 mt-6 border-t border-gray-200">
-              <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-[#4353FF] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3643E0] disabled:opacity-50 transition-colors shadow-sm">
+              <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 bg-[#4353FF] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3643E0] disabled:opacity-50 transition-colors shadow-sm">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save changes
               </button>

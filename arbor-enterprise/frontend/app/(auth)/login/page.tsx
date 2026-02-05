@@ -17,6 +17,16 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    // Demo mode: bypass authentication
+    if (email === "demo@arbor.ai" && password === "demo") {
+      setTimeout(() => {
+        localStorage.setItem("arbor_token", "demo_token");
+        router.push("/dashboard");
+      }, 500);
+      return;
+    }
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1/auth/login`,
@@ -41,26 +51,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-[400px] space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 grid-pattern opacity-30 dark:opacity-20" />
+
+      {/* Animated orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 blur-3xl animate-pulse" style={{animationDelay: "1s"}} />
+
+      <div className="w-full max-w-[400px] space-y-6 relative z-10">
         {/* Logo */}
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#4353FF] to-[#7C3AED] text-white text-lg font-bold">
+          <div className="flex h-10 w-10 items-center justify-center bg-[#4361FF] text-white text-lg font-bold font-mono">
             A
           </div>
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-foreground font-mono">
               Sign in to ARBOR
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground font-mono">
               Enter your credentials to continue
             </p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-render">
+        {/* Demo credentials hint */}
+        <div className="border-2 border-primary/20 bg-primary/5 p-4 text-center">
+          <p className="text-xs font-mono text-primary">
+            <strong>Demo Access:</strong> demo@arbor.ai / demo
+          </p>
+        </div>
+
+        <div className="border-2 border-border bg-card p-8">
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+            <div className="mb-6 bg-destructive/10 border-2 border-destructive/20 p-3 text-sm text-destructive font-mono">
               {error}
             </div>
           )}
@@ -69,7 +93,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground font-mono"
               >
                 Email
               </label>
@@ -81,14 +105,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@arbor.ai"
-                className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+                className="flex h-10 w-full border-2 border-border bg-background px-3 text-sm text-foreground font-mono placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-all"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground font-mono"
               >
                 Password
               </label>
@@ -101,12 +125,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4353FF] focus:outline-none focus:ring-2 focus:ring-[#4353FF]/20 transition-all"
+                  className="flex h-10 w-full border-2 border-border bg-background px-3 pr-10 text-sm text-foreground font-mono placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -120,28 +144,32 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#4353FF] font-medium text-white transition-all hover:bg-[#3643E0] disabled:opacity-50 shadow-sm"
+              className="group flex h-10 w-full items-center justify-center gap-2 bg-primary font-medium font-mono text-white transition-all hover:bg-primary/90 disabled:opacity-50 relative overflow-hidden"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign in
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </>
-              )}
+              {/* Scan line effect */}
+              <div className="absolute inset-0 scan-line opacity-0 group-hover:opacity-100" />
+              <span className="relative z-10">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="h-4 w-4 inline ml-2 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </span>
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-muted-foreground font-mono">
           No account?{" "}
           <Link
             href="/register"
-            className="font-medium text-[#4353FF] hover:text-[#3643E0] transition-colors"
+            className="font-medium text-primary hover:text-primary/80 transition-colors underline"
           >
             Request access
           </Link>
@@ -150,3 +178,4 @@ export default function LoginPage() {
     </div>
   );
 }
+export const dynamic = 'force-dynamic';
