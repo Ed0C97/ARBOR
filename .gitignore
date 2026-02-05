@@ -41,4 +41,8 @@ out/
 
 # Logs
 *.log
-logs/
+
+# Documentation and AI
+Docs/
+.claude/
+
