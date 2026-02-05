@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AnimatedSection, AnimatedItem } from "@/components/AnimatedSection";
-import { MagneticButton } from "@/components/MagneticButton";
 
 const NAV_LINKS = [
   { label: "Product", href: "#features" },
@@ -152,9 +151,9 @@ export default function LandingPage() {
         {/* Grid pattern background */}
         <div className="absolute inset-0 grid-pattern opacity-30 dark:opacity-20" />
 
-        {/* Animated gradient mesh orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 mesh-gradient opacity-20 blur-3xl animate-float" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 mesh-gradient opacity-15 blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+        {/* Animated orbs - simplified */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/3 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-20 md:pt-32 md:pb-32">
           <AnimatedSection className="mx-auto max-w-3xl text-center">
@@ -164,10 +163,7 @@ export default function LandingPage() {
             </div>
             <h1 className="text-5xl font-bold tracking-tight text-foreground md:text-6xl lg:text-7xl">
               Your fastest path to{" "}
-              <span className="text-primary relative inline-block">
-                discovery
-                <span className="absolute -inset-1 bg-primary/10 blur-lg -z-10 animate-pulse-glow" />
-              </span>
+              <span className="text-primary">discovery</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground leading-relaxed md:text-xl font-mono">
               ARBOR is the contextual discovery engine that connects semantic
@@ -175,16 +171,16 @@ export default function LandingPage() {
               context-aware recommendations at scale.
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <MagneticButton
+              <Link
                 href="/login"
-                className="inline-flex items-center gap-2 bg-primary px-6 py-3 text-base font-medium font-mono text-white transition-all hover:bg-primary/90 shine-sweep"
+                className="inline-flex items-center gap-2 bg-primary px-6 py-3 text-base font-medium font-mono text-white transition-all hover:bg-primary/90"
               >
                 Start discovering
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </MagneticButton>
+              </Link>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 border-2 border-border bg-card px-6 py-3 text-base font-medium font-mono text-foreground hover:bg-accent transition-all lift-on-hover"
+                className="inline-flex items-center gap-2 border-2 border-border bg-card px-6 py-3 text-base font-medium font-mono text-foreground hover:bg-accent transition-all hover:border-primary"
               >
                 See how it works
               </a>
@@ -217,7 +213,7 @@ export default function LandingPage() {
                     },
                   ].map((item) => (
                     <AnimatedItem key={item.label}>
-                      <div className="border-2 border-border bg-card p-5 shadow-render lift-on-hover glow-on-hover spotlight-effect">
+                      <div className="border-2 border-border bg-card p-5 transition-all hover:border-primary">
                         <div
                           className={`mb-3 inline-flex h-10 w-10 items-center justify-center ${item.color} transition-transform group-hover:scale-110`}
                         >
@@ -273,7 +269,7 @@ export default function LandingPage() {
           <AnimatedSection animateChildren stagger={0.15} className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((feature, idx) => (
               <AnimatedItem key={feature.title}>
-                <div className="group relative border-2 border-border bg-card p-6 transition-all hover:border-primary lift-on-hover glow-on-hover spotlight-effect shine-sweep">
+                <div className="group relative border-2 border-border bg-card p-6 transition-all hover:border-primary">
                   {/* Scan line effect on hover */}
                   <div className="absolute inset-0 scan-line opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -421,8 +417,8 @@ export default function LandingPage() {
                 <div
                   className={`group border-2 p-8 transition-all ${
                     plan.highlighted
-                      ? "border-primary bg-card shadow-render-lg ring-1 ring-primary/10 scale-105 lift-on-hover glow-on-hover"
-                      : "border-border bg-card lift-on-hover spotlight-effect"
+                      ? "border-primary bg-card ring-2 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/50"
                   }`}
                 >
                   <h3 className="text-lg font-semibold text-foreground font-mono">
@@ -452,10 +448,10 @@ export default function LandingPage() {
                   </ul>
                   <Link
                     href="/login"
-                    className={`mt-8 flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium font-mono transition-all overflow-hidden relative group ${
+                    className={`mt-8 flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium font-mono transition-all ${
                       plan.highlighted
-                        ? "bg-primary text-white hover:bg-primary/90 shimmer"
-                        : "border-2 border-border bg-card text-foreground hover:bg-accent"
+                        ? "bg-primary text-white hover:bg-primary/90"
+                        : "border-2 border-border bg-card text-foreground hover:bg-accent hover:border-primary"
                     }`}
                   >
                     <span className="relative z-10">{plan.cta}</span>
@@ -472,9 +468,7 @@ export default function LandingPage() {
       <section className="py-24 bg-background noise-texture">
         <div className="mx-auto max-w-7xl px-6">
           <AnimatedSection>
-            <div className="relative border-2 border-primary bg-primary px-8 py-16 text-center md:px-16 overflow-hidden">
-              {/* Mesh gradient background */}
-              <div className="absolute inset-0 mesh-gradient opacity-30" />
+            <div className="relative border-2 border-primary bg-primary px-8 py-16 text-center md:px-16">
 
               <h2 className="text-3xl font-bold text-white md:text-4xl font-mono relative z-10">
                 Ready to transform your discovery experience?
@@ -484,13 +478,13 @@ export default function LandingPage() {
                 discovery systems.
               </p>
               <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center relative z-10">
-                <MagneticButton
+                <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 bg-white px-6 py-3 text-base font-medium font-mono text-primary hover:bg-blue-50 transition-all shine-sweep lift-on-hover"
+                  className="inline-flex items-center gap-2 bg-white px-6 py-3 text-base font-medium font-mono text-primary hover:bg-blue-50 transition-all"
                 >
                   Get started for free
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </MagneticButton>
+                </Link>
               </div>
             </div>
           </AnimatedSection>
