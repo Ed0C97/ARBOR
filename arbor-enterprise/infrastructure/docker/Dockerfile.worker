@@ -1,0 +1,102 @@
+# =============================================================================
+# A.R.B.O.R. Enterprise - Temporal Worker Dockerfile
+# Multi-stage build for the ingestion/processing worker
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Stage 1: Base - Python 3.12 with Poetry
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        build-essential \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+ENV POETRY_VERSION=1.8.3 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=true \
+    POETRY_VIRTUALENVS_IN_PROJECT=true
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+# ---------------------------------------------------------------------------
+# Stage 2: Dependencies - Install and cache Python packages
+# ---------------------------------------------------------------------------
+FROM base AS dependencies
+
+WORKDIR /build
+
+# Copy only dependency files for cache optimization
+COPY backend/pyproject.toml backend/poetry.lock* ./
+
+# Install all dependencies (workers need full stack)
+RUN poetry install --only main --no-root --no-directory
+
+# ---------------------------------------------------------------------------
+# Stage 3: Production - Minimal runtime image
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim AS production
+
+# Runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq5 \
+        curl \
+        tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r arbor -g 1000 \
+    && useradd -r -u 1000 -g arbor -d /app -s /sbin/nologin arbor
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    APP_ENV=production \
+    APP_DEBUG=false \
+    TEMPORAL_HOST=localhost:7233 \
+    TEMPORAL_NAMESPACE=default \
+    WORKER_TASK_QUEUE=arbor-ingestion \
+    WORKER_CONCURRENCY=10
+
+WORKDIR /app
+
+# Copy virtual environment from dependencies stage
+COPY --from=dependencies /build/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH" \
+    VIRTUAL_ENV="/app/.venv"
+
+# Copy application code
+COPY backend/app ./app
+COPY config ./config
+
+# Copy worker entrypoint script
+COPY infrastructure/docker/worker-entrypoint.sh ./worker-entrypoint.sh
+RUN chmod +x ./worker-entrypoint.sh
+
+# Ensure proper ownership
+RUN chown -R arbor:arbor /app
+
+# Switch to non-root user
+USER arbor
+
+# Expose metrics port
+EXPOSE 9090
+
+# Health check: verify Temporal connectivity
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "import socket; s=socket.socket(); s.settimeout(5); s.connect(('${TEMPORAL_HOST%%:*}', int('${TEMPORAL_HOST##*:}'))); s.close()" || exit 1
+
+# Use tini as init process
+ENTRYPOINT ["tini", "--"]
+
+# Start the Temporal worker
+CMD ["python", "-m", "app.worker"]

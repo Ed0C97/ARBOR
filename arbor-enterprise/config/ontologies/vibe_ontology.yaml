@@ -1,0 +1,79 @@
+# A.R.B.O.R. Vibe Ontology
+# Defines the semantic framework for "Vibe" analysis
+
+ontology:
+  name: "Vibe DNA"
+  version: "1.0"
+  description: "Multi-dimensional semantic scoring system for entity characterization"
+
+# Core concept: every entity has a Vibe DNA
+# Vibe DNA is a set of dimensional scores (0-100)
+# combined with semantic anchors and context rules
+
+vibe_dna_schema:
+  dimensions:
+    type: "object"
+    description: "Key-value pairs of dimension_id: score (0-100)"
+    constraints:
+      min_value: 0
+      max_value: 100
+
+  semantic_anchors:
+    type: "array"
+    description: "Tags that anchor the entity's semantic identity"
+    max_items: 15
+
+  context_rules:
+    best_for:
+      type: "array"
+      description: "Scenarios where this entity excels"
+    avoid_for:
+      type: "array"
+      description: "Scenarios where this entity is not ideal"
+
+  visual_identity:
+    style:
+      type: "string"
+      description: "Primary visual/aesthetic style classification"
+    summary:
+      type: "string"
+      description: "One-sentence visual description"
+
+# Similarity computation
+similarity:
+  method: "weighted_cosine"
+  description: "Dimension scores are compared using weighted cosine similarity"
+  threshold: 0.7  # Minimum similarity to consider a match
+
+# Vibe Fusion rules
+fusion:
+  sources:
+    - name: "reviews"
+      weight: 0.5
+      dimensions: ["price_value", "service_quality", "atmosphere"]
+    - name: "images"
+      weight: 0.3
+      dimensions: ["formality", "craftsmanship", "exclusivity"]
+    - name: "curator"
+      weight: 0.2
+      dimensions: ["all"]  # Curator can override any dimension
+
+  conflict_resolution:
+    strategy: "weighted_average"
+    curator_override: true
+    threshold_for_review: 20  # Flag if sources differ by > 20 points
+
+# Quality tiers based on overall Vibe Score
+quality_tiers:
+  icon:
+    min_average: 85
+    requirements: ["curator_verified", "min_3_dimensions_above_80"]
+  selected:
+    min_average: 70
+    requirements: ["curator_verified"]
+  vetted:
+    min_average: 50
+    requirements: ["automated_check_passed"]
+  pending:
+    min_average: 0
+    requirements: []

@@ -1,0 +1,222 @@
+# Prometheus Alert Rules for ARBOR Enterprise
+# TIER 5 - Point 23: Prometheus Alert Rules
+
+groups:
+  - name: arbor_availability
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(arbor_discover_requests_total{status="error"}[5m])) 
+          / sum(rate(arbor_discover_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "High error rate detected"
+          description: |
+            Error rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+            This exceeds the 1% threshold.
+          runbook_url: "https://docs.arbor.app/runbooks/high-error-rate"
+
+      # Service Unavailable
+      - alert: ServiceUnavailable
+        expr: up{job="arbor-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "ARBOR API is down"
+          description: "Instance {{ $labels.instance }} has been down for more than 1 minute."
+
+  - name: arbor_performance
+    interval: 30s
+    rules:
+      # Slow Response Times (p99 > 5s)
+      - alert: SlowResponses
+        expr: |
+          histogram_quantile(0.99, 
+            sum(rate(arbor_query_latency_seconds_bucket[5m])) by (le, endpoint)
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Slow response times detected"
+          description: |
+            p99 latency for {{ $labels.endpoint }} is {{ $value | humanizeDuration }}.
+            Threshold is 5 seconds.
+
+      # LLM Latency High
+      - alert: HighLLMLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(arbor_llm_latency_seconds_bucket[5m])) by (le, provider)
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "High LLM API latency"
+          description: |
+            p95 latency for {{ $labels.provider }} is {{ $value | humanizeDuration }}.
+            Consider checking provider status or enabling fallbacks.
+
+  - name: arbor_cache
+    interval: 1m
+    rules:
+      # Low Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: |
+          sum(rate(arbor_cache_events_total{result="hit"}[1h])) 
+          / sum(rate(arbor_cache_events_total[1h])) < 0.1
+        for: 1h
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Cache hit rate is very low"
+          description: |
+            Cache hit rate is {{ $value | humanizePercentage }} over the last hour.
+            Expected at least 10%. Check cache configuration or recent deployments.
+
+      # Cache Unavailable
+      - alert: CacheUnavailable
+        expr: |
+          arbor_service_health{service="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Redis cache is unavailable"
+          description: "Redis has been unreachable for more than 2 minutes."
+
+  - name: arbor_circuit_breakers
+    interval: 30s
+    rules:
+      # Circuit Breaker Open
+      - alert: CircuitBreakerOpen
+        expr: arbor_circuit_breaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Circuit breaker is OPEN"
+          description: |
+            Circuit breaker for {{ $labels.service }} is open.
+            External service may be experiencing issues.
+
+      # Multiple Circuit Breakers Open
+      - alert: MultipleCircuitBreakersOpen
+        expr: count(arbor_circuit_breaker_state{state="open"} == 1) >= 2
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Multiple circuit breakers are OPEN"
+          description: |
+            {{ $value }} circuit breakers are currently open.
+            System may be in degraded state.
+
+  - name: arbor_resources
+    interval: 1m
+    rules:
+      # Database Connection Pool Exhausted
+      - alert: DBConnectionPoolExhausted
+        expr: |
+          arbor_db_pool_connections{state="overflow"} 
+          / (arbor_db_pool_connections{state="active"} + arbor_db_pool_connections{state="idle"} + arbor_db_pool_connections{state="overflow"}) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Database connection pool under pressure"
+          description: |
+            Overflow connections are {{ $value | humanizePercentage }} of total.
+            Consider increasing pool size or optimizing queries.
+
+      # Rate Limiting Active
+      - alert: HighRateLimitBlocks
+        expr: |
+          sum(rate(arbor_rate_limit_hits_total{result="blocked"}[5m])) > 10
+        for: 5m
+        labels:
+          severity: info
+          team: backend
+        annotations:
+          summary: "Rate limiting is actively blocking requests"
+          description: |
+            {{ $value | humanize }} requests/second are being rate limited.
+            This may indicate abuse or need for limit adjustment.
+
+  - name: arbor_guardrails
+    interval: 1m
+    rules:
+      # Guardrail Blocks Increasing
+      - alert: HighGuardrailBlocks
+        expr: |
+          sum(rate(arbor_guardrail_events_total{action="blocked"}[15m])) 
+          / sum(rate(arbor_guardrail_events_total[15m])) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "Guardrails blocking many responses"
+          description: |
+            {{ $value | humanizePercentage }} of responses blocked in last 15 minutes.
+            Review blocked content patterns or adjust thresholds.
+
+  - name: arbor_business
+    interval: 5m
+    rules:
+      # No Discovery Requests
+      - alert: NoDiscoveryTraffic
+        expr: |
+          sum(rate(arbor_discover_requests_total[10m])) == 0
+        for: 10m
+        labels:
+          severity: warning
+          team: product
+        annotations:
+          summary: "No discovery requests in 10 minutes"
+          description: "Zero discovery API calls. Check if frontend is functioning."
+
+      # Token Usage Spike
+      - alert: LLMTokenUsageSpike
+        expr: |
+          sum(increase(arbor_llm_tokens_used[1h])) > 1000000
+        labels:
+          severity: info
+          team: ml
+        annotations:
+          summary: "High LLM token usage"
+          description: |
+            {{ $value | humanize }} tokens used in the last hour.
+            Review for potential abuse or inefficient prompts.
+
+  - name: arbor_dlq
+    interval: 1m
+    rules:
+      # DLQ Messages Accumulating
+      - alert: DLQMessagesAccumulating
+        expr: |
+          kafka_consumer_group_lag{topic=~".*dlq.*"} > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Dead Letter Queue has unprocessed messages"
+          description: |
+            DLQ topic {{ $labels.topic }} has {{ $value }} unprocessed messages.
+            Review and replay or discard failed messages.

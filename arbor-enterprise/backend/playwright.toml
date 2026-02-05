@@ -1,0 +1,37 @@
+# Playwright E2E Test Configuration
+# TIER 9 - Point 49: E2E Testing
+
+[project]
+name = "arbor-e2e"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests/e2e"]
+addopts = """
+    --browser chromium
+    --browser firefox
+    --browser webkit
+    --headed
+    --slowmo 100
+    --video on
+    --screenshot on
+    --output test-results
+"""
+
+[tool.playwright]
+# Browser launch options
+browser_launch_options = { headless = false, slow_mo = 100 }
+
+# Context options
+browser_context_options = { 
+    viewport = { width = 1280, height = 720 },
+    record_video_dir = "test-results/videos",
+    ignore_https_errors = true 
+}
+
+# Timeouts
+default_timeout = 30000
+navigation_timeout = 60000
+
+# Base URL (override with E2E_BASE_URL env var)
+base_url = "http://localhost:3000"

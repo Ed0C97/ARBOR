@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arbor
+  labels:
+    app.kubernetes.io/name: arbor
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    app.kubernetes.io/name: arbor-monitoring
+---
+# -----------------------------------------------------------------------
+# Network Policy — restrict traffic within namespace
+# -----------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: arbor-default-deny
+  namespace: arbor
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic within the namespace
+    - from:
+        - podSelector: {}
+    # Allow traffic from monitoring
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/name: arbor-monitoring
+  egress:
+    # Allow all egress (external APIs, LLM, etc.)
+    - {}
+---
+# -----------------------------------------------------------------------
+# ResourceQuota — prevent runaway resource usage
+# -----------------------------------------------------------------------
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: arbor-resource-quota
+  namespace: arbor
+spec:
+  hard:
+    requests.cpu: "16"
+    requests.memory: "32Gi"
+    limits.cpu: "32"
+    limits.memory: "64Gi"
+    pods: "50"
+    persistentvolumeclaims: "20"
+---
+# -----------------------------------------------------------------------
+# LimitRange — default resource limits for pods
+# -----------------------------------------------------------------------
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: arbor-limit-range
+  namespace: arbor
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      default:
+        cpu: "500m"
+        memory: "512Mi"
+---
+# -----------------------------------------------------------------------
+# ServiceAccount for the API workload
+# -----------------------------------------------------------------------
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arbor-api
+  namespace: arbor
+  annotations:
+    iam.gke.io/gcp-service-account: arbor-api@PROJECT_ID.iam.gserviceaccount.com
+  labels:
+    app.kubernetes.io/name: arbor
+    app.kubernetes.io/component: api
+---
+# -----------------------------------------------------------------------
+# RBAC — Role + RoleBinding for the API service account
+# -----------------------------------------------------------------------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: arbor-api-role
+  namespace: arbor
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: arbor-api-rolebinding
+  namespace: arbor
+subjects:
+  - kind: ServiceAccount
+    name: arbor-api
+    namespace: arbor
+roleRef:
+  kind: Role
+  name: arbor-api-role
+  apiGroup: rbac.authorization.k8s.io

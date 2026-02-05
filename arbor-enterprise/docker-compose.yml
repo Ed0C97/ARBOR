@@ -1,0 +1,113 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# A.R.B.O.R. Enterprise — Docker Compose
+# ═══════════════════════════════════════════════════════════════════════════
+# Runs ALL required infrastructure services locally:
+# - PostgreSQL (arbor_db) — NOT magazine_h182, that stays on Render
+# - Qdrant (vector search)
+# - Neo4j (knowledge graph)
+# - Redis (caching)
+# - Temporal (workflow engine)
+#
+# Usage:
+#   docker-compose up -d          # Start all services
+#   docker-compose down           # Stop all services
+#   docker-compose logs -f qdrant # Follow logs for a specific service
+# ═══════════════════════════════════════════════════════════════════════════
+
+version: "3.8"
+
+services:
+
+  # ─── PostgreSQL: arbor_db (ARBOR-owned tables only) ───────────────────
+  postgres-arbor:
+    image: postgres:16-alpine
+    container_name: arbor-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"   # Port 5433 to avoid conflict with any local PostgreSQL
+    environment:
+      POSTGRES_DB: arbor_db
+      POSTGRES_USER: arbor
+      POSTGRES_PASSWORD: arbor_password
+    volumes:
+      - arbor_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arbor -d arbor_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Qdrant: vector search engine ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: arbor-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - arbor_qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+
+  # ─── Neo4j: knowledge graph ───────────────────────────────────────────
+  neo4j:
+    image: neo4j:5-community
+    container_name: arbor-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"   # Web browser
+      - "7687:7687"   # Bolt protocol
+    environment:
+      NEO4J_AUTH: neo4j/arbor_dev_password
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - arbor_neo4j_data:/data
+
+  # ─── Redis: caching & session store ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: arbor-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - arbor_redis_data:/data
+    command: redis-server --appendonly yes
+
+  # ─── Temporal: workflow engine ────────────────────────────────────────
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: arbor-temporal
+    restart: unless-stopped
+    ports:
+      - "7233:7233"   # gRPC frontend
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=arbor
+      - POSTGRES_PWD=arbor_password
+      - POSTGRES_SEEDS=postgres-arbor
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    depends_on:
+      postgres-arbor:
+        condition: service_healthy
+
+  # ─── Temporal UI (optional but useful) ─────────────────────────────────
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: arbor-temporal-ui
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    depends_on:
+      - temporal
+
+
+volumes:
+  arbor_postgres_data:
+  arbor_qdrant_data:
+  arbor_neo4j_data:
+  arbor_redis_data:

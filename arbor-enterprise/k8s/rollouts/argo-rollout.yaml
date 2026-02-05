@@ -1,0 +1,200 @@
+# Argo Rollouts Canary Deployment
+# TIER 6 - Point 28: Argo Rollouts (Canary)
+#
+# Replaces standard Deployment with Rollout for progressive delivery.
+# Steps: 5% -> 10m pause -> 50% -> 10m pause -> 100%
+
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: arbor-api
+  namespace: arbor
+  labels:
+    app: arbor-api
+    tier: backend
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: arbor-api
+  
+  # Canary deployment strategy
+  strategy:
+    canary:
+      # Traffic splitting
+      canaryService: arbor-api-canary
+      stableService: arbor-api-stable
+      
+      # Analysis for automated rollback
+      analysis:
+        templates:
+          - templateName: arbor-success-rate
+        startingStep: 2  # Run analysis after first weight increase
+        args:
+          - name: service-name
+            value: arbor-api-canary
+      
+      # Progressive rollout steps
+      steps:
+        # Step 1: 5% traffic to canary
+        - setWeight: 5
+        
+        # Step 2: Pause 10 minutes for monitoring
+        - pause:
+            duration: 10m
+        
+        # Step 3: 20% traffic if healthy
+        - setWeight: 20
+        
+        # Step 4: Pause for more observation
+        - pause:
+            duration: 10m
+        
+        # Step 5: 50% traffic
+        - setWeight: 50
+        
+        # Step 6: Final pause before full rollout
+        - pause:
+            duration: 10m
+        
+        # Step 7: Full rollout (implicit 100%)
+      
+      # Traffic routing via Istio/Nginx
+      trafficRouting:
+        nginx:
+          stableIngress: arbor-api-ingress
+          annotationPrefix: nginx.ingress.kubernetes.io
+          additionalIngressAnnotations:
+            canary-by-header: X-Canary
+            canary-by-header-value: "true"
+      
+      # Anti-affinity with stable pods
+      antiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          weight: 100
+  
+  template:
+    metadata:
+      labels:
+        app: arbor-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: arbor-api
+      
+      containers:
+        - name: arbor-api
+          image: gcr.io/PROJECT_ID/arbor-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+          
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
+          
+          envFrom:
+            - secretRef:
+                name: arbor-secrets
+          
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+
+---
+# Analysis Template for automated quality gates
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: arbor-success-rate
+  namespace: arbor
+spec:
+  args:
+    - name: service-name
+  
+  metrics:
+    # Success rate must be > 99%
+    - name: success-rate
+      interval: 1m
+      successCondition: result[0] >= 0.99
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            sum(rate(arbor_discover_requests_total{status="success", service="{{args.service-name}}"}[5m]))
+            /
+            sum(rate(arbor_discover_requests_total{service="{{args.service-name}}"}[5m]))
+    
+    # p99 latency must be < 5s
+    - name: latency-p99
+      interval: 1m
+      successCondition: result[0] < 5000
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            histogram_quantile(0.99, 
+              sum(rate(arbor_query_latency_seconds_bucket{service="{{args.service-name}}"}[5m])) by (le)
+            ) * 1000
+
+---
+# Canary Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: arbor-api-canary
+  namespace: arbor
+spec:
+  selector:
+    app: arbor-api
+  ports:
+    - port: 80
+      targetPort: 8000
+
+---
+# Stable Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: arbor-api-stable
+  namespace: arbor
+spec:
+  selector:
+    app: arbor-api
+  ports:
+    - port: 80
+      targetPort: 8000

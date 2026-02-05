@@ -1,0 +1,183 @@
+# PgBouncer Deployment for Connection Pooling
+# TIER 11 - Point 58: PgBouncer Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: arbor
+  labels:
+    app: pgbouncer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pgbouncer
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70  # postgres user
+        fsGroup: 70
+      
+      containers:
+        - name: pgbouncer
+          image: edoburu/pgbouncer:1.21.0
+          
+          ports:
+            - containerPort: 6432
+              name: pgbouncer
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          
+          env:
+            # Database connection settings
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-secrets
+                  key: POSTGRES_HOST
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-secrets
+                  key: POSTGRES_DB
+            
+            # PgBouncer pool settings (TIER 2 - Point 6 compatible)
+            - name: POOL_MODE
+              value: "transaction"
+            - name: MAX_CLIENT_CONN
+              value: "200"
+            - name: DEFAULT_POOL_SIZE
+              value: "40"
+            - name: MIN_POOL_SIZE
+              value: "10"
+            - name: RESERVE_POOL_SIZE
+              value: "20"
+            - name: RESERVE_POOL_TIMEOUT
+              value: "5"
+            - name: SERVER_IDLE_TIMEOUT
+              value: "600"
+            - name: SERVER_LIFETIME
+              value: "1800"
+            - name: QUERY_TIMEOUT
+              value: "30"
+            
+            # Additional security
+            - name: AUTH_TYPE
+              value: "scram-sha-256"
+          
+          livenessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          
+          readinessProbe:
+            tcpSocket:
+              port: 6432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pgbouncer
+              readOnly: true
+      
+      volumes:
+        - name: config
+          configMap:
+            name: pgbouncer-config
+
+---
+# PgBouncer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: arbor
+  labels:
+    app: pgbouncer
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6432
+      targetPort: 6432
+      protocol: TCP
+      name: postgres
+  selector:
+    app: pgbouncer
+
+---
+# PgBouncer ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  namespace: arbor
+data:
+  pgbouncer.ini: |
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = 6432
+    auth_type = scram-sha-256
+    auth_file = /etc/pgbouncer/userlist.txt
+    
+    ; Pool settings
+    pool_mode = transaction
+    max_client_conn = 200
+    default_pool_size = 40
+    min_pool_size = 10
+    reserve_pool_size = 20
+    reserve_pool_timeout = 5
+    
+    ; Timeouts
+    server_idle_timeout = 600
+    server_lifetime = 1800
+    query_timeout = 30
+    query_wait_timeout = 120
+    
+    ; Logging
+    log_connections = 0
+    log_disconnections = 0
+    log_pooler_errors = 1
+    stats_period = 60
+    
+    ; TCP settings
+    tcp_keepalive = 1
+    tcp_keepidle = 30
+    tcp_keepintvl = 10
+    tcp_keepcnt = 6
+    
+    [databases]
+    magazine_h182 = host=${DB_HOST} port=5432 dbname=magazine_h182
+    arbor_db = host=${DB_HOST} port=5432 dbname=arbor_db
+    * = host=${DB_HOST} port=5432

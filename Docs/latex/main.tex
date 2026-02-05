@@ -1,0 +1,121 @@
+\documentclass[11pt, a4paper]{report}
+
+% Pacchetti fondamentali
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{pdfpages}
+\usepackage{pdflscape}
+\usepackage{amsmath}
+\usepackage{soul,xcolor}
+\sethlcolor{yellow}
+
+% Configurazione margini
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% Configurazione Link
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkgray,
+    urlcolor=blue,
+    pdftitle={Business Plan \& Technical Architecture - The Contextual Engine},
+    pdfpagemode=FullScreen,
+}
+
+% Configurazione Code Blocks
+\definecolor{codegray}{rgb}{0.95,0.95,0.95}
+\definecolor{commentgreen}{rgb}{0,0.6,0}
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    frame=single,
+    showstringspaces=false
+}
+
+% Titolo
+\title{
+    \vspace{-3cm} % Tira su il tutto per fare spazio
+    
+    % --- SEZIONE LOGO ---
+    % Sostituisci 'logo.png' con il nome del tuo file.
+    % Cambia 'width=5cm' per ingrandirlo o rimpicciolirlo.
+    \begin{center}
+        \includegraphics[width=5cm]{ARBOR_logo.png} 
+    \end{center}
+    \vspace{1cm} % Spazio tra logo e testo
+    % --------------------
+
+    {\scshape \small Porfirio Holding Presents} \\ \vspace{0.3cm}
+    \rule{\linewidth}{0.5mm} \\ \vspace{0.8cm}
+    
+    % IL NOME DEL PROGETTO
+    \textbf{\Huge PROJECT A.R.B.O.R.} \\ \vspace{0.4cm}
+    
+    % L'ACRONIMO SCIOLTO (Tecnico \& Filosofico)
+    {\LARGE Advanced Reasoning By Ontological Rules} \\ \vspace{0.8cm}
+    
+    % LA DEFINIZIONE DI PRODOTTO
+    {\Large \textbf{The Contextual Discovery Engine}} \\ \vspace{1cm}
+    
+    % IL MOTTO (La Visione)
+    ``Digitalizing the Instinct of Quality.'' \\ \vspace{0.8cm}
+    
+    \rule{\linewidth}{0.5mm} \\ \vspace{0.5cm}
+    
+    \small Documento di Strategia Industriale \& Architettura Tecnica
+}
+\author{Edited for Porfirio’s Magazine, by appointment to Porfirio Holding Ltd.}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Questo documento descrive la strategia, l'architettura tecnica e il modello di business per lo sviluppo di una piattaforma di Curated AI Discovery. Il sistema supera i limiti dei tradizionali motori di ricerca (Google Maps) e degli algoritmi di raccomandazione collaborativi (Amazon/Netflix), introducendo un modello basato su Semantic Vector Graphs e Dimensional Vibe Scoring. L'obiettivo è digitalizzare l'esperienza e il contesto (Vibe) per offrire raccomandazioni cross-domain di alta precisione.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+% =========================
+% Capitoli principali
+% =========================
+\include{cap1}
+\include{cap2}
+\include{cap3}
+\include{cap4}
+\include{cap5}
+\include{cap6}
+
+% =========================
+% Appendici
+% =========================
+\include{appendici}
+
+% =========================
+% Conclusioni
+% =========================
+\include{conclusioni}
+
+\end{document}

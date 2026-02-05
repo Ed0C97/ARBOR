@@ -1,0 +1,190 @@
+# A.R.B.O.R. Domain Configuration: Lifestyle & Shopping
+# This file defines EVERYTHING that is domain-specific
+
+domain:
+  name: "lifestyle"
+  display_name: "Lifestyle & Shopping Discovery"
+  description: "Curated discovery for fashion, food, and experiences"
+
+# Entity categories
+categories:
+  - id: "accessories"
+    name: "Accessories"
+    icon: "tie"
+  - id: "clothing"
+    name: "Clothing"
+    icon: "shirt"
+  - id: "footwear"
+    name: "Footwear"
+    icon: "shoe"
+  - id: "tailoring"
+    name: "Tailoring"
+    icon: "scissors"
+  - id: "food_drink"
+    name: "Food & Drink"
+    icon: "wine"
+  - id: "fragrance"
+    name: "Fragrance & Grooming"
+    icon: "spray"
+  - id: "books_music"
+    name: "Books & Music"
+    icon: "book"
+  - id: "motors"
+    name: "Motors"
+    icon: "car"
+
+# Vibe Score dimensions (0-100)
+dimensions:
+  formality:
+    name: "Formality"
+    description: "0 = Streetwear casual, 100 = Black tie formal"
+    weight: 1.0
+  craftsmanship:
+    name: "Craftsmanship"
+    description: "0 = Industrial mass production, 100 = Handmade artisan"
+    weight: 1.2
+  price_value:
+    name: "Price/Value"
+    description: "0 = Overpriced, 100 = Excellent value"
+    weight: 0.8
+  atmosphere:
+    name: "Atmosphere"
+    description: "0 = Chaotic busy, 100 = Zen peaceful"
+    weight: 0.9
+  exclusivity:
+    name: "Exclusivity"
+    description: "0 = Mainstream, 100 = Hidden gem VIP only"
+    weight: 1.0
+  service_quality:
+    name: "Service Quality"
+    description: "0 = Self-service, 100 = White glove concierge"
+    weight: 1.0
+
+# Price tiers
+price_tiers:
+  1:
+    name: "Budget"
+    range: "0-50 EUR"
+    description: "Economico"
+  2:
+    name: "Accessible"
+    range: "50-200 EUR"
+    description: "Accessibile"
+  3:
+    name: "Premium"
+    range: "200-500 EUR"
+    description: "Premium"
+  4:
+    name: "Luxury"
+    range: "500-2000 EUR"
+    description: "Lusso"
+  5:
+    name: "Ultra-Luxury"
+    range: "2000+ EUR"
+    description: "Su misura / Bespoke"
+
+# Target audiences
+target_audiences:
+  - id: "expert_only"
+    name: "Expert Only"
+    description: "Richiede competenza per essere apprezzato"
+  - id: "enthusiast"
+    name: "Enthusiast"
+    description: "Per appassionati, personale disponibile a spiegare"
+  - id: "tourist_friendly"
+    name: "Tourist Friendly"
+    description: "Facile, centrale, multilingua"
+  - id: "local_gem"
+    name: "Local Gem"
+    description: "Istituzione di quartiere, autentico"
+  - id: "high_spender"
+    name: "High Spender"
+    description: "VIP treatment, lusso sfrenato"
+
+# Validation statuses
+validation_statuses:
+  - pending     # In attesa di review
+  - vetted      # Verificato, standard di qualità
+  - selected    # Carattere distintivo
+  - icon        # Tempio dello stile
+
+# Knowledge Graph relationships
+graph_relationships:
+  entity_to_brand:
+    - type: "SELLS_BRAND"
+      description: "Negozio vende questo brand"
+    - type: "IS_HQ_OF"
+      description: "Flagship o monobrand ufficiale"
+  entity_to_entity:
+    - type: "TRAINED_BY"
+      description: "Artigiano formato da maestro"
+      properties: ["year"]
+    - type: "INSPIRED_BY"
+      description: "Influenza stilistica"
+    - type: "SAME_BUILDING_AS"
+      description: "Nello stesso edificio/galleria"
+  entity_to_style:
+    - type: "HAS_STYLE"
+      description: "Appartiene a questo stile estetico"
+  brand_to_style:
+    - type: "REPRESENTS"
+      description: "Brand rappresenta questo stile"
+
+# Aesthetic styles (ontology)
+styles:
+  - id: "neapolitan"
+    name: "Neapolitan"
+    keywords: ["spalla scesa", "unconstructed", "light", "sleeve roll"]
+  - id: "english_classic"
+    name: "English Classic"
+    keywords: ["structured", "savile row", "tweed", "bespoke"]
+  - id: "italian_sprezzatura"
+    name: "Italian Sprezzatura"
+    keywords: ["effortless", "unmatched", "casual elegance"]
+  - id: "minimalist"
+    name: "Minimalist"
+    keywords: ["clean lines", "monochrome", "scandinavian"]
+  - id: "heritage"
+    name: "Heritage"
+    keywords: ["vintage", "artisanal", "traditional", "family-owned"]
+  - id: "contemporary"
+    name: "Contemporary"
+    keywords: ["modern", "innovative", "cutting-edge"]
+
+# Curator persona
+curator_persona:
+  name: "The Curator"
+  voice: "Sophisticated, warm but professional. Avoid marketing fluff."
+  expertise:
+    - "bespoke tailor"
+    - "interior designer"
+    - "local historian"
+  vocabulary_examples:
+    - "Goodyear welted"
+    - "Full canvas"
+    - "Unlined"
+    - "Seven-fold tie"
+    - "Hand-finished buttonholes"
+
+# Example queries for testing
+example_queries:
+  - query: "Cerco una sartoria con taglio napoletano a Roma"
+    expected_filters:
+      category: "tailoring"
+      city: "Roma"
+      style: "neapolitan"
+  - query: "Dove posso comprare una cravatta sportiva di qualita?"
+    expected_interpretation: "maglia, tricot, sfoderata, garza di seta"
+  - query: "Voglio un posto con alta artigianalita ma atmosfera casual"
+    expected_filters:
+      craftsmanship: ">80"
+      formality: "<40"
+  - query: "Un ristorante esclusivo con buon rapporto qualita prezzo"
+    expected_filters:
+      category: "food_drink"
+      exclusivity: ">70"
+      price_value: ">60"
+  - query: "Negozi che vendono Brunello Cucinelli a Milano"
+    expected_filters:
+      brand: "Brunello Cucinelli"
+      city: "Milano"

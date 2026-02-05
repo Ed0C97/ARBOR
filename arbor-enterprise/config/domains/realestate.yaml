@@ -1,0 +1,103 @@
+# A.R.B.O.R. Domain Configuration: Real Estate
+domain:
+  name: "realestate"
+  display_name: "Real Estate Discovery"
+  description: "Curated property discovery based on lifestyle fit"
+
+categories:
+  - id: "residential"
+    name: "Residential"
+    icon: "home"
+  - id: "commercial"
+    name: "Commercial"
+    icon: "building"
+  - id: "luxury"
+    name: "Luxury"
+    icon: "castle"
+  - id: "investment"
+    name: "Investment"
+    icon: "chart"
+
+dimensions:
+  prestige_location:
+    name: "Location Prestige"
+    description: "0 = Periferia, 100 = Indirizzo iconico"
+    weight: 1.5
+  renovation_quality:
+    name: "Renovation Quality"
+    description: "0 = Da ristrutturare, 100 = Chiavi in mano lusso"
+    weight: 1.2
+  rental_yield:
+    name: "Rental Yield"
+    description: "0 = Basso rendimento, 100 = Alto rendimento"
+    weight: 1.0
+  neighborhood_safety:
+    name: "Safety"
+    description: "0 = Rischioso, 100 = Sicurissimo"
+    weight: 1.3
+  transport_access:
+    name: "Transport"
+    description: "0 = Isolato, 100 = Hub trasporti"
+    weight: 0.9
+  green_spaces:
+    name: "Green Spaces"
+    description: "0 = Cemento, 100 = Immerso nel verde"
+    weight: 0.8
+
+price_tiers:
+  1:
+    name: "Entry"
+    range: "0-200k EUR"
+    description: "Entry level"
+  2:
+    name: "Mid-Market"
+    range: "200k-500k EUR"
+    description: "Mid-market"
+  3:
+    name: "Premium"
+    range: "500k-1M EUR"
+    description: "Premium"
+  4:
+    name: "Luxury"
+    range: "1M-5M EUR"
+    description: "Luxury"
+  5:
+    name: "Ultra-Prime"
+    range: "5M+ EUR"
+    description: "Ultra-prime"
+
+graph_relationships:
+  entity_to_entity:
+    - type: "MANAGED_BY"
+      description: "Gestito da agenzia"
+    - type: "DESIGNED_BY"
+      description: "Progettato da architetto"
+    - type: "IN_NEIGHBORHOOD"
+      description: "Nel quartiere"
+  entity_to_style:
+    - type: "HAS_STYLE"
+      description: "Stile architettonico"
+
+styles:
+  - id: "haussmannian"
+    name: "Haussmannian"
+    keywords: ["parquet", "herringbone", "moldings", "high ceilings"]
+  - id: "industrial_loft"
+    name: "Industrial Loft"
+    keywords: ["exposed brick", "open space", "warehouse conversion"]
+  - id: "modern_minimal"
+    name: "Modern Minimal"
+    keywords: ["glass", "concrete", "smart home", "clean lines"]
+  - id: "historic_palazzo"
+    name: "Historic Palazzo"
+    keywords: ["frescoes", "marble", "heritage", "listed building"]
+
+example_queries:
+  - query: "Cerco un loft industriale a Milano"
+    expected_filters:
+      style: "industrial_loft"
+      city: "Milano"
+  - query: "Appartamento con buona rendita vicino alla metro"
+    expected_filters:
+      rental_yield: ">60"
+      transport_access: ">70"

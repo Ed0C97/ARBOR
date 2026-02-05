@@ -1,0 +1,76 @@
+\chapter{The A.R.B.O.R. Architecture: God Mode}
+
+\section{Overview: The Cognitive Stack}
+
+A.R.B.O.R. non è una semplice applicazione web, ma una \textbf{Cognitive Architecture} distribuita che supera lo stato dell'arte attuale. Abbandoniamo l'approccio monolitico per adottare un sistema a \textbf{Sciame di Agenti (Agentic Swarm)} supportato da una \textbf{Trinità di Dati}.
+
+Il sistema è progettato per gestire due flussi temporali:
+\begin{itemize}
+    \item \textbf{Sincrono (Real-Time):} Risposta all'utente in $<2$ secondi tramite Cache e Vettori.
+    \item \textbf{Asincrono (Background):} Ingestione e ragionamento profondo tramite Grafo e LLM.
+\end{itemize}
+
+% Inizia la pagina orizzontale
+\begin{landscape}
+    \begin{figure}[p] % [p] forza la figura su una pagina dedicata senza testo
+        \centering
+        % Impostiamo larghezza e altezza massime mantenendo le proporzioni
+        \includegraphics[width=\linewidth, height=1\textheight, keepaspectratio]{grafico_arbor.pdf}
+        \caption{Master Blueprint: Architettura GraphRAG + Agentic Swarm}
+        \label{fig:blueprint}
+    \end{figure}
+\end{landscape}
+% Finisce la pagina orizzontale e torna verticale
+
+\section{Layer 1: The Knowledge Trinity (La Memoria)}
+
+Per permettere un ragionamento \textit{umano}, il sistema utilizza tre tipologie di database simultaneamente.
+
+\paragraph{1. PostgreSQL (The Source of Truth)}
+Contiene i fatti oggettivi e immutabili. Garantisce l'integrità transazionale (ACID).
+\begin{itemize}
+    \item \textbf{Dati:} Anagrafiche, Indirizzi, Prezzi, Orari.
+    \item \textbf{Tecnologia:} PostgreSQL 16 con estensione PostGIS per la geolocalizzazione di precisione.
+\end{itemize}
+
+\paragraph{2. Qdrant (The Intuition)}
+Il motore vettoriale scritto in Rust. Gestisce la \textit{ricerca per sensazione} (Vibe).
+\begin{itemize}
+    \item \textbf{Dati:} Embeddings (vettori a 1536 dimensioni) delle descrizioni e delle immagini.
+    \item \textbf{Funzione:} Permette query come \textit{Trova un posto con atmosfera simile a questo}, impossibile per i database classici.
+\end{itemize}
+
+\paragraph{3. Neo4j (The Logic)}
+Il Knowledge Graph. Mappa le relazioni invisibili e storiche.
+\begin{itemize}
+    \item \textbf{Dati:} Nodi (Persone, Brand, Stili) e Archi (Relazioni: \texttt{TRAINED\_BY}, \texttt{INSPIRED\_BY}).
+    \item \textbf{Funzione:} Abilita il ragionamento transitivo: \textit{Consigliami questo sarto perché il suo maestro ha lavorato per Marinella}.
+\end{itemize}
+
+\section{Layer 2: The Agentic Swarm (Il Ragionamento)}
+
+L'orchestrazione è gestita da \textbf{LangGraph}, che coordina agenti specializzati:
+
+\begin{enumerate}
+    \item \textbf{Intent Router:} Classifica la richiesta dell'utente e attiva l'agente giusto.
+    \item \textbf{Vector Agent:} Interroga Qdrant per similarità estetica.
+    \item \textbf{Historian Agent:} Interroga Neo4j per connessioni storiche.
+    \item \textbf{Metadata Agent:} Interroga Postgres per filtri rigidi (prezzo, apertura).
+    \item \textbf{The Curator:} Sintetizza i risultati e genera la risposta finale con il tono di voce del brand.
+\end{enumerate}
+
+\section{Layer 3: Ingestion \& Human-in-the-Loop}
+
+La qualità del dato è garantita da una pipeline ibrida AI-Umana.
+\begin{enumerate}
+    \item \textbf{Scraper \& Vision AI:} Scaricano dati e analizzano foto per generare bozze.
+    \item \textbf{Curator Dashboard:} Un'interfaccia dove gli esperti umani validano i dati prima della pubblicazione. Nessun dato entra nel sistema senza il marchio \textit{Vetted}.
+\end{enumerate}
+
+\section{Stack Tecnologico: Hybrid Performance}
+
+Adottiamo una strategia \textit{Brain \& Muscle}:
+\begin{itemize}
+    \item \textbf{Python (Brain):} Usato per la logica AI (FastAPI, LangGraph) per la massima flessibilità.
+    \item \textbf{Rust (Muscle):} Usato per i motori di calcolo pesanti (Qdrant, Pydantic Core) per la massima velocità e risparmio costi cloud.
+\end{itemize}

@@ -1,0 +1,99 @@
+[tool.poetry]
+name = "arbor-backend"
+version = "1.0.0"
+description = "A.R.B.O.R. Enterprise - Contextual Discovery Engine Backend"
+authors = ["ARBOR Team"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+# Web Framework
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+pydantic = "^2.9.0"
+pydantic-settings = "^2.6.0"
+
+# Database - PostgreSQL
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+asyncpg = "^0.30.0"
+alembic = "^1.14.0"
+geoalchemy2 = "^0.15.0"
+
+# Database - Qdrant
+qdrant-client = "^1.12.0"
+
+# Database - Neo4j
+neo4j = "^5.26.0"
+
+# Database - Redis
+redis = "^5.2.0"
+
+# AI / LLM
+langchain = "^0.3.7"
+langchain-openai = "^0.2.9"
+langgraph = "^0.2.0"
+litellm = "^1.51.0"
+openai = "^1.55.0"
+
+# HTTP & Networking
+httpx = "^0.28.0"
+tenacity = "^9.0.0"
+
+# Auth
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+
+# Observability
+opentelemetry-api = "^1.28.0"
+opentelemetry-sdk = "^1.28.0"
+opentelemetry-instrumentation-fastapi = "^0.49b0"
+opentelemetry-exporter-otlp = "^1.28.0"
+langfuse = "^2.0.0"
+prometheus-client = "^0.21.0"
+
+# Events
+aiokafka = "^0.12.0"
+
+# ML
+cohere = "^5.0.0"
+
+# Rate Limiting
+slowapi = "^0.1.9"
+
+# Temporal
+temporalio = "^1.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+black = "^24.10.0"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+httpx = "^0.28.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

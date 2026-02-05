@@ -1,0 +1,732 @@
+2026-02-04 14:15:09,537 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+INFO:sqlalchemy.engine.Engine:select pg_catalog.version()
+2026-02-04 14:15:09,537 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:09,965 INFO sqlalchemy.engine.Engine select current_schema()
+INFO:sqlalchemy.engine.Engine:select current_schema()
+2026-02-04 14:15:09,965 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:10,394 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+INFO:sqlalchemy.engine.Engine:show standard_conforming_strings
+2026-02-04 14:15:10,394 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:10,715 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:15:10,719 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.entity_type, arbor_enrichments.source_id 
+FROM arbor_enrichments
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.entity_type, arbor_enrichments.source_id 
+FROM arbor_enrichments
+2026-02-04 14:15:10,719 INFO sqlalchemy.engine.Engine [generated in 0.00011s] ()
+INFO:sqlalchemy.engine.Engine:[generated in 0.00011s] ()
+INFO:__main__:Found 50 existing enrichments
+2026-02-04 14:15:13,218 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+INFO:sqlalchemy.engine.Engine:select pg_catalog.version()
+2026-02-04 14:15:13,218 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:14,029 INFO sqlalchemy.engine.Engine select current_schema()
+INFO:sqlalchemy.engine.Engine:select current_schema()
+2026-02-04 14:15:14,029 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:14,855 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+INFO:sqlalchemy.engine.Engine:show standard_conforming_strings
+2026-02-04 14:15:14,855 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO:sqlalchemy.engine.Engine:[raw sql] ()
+2026-02-04 14:15:15,444 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:15:15,447 INFO sqlalchemy.engine.Engine SELECT brands.id, brands.name, brands.slug, brands.category, brands.country, brands.website, brands.instagram, brands.email, brands.phone, brands.description, brands.specialty, brands.notes, brands.is_featured, brands.is_active, brands.priority, brands.created_at, brands.updated_at, brands.created_by, brands.gender, brands.style, brands.area, brands.neighborhood, brands.contact_person, brands.visited, brands.rating, brands.retailer, brands.venue, brands.city, brands.region, brands.address, brands.maps_url, brands.latitude, brands.longitude 
+FROM brands 
+WHERE brands.is_active = true
+INFO:sqlalchemy.engine.Engine:SELECT brands.id, brands.name, brands.slug, brands.category, brands.country, brands.website, brands.instagram, brands.email, brands.phone, brands.description, brands.specialty, brands.notes, brands.is_featured, brands.is_active, brands.priority, brands.created_at, brands.updated_at, brands.created_by, brands.gender, brands.style, brands.area, brands.neighborhood, brands.contact_person, brands.visited, brands.rating, brands.retailer, brands.venue, brands.city, brands.region, brands.address, brands.maps_url, brands.latitude, brands.longitude 
+FROM brands 
+WHERE brands.is_active = true
+2026-02-04 14:15:15,447 INFO sqlalchemy.engine.Engine [generated in 0.00010s] ()
+INFO:sqlalchemy.engine.Engine:[generated in 0.00010s] ()
+2026-02-04 14:15:16,232 INFO sqlalchemy.engine.Engine SELECT venues.id, venues.name, venues.slug, venues.category, venues.city, venues.region, venues.country, venues.address, venues.maps_url, venues.latitude, venues.longitude, venues.website, venues.instagram, venues.email, venues.phone, venues.contact_person, venues.description, venues.notes, venues.gender, venues.style, venues.verified, venues.rating, venues.price_range, venues.is_featured, venues.is_active, venues.priority, venues.created_at, venues.updated_at, venues.created_by, venues.brand 
+FROM venues 
+WHERE venues.is_active = true
+INFO:sqlalchemy.engine.Engine:SELECT venues.id, venues.name, venues.slug, venues.category, venues.city, venues.region, venues.country, venues.address, venues.maps_url, venues.latitude, venues.longitude, venues.website, venues.instagram, venues.email, venues.phone, venues.contact_person, venues.description, venues.notes, venues.gender, venues.style, venues.verified, venues.rating, venues.price_range, venues.is_featured, venues.is_active, venues.priority, venues.created_at, venues.updated_at, venues.created_by, venues.brand 
+FROM venues 
+WHERE venues.is_active = true
+2026-02-04 14:15:16,232 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ()
+INFO:sqlalchemy.engine.Engine:[generated in 0.00017s] ()
+INFO:__main__:Found 88 active brands, 116 active venues
+INFO:__main__:Need to enrich: 38 brands, 116 venues
+[92m14:15:16 - LiteLLM Router:INFO[0m: router.py:707 - Routing strategy: latency-based-routing
+INFO:LiteLLM Router:Routing strategy: latency-based-routing
+INFO:app.llm.gateway:LLM Gateway initialized: ['fast', 'primary', 'simple', 'vision']
+INFO:app.llm.gateway:Cohere initialized: embedding=embed-v4.0, reranking=rerank-v4.0-pro
+INFO:__main__:[1/38] Enriching brand: Osmotique (id=12)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_12
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/osmotique.it: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_12 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_12 with calibrated engine
+2026-02-04 14:15:17,483 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:15:17,483 INFO sqlalchemy.engine.Engine [generated in 0.00010s] (5,)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00010s] (5,)
+2026-02-04 14:15:17,739 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:15:17,739 INFO sqlalchemy.engine.Engine [cached since 0.2557s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 0.2557s ago] (50,)
+[92m14:15:17 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:15:17 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:15:37 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_12
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_12
+2026-02-04 14:15:37,624 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:15:37,625 INFO sqlalchemy.engine.Engine [generated in 0.00065s] ('brand', 12)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00065s] ('brand', 12)
+2026-02-04 14:15:37,849 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:15:37,850 INFO sqlalchemy.engine.Engine [generated in 0.00021s] (UUID('4d6e223e-b308-4f49-abcb-b986d31ae435'), 'brand', 12, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 40, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (672 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:15:37.624123+00:00"}', '["mid-range", "accessible", "unclassified", "mystery", "undefined"]', None, False)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00021s] (UUID('4d6e223e-b308-4f49-abcb-b986d31ae435'), 'brand', 12, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 40, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (672 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:15:37.624123+00:00"}', '["mid-range", "accessible", "unclassified", "mystery", "undefined"]', None, False)
+2026-02-04 14:15:38,066 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:15:38,066 INFO sqlalchemy.engine.Engine [generated in 0.00019s] (UUID('2a76cc3d-043a-4f1a-a65d-e1747a43680c'), 'brand', 12, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 40, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (672 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:15:37.624123+00:00"}', '{"name": "Osmotique", "category": null, "sources_used": ["database"], "fact_text": "Entity: Osmotique\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00019s] (UUID('2a76cc3d-043a-4f1a-a65d-e1747a43680c'), 'brand', 12, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 40, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (672 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:15:37.624123+00:00"}', '{"name": "Osmotique", "category": null, "sources_used": ["database"], "fact_text": "Entity: Osmotique\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:15:38,281 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_12: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[2/38] Enriching brand: Derek Rose London (id=13)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_13
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/derekroselondon: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_13 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_13 with calibrated engine
+2026-02-04 14:15:39,178 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:15:39,179 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:15:39,179 INFO sqlalchemy.engine.Engine [cached since 21.7s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 21.7s ago] (5,)
+2026-02-04 14:15:39,393 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:15:39,393 INFO sqlalchemy.engine.Engine [cached since 21.91s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 21.91s ago] (50,)
+[92m14:15:39 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:15:39 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:16:26 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_13
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_13
+2026-02-04 14:16:26,323 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:16:26,323 INFO sqlalchemy.engine.Engine [cached since 48.7s ago] ('brand', 13)
+INFO:sqlalchemy.engine.Engine:[cached since 48.7s ago] ('brand', 13)
+2026-02-04 14:16:26,432 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:16:26,432 INFO sqlalchemy.engine.Engine [cached since 48.58s ago] (UUID('62a6a34f-822c-44bc-a887-9508e1275331'), 'brand', 13, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (714 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:16:26.322676+00:00"}', '["London-based", "Moderate Price", "Uncategorized", "Insufficient Data", "Entity"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 48.58s ago] (UUID('62a6a34f-822c-44bc-a887-9508e1275331'), 'brand', 13, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (714 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:16:26.322676+00:00"}', '["London-based", "Moderate Price", "Uncategorized", "Insufficient Data", "Entity"]', None, False)
+2026-02-04 14:16:26,541 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:16:26,541 INFO sqlalchemy.engine.Engine [cached since 48.47s ago] (UUID('2c995725-6302-4a97-b282-acb4cafe4591'), 'brand', 13, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (714 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:16:26.322676+00:00"}', '{"name": "Derek Rose London", "category": null, "sources_used": ["database"], "fact_text": "Entity: Derek Rose London\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 48.47s ago] (UUID('2c995725-6302-4a97-b282-acb4cafe4591'), 'brand', 13, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (714 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:16:26.322676+00:00"}', '{"name": "Derek Rose London", "category": null, "sources_used": ["database"], "fact_text": "Entity: Derek Rose London\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:16:26,649 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_13: confidence=0.22, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[3/38] Enriching brand: Drumohr (id=14)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_14
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/drumohr: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_14 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_14 with calibrated engine
+2026-02-04 14:16:27,440 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:16:27,441 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:16:27,441 INFO sqlalchemy.engine.Engine [cached since 69.96s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 69.96s ago] (5,)
+2026-02-04 14:16:27,656 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:16:27,657 INFO sqlalchemy.engine.Engine [cached since 70.17s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 70.17s ago] (50,)
+[92m14:16:27 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:16:27 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:17:28 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:17:28 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:18:29 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:18:29 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:19:18 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_14
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_14
+2026-02-04 14:19:18,674 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:19:18,674 INFO sqlalchemy.engine.Engine [cached since 221s ago] ('brand', 14)
+INFO:sqlalchemy.engine.Engine:[cached since 221s ago] ('brand', 14)
+2026-02-04 14:19:18,783 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:19:18,784 INFO sqlalchemy.engine.Engine [cached since 220.9s ago] (UUID('cc7dbafe-a2e0-4dbd-84fe-0f11d87310cf'), 'brand', 14, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:19:18.674005+00:00"}', '["uncategorized", "moderate-price", "insufficient-data", "entity-drumohr", "price-tier-2"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 220.9s ago] (UUID('cc7dbafe-a2e0-4dbd-84fe-0f11d87310cf'), 'brand', 14, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:19:18.674005+00:00"}', '["uncategorized", "moderate-price", "insufficient-data", "entity-drumohr", "price-tier-2"]', None, False)
+2026-02-04 14:19:18,893 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:19:18,893 INFO sqlalchemy.engine.Engine [cached since 220.8s ago] (UUID('966878e0-de3b-468a-98f7-965e426650f1'), 'brand', 14, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:19:18.674005+00:00"}', '{"name": "Drumohr", "category": null, "sources_used": ["database"], "fact_text": "Entity: Drumohr\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 220.8s ago] (UUID('966878e0-de3b-468a-98f7-965e426650f1'), 'brand', 14, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:19:18.674005+00:00"}', '{"name": "Drumohr", "category": null, "sources_used": ["database"], "fact_text": "Entity: Drumohr\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:19:19,003 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_14: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[4/38] Enriching brand: Taylor Old Bond Street (id=15)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_15
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/tayloroldbondst: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_15 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_15 with calibrated engine
+2026-02-04 14:19:19,787 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:19:19,787 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:19:19,787 INFO sqlalchemy.engine.Engine [cached since 242.3s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 242.3s ago] (5,)
+2026-02-04 14:19:20,003 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:19:20,003 INFO sqlalchemy.engine.Engine [cached since 242.5s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 242.5s ago] (50,)
+[92m14:19:20 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:19:20 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:20:10 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_15
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_15
+2026-02-04 14:20:10,838 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:20:10,840 INFO sqlalchemy.engine.Engine [cached since 273.2s ago] ('brand', 15)
+INFO:sqlalchemy.engine.Engine:[cached since 273.2s ago] ('brand', 15)
+2026-02-04 14:20:10,948 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:20:10,948 INFO sqlalchemy.engine.Engine [cached since 273.1s ago] (UUID('a167d4f4-79ea-4af4-a0eb-8af0c0bbde98'), 'brand', 15, '{"dimensions": {"formality": 75, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 45, "modernity": 20} ... (646 characters truncated) ... tsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:20:10.837868+00:00"}', '["Heritage", "London-implied", "Traditional", "Mid-range", "Classic"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 273.1s ago] (UUID('a167d4f4-79ea-4af4-a0eb-8af0c0bbde98'), 'brand', 15, '{"dimensions": {"formality": 75, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 45, "modernity": 20} ... (646 characters truncated) ... tsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:20:10.837868+00:00"}', '["Heritage", "London-implied", "Traditional", "Mid-range", "Classic"]', None, False)
+2026-02-04 14:20:11,059 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:20:11,059 INFO sqlalchemy.engine.Engine [cached since 273s ago] (UUID('34e7bbcd-32d2-44fa-9c17-c2dbf511dcff'), 'brand', 15, '["Low confidence on 3 dimensions", "Only 1 data source available", "Low confidence on: craftsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"]', 3.3, '{"dimensions": {"formality": 75, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 45, "modernity": 20} ... (646 characters truncated) ... tsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:20:10.837868+00:00"}', '{"name": "Taylor Old Bond Street", "category": null, "sources_used": ["database"], "fact_text": "Entity: Taylor Old Bond Street\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 273s ago] (UUID('34e7bbcd-32d2-44fa-9c17-c2dbf511dcff'), 'brand', 15, '["Low confidence on 3 dimensions", "Only 1 data source available", "Low confidence on: craftsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"]', 3.3, '{"dimensions": {"formality": 75, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 45, "modernity": 20} ... (646 characters truncated) ... tsmanship, atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:20:10.837868+00:00"}', '{"name": "Taylor Old Bond Street", "category": null, "sources_used": ["database"], "fact_text": "Entity: Taylor Old Bond Street\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:20:11,170 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_15: confidence=0.34, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[5/38] Enriching brand: Manifattura Ceccarelli (id=16)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_16
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/manifatturaceccarelli: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_16 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_16 with calibrated engine
+2026-02-04 14:20:11,968 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:20:11,968 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:20:11,968 INFO sqlalchemy.engine.Engine [cached since 294.5s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 294.5s ago] (5,)
+2026-02-04 14:20:12,183 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:20:12,183 INFO sqlalchemy.engine.Engine [cached since 294.7s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 294.7s ago] (50,)
+[92m14:20:12 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:20:12 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:21:00 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_16
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_16
+2026-02-04 14:21:00,315 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:21:00,315 INFO sqlalchemy.engine.Engine [cached since 322.7s ago] ('brand', 16)
+INFO:sqlalchemy.engine.Engine:[cached since 322.7s ago] ('brand', 16)
+2026-02-04 14:21:00,424 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:21:00,424 INFO sqlalchemy.engine.Engine [cached since 322.6s ago] (UUID('4b5f8e78-10b4-467e-b9e8-35df60d23f55'), 'brand', 16, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:00.314162+00:00"}', '["moderate price", "Italian name", "uncategorized", "insufficient data", "mystery entity"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 322.6s ago] (UUID('4b5f8e78-10b4-467e-b9e8-35df60d23f55'), 'brand', 16, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:00.314162+00:00"}', '["moderate price", "Italian name", "uncategorized", "insufficient data", "mystery entity"]', None, False)
+2026-02-04 14:21:00,533 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:21:00,533 INFO sqlalchemy.engine.Engine [cached since 322.5s ago] (UUID('9a5c562d-9ad3-4539-a4d3-6502ad0a2f1f'), 'brand', 16, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:00.314162+00:00"}', '{"name": "Manifattura Ceccarelli", "category": null, "sources_used": ["database"], "fact_text": "Entity: Manifattura Ceccarelli\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 322.5s ago] (UUID('9a5c562d-9ad3-4539-a4d3-6502ad0a2f1f'), 'brand', 16, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (736 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:00.314162+00:00"}', '{"name": "Manifattura Ceccarelli", "category": null, "sources_used": ["database"], "fact_text": "Entity: Manifattura Ceccarelli\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:21:00,643 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_16: confidence=0.17, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[6/38] Enriching brand: Stetson (id=17)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_17
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/stetsonusa: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_17 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_17 with calibrated engine
+2026-02-04 14:21:01,663 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:21:01,663 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:21:01,663 INFO sqlalchemy.engine.Engine [cached since 344.2s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 344.2s ago] (5,)
+2026-02-04 14:21:01,879 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:21:01,879 INFO sqlalchemy.engine.Engine [cached since 344.4s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 344.4s ago] (50,)
+[92m14:21:01 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:21:01 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:21:32 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_17
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_17
+2026-02-04 14:21:32,888 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:21:32,888 INFO sqlalchemy.engine.Engine [cached since 355.3s ago] ('brand', 17)
+INFO:sqlalchemy.engine.Engine:[cached since 355.3s ago] ('brand', 17)
+2026-02-04 14:21:32,998 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:21:32,999 INFO sqlalchemy.engine.Engine [cached since 355.1s ago] (UUID('37b1c4c4-05b7-479d-907e-d62006e605d4'), 'brand', 17, '{"dimensions": {"formality": 45, "craftsmanship": 65, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 15} ... (618 characters truncated) ... idence on: atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:32.888492+00:00"}', '["Western", "Heritage", "Americana", "Rugged", "Classic", "Durable", "Iconic"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 355.1s ago] (UUID('37b1c4c4-05b7-479d-907e-d62006e605d4'), 'brand', 17, '{"dimensions": {"formality": 45, "craftsmanship": 65, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 15} ... (618 characters truncated) ... idence on: atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:32.888492+00:00"}', '["Western", "Heritage", "Americana", "Rugged", "Classic", "Durable", "Iconic"]', None, False)
+2026-02-04 14:21:33,109 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:21:33,109 INFO sqlalchemy.engine.Engine [cached since 355s ago] (UUID('0fb190ca-6222-45cb-911e-8a1e90214b86'), 'brand', 17, '["Only 1 data source available", "Low confidence on: atmosphere, service_quality", "Insufficient data sources (only 1)"]', 2.7, '{"dimensions": {"formality": 45, "craftsmanship": 65, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 15} ... (618 characters truncated) ... idence on: atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:32.888492+00:00"}', '{"name": "Stetson", "category": null, "sources_used": ["database"], "fact_text": "Entity: Stetson\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 355s ago] (UUID('0fb190ca-6222-45cb-911e-8a1e90214b86'), 'brand', 17, '["Only 1 data source available", "Low confidence on: atmosphere, service_quality", "Insufficient data sources (only 1)"]', 2.7, '{"dimensions": {"formality": 45, "craftsmanship": 65, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 15} ... (618 characters truncated) ... idence on: atmosphere, service_quality", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:21:32.888492+00:00"}', '{"name": "Stetson", "category": null, "sources_used": ["database"], "fact_text": "Entity: Stetson\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:21:33,222 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_17: confidence=0.51, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[7/38] Enriching brand: Drake’s (id=18)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_18
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/drakesdiary: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_18 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_18 with calibrated engine
+2026-02-04 14:21:34,007 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:21:34,007 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:21:34,008 INFO sqlalchemy.engine.Engine [cached since 376.5s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 376.5s ago] (5,)
+2026-02-04 14:21:34,222 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:21:34,223 INFO sqlalchemy.engine.Engine [cached since 376.7s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 376.7s ago] (50,)
+[92m14:21:34 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:21:34 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:22:08 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_18
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_18
+2026-02-04 14:22:08,839 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:22:08,841 INFO sqlalchemy.engine.Engine [cached since 391.2s ago] ('brand', 18)
+INFO:sqlalchemy.engine.Engine:[cached since 391.2s ago] ('brand', 18)
+2026-02-04 14:22:08,949 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:22:08,949 INFO sqlalchemy.engine.Engine [cached since 391.1s ago] (UUID('5d2f054f-1ba9-46cb-b431-81282bc206b1'), 'brand', 18, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (702 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:08.839288+00:00"}', '["mid-range", "accessible", "moderate-price", "uncategorized", "ambiguous"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 391.1s ago] (UUID('5d2f054f-1ba9-46cb-b431-81282bc206b1'), 'brand', 18, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (702 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:08.839288+00:00"}', '["mid-range", "accessible", "moderate-price", "uncategorized", "ambiguous"]', None, False)
+2026-02-04 14:22:09,057 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:22:09,057 INFO sqlalchemy.engine.Engine [cached since 391s ago] (UUID('599fb832-d2e1-4aa4-8550-283508185848'), 'brand', 18, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (702 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:08.839288+00:00"}', '{"name": "Drake\\u2019s", "category": null, "sources_used": ["database"], "fact_text": "Entity: Drake\\u2019s\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 391s ago] (UUID('599fb832-d2e1-4aa4-8550-283508185848'), 'brand', 18, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (702 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:08.839288+00:00"}', '{"name": "Drake\\u2019s", "category": null, "sources_used": ["database"], "fact_text": "Entity: Drake\\u2019s\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:22:09,168 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_18: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[8/38] Enriching brand: Fortela (id=19)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_19
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/fortela_: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_19 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_19 with calibrated engine
+2026-02-04 14:22:09,954 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:22:09,954 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:22:09,954 INFO sqlalchemy.engine.Engine [cached since 412.5s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 412.5s ago] (5,)
+2026-02-04 14:22:10,169 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:22:10,169 INFO sqlalchemy.engine.Engine [cached since 412.7s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 412.7s ago] (50,)
+[92m14:22:10 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:22:10 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:22:34 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_19
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_19
+2026-02-04 14:22:34,531 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:22:34,531 INFO sqlalchemy.engine.Engine [cached since 416.9s ago] ('brand', 19)
+INFO:sqlalchemy.engine.Engine:[cached since 416.9s ago] ('brand', 19)
+2026-02-04 14:22:34,639 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:22:34,639 INFO sqlalchemy.engine.Engine [cached since 416.8s ago] (UUID('50a63c5f-adbc-4ba7-91ae-67d47a03ecfd'), 'brand', 19, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (716 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:34.531191+00:00"}', '["mid-range", "accessible", "moderate-price", "unspecified-category", "tier-2-pricing"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 416.8s ago] (UUID('50a63c5f-adbc-4ba7-91ae-67d47a03ecfd'), 'brand', 19, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (716 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:34.531191+00:00"}', '["mid-range", "accessible", "moderate-price", "unspecified-category", "tier-2-pricing"]', None, False)
+2026-02-04 14:22:34,747 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:22:34,747 INFO sqlalchemy.engine.Engine [cached since 416.7s ago] (UUID('3849a82f-32f1-4a70-b3aa-8ac5645ad287'), 'brand', 19, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (716 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:34.531191+00:00"}', '{"name": "Fortela", "category": null, "sources_used": ["database"], "fact_text": "Entity: Fortela\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 416.7s ago] (UUID('3849a82f-32f1-4a70-b3aa-8ac5645ad287'), 'brand', 19, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (716 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:22:34.531191+00:00"}', '{"name": "Fortela", "category": null, "sources_used": ["database"], "fact_text": "Entity: Fortela\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:22:34,866 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_19: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[9/38] Enriching brand: Eight & Bob (id=20)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_20
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/eightandbob: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_20 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_20 with calibrated engine
+2026-02-04 14:22:35,649 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:22:35,650 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:22:35,650 INFO sqlalchemy.engine.Engine [cached since 438.2s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 438.2s ago] (5,)
+2026-02-04 14:22:35,863 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:22:35,863 INFO sqlalchemy.engine.Engine [cached since 438.4s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 438.4s ago] (50,)
+[92m14:22:35 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:22:35 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:23:28 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_20
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_20
+2026-02-04 14:23:28,861 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:23:28,861 INFO sqlalchemy.engine.Engine [cached since 471.2s ago] ('brand', 20)
+INFO:sqlalchemy.engine.Engine:[cached since 471.2s ago] ('brand', 20)
+2026-02-04 14:23:28,971 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:23:28,972 INFO sqlalchemy.engine.Engine [cached since 471.1s ago] (UUID('a6628dbc-8b01-41e7-87c8-40371bee0aac'), 'brand', 20, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (726 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:23:28.860709+00:00"}', '["mid-range", "uncategorized", "accessible", "moderate-price", "undefined-sector", "unknown-entity"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 471.1s ago] (UUID('a6628dbc-8b01-41e7-87c8-40371bee0aac'), 'brand', 20, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (726 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:23:28.860709+00:00"}', '["mid-range", "uncategorized", "accessible", "moderate-price", "undefined-sector", "unknown-entity"]', None, False)
+2026-02-04 14:23:29,081 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:23:29,081 INFO sqlalchemy.engine.Engine [cached since 471s ago] (UUID('eb9235c7-4da8-4387-9751-57522e8acbf4'), 'brand', 20, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (726 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:23:28.860709+00:00"}', '{"name": "Eight & Bob", "category": null, "sources_used": ["database"], "fact_text": "Entity: Eight & Bob\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 471s ago] (UUID('eb9235c7-4da8-4387-9751-57522e8acbf4'), 'brand', 20, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (726 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:23:28.860709+00:00"}', '{"name": "Eight & Bob", "category": null, "sources_used": ["database"], "fact_text": "Entity: Eight & Bob\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:23:29,190 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_20: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[10/38] Enriching brand: Globe-Trotter (id=21)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_21
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/globe_trotter1897: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_21 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_21 with calibrated engine
+2026-02-04 14:23:29,983 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:23:29,983 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:23:29,983 INFO sqlalchemy.engine.Engine [cached since 492.5s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 492.5s ago] (5,)
+2026-02-04 14:23:30,199 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:23:30,199 INFO sqlalchemy.engine.Engine [cached since 492.7s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 492.7s ago] (50,)
+[92m14:23:30 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:23:30 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:24:14 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_21
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_21
+2026-02-04 14:24:14,225 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:24:14,225 INFO sqlalchemy.engine.Engine [cached since 516.6s ago] ('brand', 21)
+INFO:sqlalchemy.engine.Engine:[cached since 516.6s ago] ('brand', 21)
+2026-02-04 14:24:14,333 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:24:14,333 INFO sqlalchemy.engine.Engine [cached since 516.5s ago] (UUID('a5ea373b-698b-4047-b649-1c90984b7abd'), 'brand', 21, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 50} ... (720 characters truncated) ... atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:14.224496+00:00"}', '["moderate-price", "travel-implied", "accessible", "undefined-category", "mid-range"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 516.5s ago] (UUID('a5ea373b-698b-4047-b649-1c90984b7abd'), 'brand', 21, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 50} ... (720 characters truncated) ... atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:14.224496+00:00"}', '["moderate-price", "travel-implied", "accessible", "undefined-category", "mid-range"]', None, False)
+2026-02-04 14:24:14,507 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:24:14,507 INFO sqlalchemy.engine.Engine [cached since 516.4s ago] (UUID('586d1c1f-e868-4514-a338-9979fc9b63ec'), 'brand', 21, '["Low confidence on 5 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"]', 4.5, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 50} ... (720 characters truncated) ... atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:14.224496+00:00"}', '{"name": "Globe-Trotter", "category": null, "sources_used": ["database"], "fact_text": "Entity: Globe-Trotter\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 516.4s ago] (UUID('586d1c1f-e868-4514-a338-9979fc9b63ec'), 'brand', 21, '["Low confidence on 5 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"]', 4.5, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 35, "atmosphere": 50, "service_quality": 50, "exclusivity": 30, "modernity": 50} ... (720 characters truncated) ... atmosphere, service_quality, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:14.224496+00:00"}', '{"name": "Globe-Trotter", "category": null, "sources_used": ["database"], "fact_text": "Entity: Globe-Trotter\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:24:14,616 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_21: confidence=0.20, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[11/38] Enriching brand: Zero Settanta Studio (id=22)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_22
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/zerosettanta_studio: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_22 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_22 with calibrated engine
+2026-02-04 14:24:15,426 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:24:15,426 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:15,426 INFO sqlalchemy.engine.Engine [cached since 537.9s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 537.9s ago] (5,)
+2026-02-04 14:24:15,641 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:15,641 INFO sqlalchemy.engine.Engine [cached since 538.2s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 538.2s ago] (50,)
+[92m14:24:15 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:24:15 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:24:31 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_22
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_22
+2026-02-04 14:24:31,360 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:24:31,360 INFO sqlalchemy.engine.Engine [cached since 533.7s ago] ('brand', 22)
+INFO:sqlalchemy.engine.Engine:[cached since 533.7s ago] ('brand', 22)
+2026-02-04 14:24:31,468 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:24:31,469 INFO sqlalchemy.engine.Engine [cached since 533.6s ago] (UUID('50abc287-0845-4a57-b446-b9b80de58a82'), 'brand', 22, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (706 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:31.359240+00:00"}', '["mid-range", "studio", "unspecified-category", "italian-named", "accessible"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 533.6s ago] (UUID('50abc287-0845-4a57-b446-b9b80de58a82'), 'brand', 22, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (706 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:31.359240+00:00"}', '["mid-range", "studio", "unspecified-category", "italian-named", "accessible"]', None, False)
+2026-02-04 14:24:31,578 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:24:31,578 INFO sqlalchemy.engine.Engine [cached since 533.5s ago] (UUID('abc46439-a8f3-4f1c-a59f-f0eb6d1bcb13'), 'brand', 22, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (706 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:31.359240+00:00"}', '{"name": "Zero Settanta Studio", "category": null, "sources_used": ["database"], "fact_text": "Entity: Zero Settanta Studio\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 533.5s ago] (UUID('abc46439-a8f3-4f1c-a59f-f0eb6d1bcb13'), 'brand', 22, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (706 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:31.359240+00:00"}', '{"name": "Zero Settanta Studio", "category": null, "sources_used": ["database"], "fact_text": "Entity: Zero Settanta Studio\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:24:31,686 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_22: confidence=0.15, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[12/38] Enriching brand: Foxford (id=23)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_23
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/foxfordhome: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_23 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_23 with calibrated engine
+2026-02-04 14:24:32,485 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:24:32,485 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:32,485 INFO sqlalchemy.engine.Engine [cached since 555s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 555s ago] (5,)
+2026-02-04 14:24:32,700 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:32,700 INFO sqlalchemy.engine.Engine [cached since 555.2s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 555.2s ago] (50,)
+[92m14:24:32 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:24:32 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+[92m14:24:53 - LiteLLM Router:INFO[0m: router.py:1479 - litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:LiteLLM Router:litellm.acompletion(model=gemini/gemini-3-pro-preview)[32m 200 OK[0m
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L4] Validating confidence for brand_23
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L5] Persisting enrichment for brand_23
+2026-02-04 14:24:53,678 INFO sqlalchemy.engine.Engine SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_enrichments.id, arbor_enrichments.entity_type, arbor_enrichments.source_id, arbor_enrichments.vibe_dna, arbor_enrichments.tags, arbor_enrichments.embedding_id, arbor_enrichments.neo4j_synced, arbor_enrichments.created_at, arbor_enrichments.updated_at 
+FROM arbor_enrichments 
+WHERE arbor_enrichments.entity_type = $1::VARCHAR AND arbor_enrichments.source_id = $2::INTEGER
+2026-02-04 14:24:53,679 INFO sqlalchemy.engine.Engine [cached since 556.1s ago] ('brand', 23)
+INFO:sqlalchemy.engine.Engine:[cached since 556.1s ago] ('brand', 23)
+2026-02-04 14:24:53,786 INFO sqlalchemy.engine.Engine INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_enrichments (id, entity_type, source_id, vibe_dna, tags, embedding_id, neo4j_synced) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::JSONB, $6::VARCHAR, $7::BOOLEAN) RETURNING arbor_enrichments.created_at, arbor_enrichments.updated_at
+2026-02-04 14:24:53,786 INFO sqlalchemy.engine.Engine [cached since 555.9s ago] (UUID('08f326ee-b73b-456c-972e-bb8bb5203335'), 'brand', 23, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (692 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:53.678340+00:00"}', '["mid-range", "moderate-price", "unspecified-category", "general", "accessible"]', None, False)
+INFO:sqlalchemy.engine.Engine:[cached since 555.9s ago] (UUID('08f326ee-b73b-456c-972e-bb8bb5203335'), 'brand', 23, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (692 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:53.678340+00:00"}', '["mid-range", "moderate-price", "unspecified-category", "general", "accessible"]', None, False)
+2026-02-04 14:24:53,895 INFO sqlalchemy.engine.Engine INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO arbor_review_queue (id, entity_type, source_id, reasons, priority, scored_vibe_snapshot, fact_sheet_snapshot, status, reviewer, reviewed_at, reviewer_notes) VALUES ($1::UUID, $2::VARCHAR, $3::INTEGER, $4::JSONB, $5::FLOAT, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::VARCHAR, $10::TIMESTAMP WITH TIME ZONE, $11::VARCHAR) RETURNING arbor_review_queue.created_at
+2026-02-04 14:24:53,895 INFO sqlalchemy.engine.Engine [cached since 555.8s ago] (UUID('5cbd993f-9a66-4f55-9a4e-31981fdce561'), 'brand', 23, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (692 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:53.678340+00:00"}', '{"name": "Foxford", "category": null, "sources_used": ["database"], "fact_text": "Entity: Foxford\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+INFO:sqlalchemy.engine.Engine:[cached since 555.8s ago] (UUID('5cbd993f-9a66-4f55-9a4e-31981fdce561'), 'brand', 23, '["Low confidence on 6 dimensions", "Only 1 data source available", "Low confidence on: formality, craftsmanship, atmosphere, service_quality, exclusivity, modernity", "Insufficient data sources (only 1)"]', 5.1, '{"dimensions": {"formality": 50, "craftsmanship": 50, "price_value": 45, "atmosphere": 50, "service_quality": 50, "exclusivity": 50, "modernity": 50} ... (692 characters truncated) ... ervice_quality, exclusivity, modernity", "Insufficient data sources (only 1)"], "calibrated": false, "scored_at": "2026-02-04T13:24:53.678340+00:00"}', '{"name": "Foxford", "category": null, "sources_used": ["database"], "fact_text": "Entity: Foxford\\nCategory: None\\nPrice points: $$\\nPrice tier: $$"}', 'needs_review', None, None, None)
+2026-02-04 14:24:54,003 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:app.ingestion.pipeline.enrichment_orchestrator:Enrichment complete for brand_23: confidence=0.16, review=YES, calibrated=False
+ERROR:__main__:  \u2717 Exception: 'EnrichmentResult' object has no attribute 'overall_confidence'
+INFO:__main__:[13/38] Enriching brand: Studio Donegal (id=24)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L1] Collecting sources for brand_24
+WARNING:app.ingestion.scrapers.instagram:oEmbed failed for https://www.instagram.com/studiodonegal: 301
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L2] Analyzing facts for brand_24 (1 sources)
+INFO:app.ingestion.pipeline.enrichment_orchestrator:[L3] Scoring brand_24 with calibrated engine
+2026-02-04 14:24:54,757 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2026-02-04 14:24:54,758 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:54,758 INFO sqlalchemy.engine.Engine [cached since 577.3s ago] (5,)
+INFO:sqlalchemy.engine.Engine:[cached since 577.3s ago] (5,)
+2026-02-04 14:24:54,972 INFO sqlalchemy.engine.Engine SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT arbor_gold_standard.id, arbor_gold_standard.entity_type, arbor_gold_standard.source_id, arbor_gold_standard.ground_truth_scores, arbor_gold_standard.ground_truth_tags, arbor_gold_standard.fact_sheet_snapshot, arbor_gold_standard.curator_notes, arbor_gold_standard.curated_by, arbor_gold_standard.created_at, arbor_gold_standard.updated_at 
+FROM arbor_gold_standard 
+ LIMIT $1::INTEGER
+2026-02-04 14:24:54,972 INFO sqlalchemy.engine.Engine [cached since 577.5s ago] (50,)
+INFO:sqlalchemy.engine.Engine:[cached since 577.5s ago] (50,)
+[92m14:24:55 - LiteLLM Router:INFO[0m: router.py:7515 - get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+INFO:LiteLLM Router:get_available_deployment for model: primary, Selected deployment: {'model_name': 'primary', 'litellm_params': {'api_key': 'AI**********', 'tpm': 200000, 'rpm': 2000, 'use_in_pass_through': False, 'use_litellm_proxy': False, 'merge_reasoning_content_in_choices': False, 'model': 'gemini/gemini-3-pro-preview'}, 'model_info': {'id': '17903002fcde56aa3cc3cac142f8c6931082df4a0600ad6d10a311229aaccc6a', 'db_model': False}, 'tpm': 200000, 'rpm': 2000} for model: primary
+[92m14:24:55 - LiteLLM:INFO[0m: utils.py:3427 - 
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-3-pro-preview; provider = gemini

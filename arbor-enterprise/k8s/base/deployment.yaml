@@ -1,0 +1,196 @@
+# ARBOR Enterprise API Deployment
+# TIER 11 - Points 60 (Multi-Zone), 63 (Pod Security)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arbor-api
+  namespace: arbor
+  labels:
+    app: arbor-api
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: arbor-api
+  
+  # TIER 11 - Point 60: Multi-Zone Availability
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  
+  template:
+    metadata:
+      labels:
+        app: arbor-api
+        tier: backend
+      annotations:
+        # Linkerd service mesh injection (TIER 11 - Point 57)
+        linkerd.io/inject: enabled
+    spec:
+      # TIER 11 - Point 63: Pod Security - Non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      
+      # TIER 11 - Point 60: Multi-Zone pod distribution
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: arbor-api
+      
+      # Anti-affinity: don't schedule pods on same node
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: arbor-api
+                topologyKey: kubernetes.io/hostname
+      
+      containers:
+        - name: api
+          image: arbor-enterprise/api:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          
+          # TIER 11 - Point 63: Container security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          
+          # Resource limits for stability
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          
+          # Environment from ConfigMap and Secrets
+          envFrom:
+            - configMapRef:
+                name: arbor-config
+            - secretRef:
+                name: arbor-secrets
+          
+          # Health checks
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+          
+          # Graceful shutdown
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          
+          # Writable temp directory (read-only root filesystem)
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.cache
+      
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+      
+      # Graceful termination period
+      terminationGracePeriodSeconds: 30
+      
+      # Service account with minimal permissions
+      serviceAccountName: arbor-api
+      automountServiceAccountToken: false
+
+---
+# Service for the API
+apiVersion: v1
+kind: Service
+metadata:
+  name: arbor-api
+  namespace: arbor
+  labels:
+    app: arbor-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: arbor-api
+
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arbor-api
+  namespace: arbor
+automountServiceAccountToken: false
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: arbor-api
+  namespace: arbor
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: arbor-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

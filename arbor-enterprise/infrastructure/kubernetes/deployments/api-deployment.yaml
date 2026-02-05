@@ -1,0 +1,316 @@
+# =============================================================================
+# A.R.B.O.R. Enterprise - API Deployment
+# FastAPI application serving the discovery engine REST API
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arbor-api
+  namespace: arbor
+  labels:
+    app: arbor-api
+    component: api
+    part-of: arbor-enterprise
+    version: "1.0.0"
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: arbor-api
+      component: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: arbor-api
+        component: api
+        part-of: arbor-enterprise
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: arbor-api
+      terminationGracePeriodSeconds: 30
+
+      # Topology spread for high availability
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: arbor-api
+
+      # Prefer API node pool
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: workload
+                    operator: In
+                    values:
+                      - api
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - arbor-api
+                topologyKey: kubernetes.io/hostname
+
+      # Tolerate API node pool taint
+      tolerations:
+        - key: workload
+          value: api
+          effect: PreferNoSchedule
+
+      # Init container: wait for database readiness
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until nc -z -w5 ${POSTGRES_HOST} ${POSTGRES_PORT}; do
+                echo "PostgreSQL not ready, retrying in 3s..."
+                sleep 3
+              done
+              echo "PostgreSQL is ready."
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-db-credentials
+                  key: host
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-db-credentials
+                  key: port
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+
+        - name: run-migrations
+          image: REGISTRY_URL/arbor-api:latest
+          command:
+            - poetry
+            - run
+            - alembic
+            - upgrade
+            - head
+          envFrom:
+            - secretRef:
+                name: arbor-api-secrets
+            - configMapRef:
+                name: arbor-api-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      containers:
+        - name: arbor-api
+          image: REGISTRY_URL/arbor-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          # Environment from secrets and configmaps
+          envFrom:
+            - secretRef:
+                name: arbor-api-secrets
+            - configMapRef:
+                name: arbor-api-config
+
+          env:
+            # Override specific values
+            - name: APP_ENV
+              value: "production"
+            - name: APP_DEBUG
+              value: "false"
+            - name: BACKEND_HOST
+              value: "0.0.0.0"
+            - name: BACKEND_PORT
+              value: "8000"
+
+            # Database credentials from secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-db-credentials
+                  key: url
+
+            # Redis from secret
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: arbor-redis-credentials
+                  key: url
+
+            # Pod metadata for observability
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+
+          # Resource limits
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+
+          # Startup probe: allow up to 60s for initial boot
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
+            timeoutSeconds: 3
+
+          # Liveness probe: restart if unresponsive
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+            timeoutSeconds: 5
+            successThreshold: 1
+
+          # Readiness probe: remove from LB if not ready
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+            successThreshold: 1
+
+          # Lifecycle hooks
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - sleep 10
+
+          # Security context
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+          # Volume mounts
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: app-config
+              mountPath: /app/config
+              readOnly: true
+
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: app-config
+          configMap:
+            name: arbor-domain-config
+
+---
+# ConfigMap for non-sensitive application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arbor-api-config
+  namespace: arbor
+  labels:
+    app: arbor-api
+    component: api
+data:
+  APP_NAME: "arbor-enterprise"
+  APP_VERSION: "1.0.0"
+  BACKEND_WORKERS: "4"
+  QDRANT_COLLECTION: "entities_vectors"
+  OTEL_SERVICE_NAME: "arbor-api"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability:4317"
+  LANGFUSE_HOST: "https://cloud.langfuse.com"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.arbor:9092"
+  TEMPORAL_HOST: "temporal.arbor:7233"
+  TEMPORAL_NAMESPACE: "default"
+
+---
+# ServiceAccount for Workload Identity
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arbor-api
+  namespace: arbor
+  labels:
+    app: arbor-api
+    component: api
+  annotations:
+    iam.gke.io/gcp-service-account: arbor-enterprise-api-sa@PROJECT_ID.iam.gserviceaccount.com
+
+---
+# PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: arbor-api-pdb
+  namespace: arbor
+  labels:
+    app: arbor-api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: arbor-api
+      component: api

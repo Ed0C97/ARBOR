@@ -1,0 +1,281 @@
+# ARBOR Enterprise CI/CD Pipeline
+# TIER 6 - Point 27: Hardened CI Pipeline
+#
+# Jobs:
+# 1. lint: flake8 + black
+# 2. types: mypy --strict
+# 3. security: gitleaks + bandit
+# 4. test: pytest --cov --cov-fail-under=80
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'arbor-enterprise/backend/**'
+      - '.github/workflows/ci.yaml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'arbor-enterprise/backend/**'
+
+env:
+  PYTHON_VERSION: "3.12"
+  WORKING_DIR: "arbor-enterprise/backend"
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Linting & Formatting
+  # ═══════════════════════════════════════════════════════════════════════════
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install linters
+        run: pip install flake8 black isort
+      
+      - name: Run Black (formatting check)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: black --check --diff app tests
+      
+      - name: Run isort (import sorting)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: isort --check-only --diff app tests
+      
+      - name: Run Flake8
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          flake8 app tests \
+            --max-line-length=100 \
+            --extend-ignore=E203,E501,W503 \
+            --per-file-ignores="__init__.py:F401"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Type Checking
+  # ═══════════════════════════════════════════════════════════════════════════
+  types:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pip install mypy
+          pip install -r requirements.txt
+          pip install types-redis types-requests
+      
+      - name: Run MyPy
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          mypy app \
+            --strict \
+            --ignore-missing-imports \
+            --allow-untyped-decorators \
+            --allow-subclassing-any \
+            --no-warn-return-any
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Security Scanning
+  # ═══════════════════════════════════════════════════════════════════════════
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for gitleaks
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install Bandit
+        run: pip install bandit
+      
+      - name: Run Bandit (Python security linter)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          bandit -r app \
+            -ll \
+            -ii \
+            --skip B101,B311 \
+            -f json -o bandit-report.json || true
+          
+          # Fail on high severity issues
+          bandit -r app -ll -ii --skip B101,B311 || exit 1
+      
+      - name: Run Gitleaks (secret scanner)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: ${{ env.WORKING_DIR }}/bandit-report.json
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Unit Tests
+  # ═══════════════════════════════════════════════════════════════════════════
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: [lint, types, security]
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: arbor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: ${{ env.WORKING_DIR }}/requirements.txt
+      
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist
+      
+      - name: Run tests with coverage
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          APP_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/arbor_test
+          REDIS_URL: redis://localhost:6379
+          GOOGLE_API_KEY: test-key
+          COHERE_API_KEY: test-key
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-fail-under=80 \
+            -v \
+            -x \
+            --tb=short \
+            -n auto
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.WORKING_DIR }}/htmlcov
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ${{ env.WORKING_DIR }}/coverage.xml
+          fail_ci_if_error: false
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Build Docker Image
+  # ═══════════════════════════════════════════════════════════════════════════
+  build:
+    name: Build Image
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to GCR
+        uses: docker/login-action@v3
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: gcr.io/${{ secrets.GCP_PROJECT_ID }}/arbor-api
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.WORKING_DIR }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Dependency Audit
+  # ═══════════════════════════════════════════════════════════════════════════
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install pip-audit
+        run: pip install pip-audit
+      
+      - name: Audit dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pip-audit \
+            --requirement requirements.txt \
+            --strict \
+            --desc \
+            || echo "Vulnerabilities found, review above"

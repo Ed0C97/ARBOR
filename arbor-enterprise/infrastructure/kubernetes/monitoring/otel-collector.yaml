@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.95.0
+          ports:
+            - containerPort: 4317   # OTLP gRPC
+              name: otlp-grpc
+            - containerPort: 4318   # OTLP HTTP
+              name: otlp-http
+            - containerPort: 8888   # Metrics (self)
+              name: metrics
+            - containerPort: 8889   # Prometheus exporter
+              name: prom-exporter
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol-contrib
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: monitoring
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: prom-exporter
+      port: 8889
+      targetPort: 8889
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: monitoring
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        timeout: 5s
+        send_batch_size: 1024
+      memory_limiter:
+        check_interval: 5s
+        limit_mib: 400
+        spike_limit_mib: 100
+      attributes:
+        actions:
+          - key: service.environment
+            value: production
+            action: upsert
+
+    exporters:
+      # Prometheus metrics exporter
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        namespace: arbor
+        resource_to_telemetry_conversion:
+          enabled: true
+
+      # Console debug (remove in production)
+      debug:
+        verbosity: basic
+
+      # OTLP exporter to Grafana Cloud / Jaeger / etc.
+      otlp/traces:
+        endpoint: "jaeger-collector.monitoring.svc.cluster.local:4317"
+        tls:
+          insecure: true
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, attributes]
+          exporters: [otlp/traces, debug]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus, debug]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug]

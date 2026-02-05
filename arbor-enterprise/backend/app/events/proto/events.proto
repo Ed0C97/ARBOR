@@ -1,0 +1,228 @@
+// Protobuf schema for Kafka events
+// TIER 6 - Point 26: Protobuf for Kafka Events
+//
+// Compile with:
+//   protoc --python_out=. --pyi_out=. events.proto
+//
+// Benefits:
+// - 40-60% smaller message size vs JSON
+// - Strongly typed, schema evolution support
+// - Faster serialization/deserialization
+
+syntax = "proto3";
+
+package arbor.events;
+
+option java_package = "app.arbor.events";
+option java_multiple_files = true;
+
+// Timestamp in ISO format
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Entity Events
+// ═══════════════════════════════════════════════════════════════════════════
+
+message EntityCreated {
+  string event_id = 1;
+  Timestamp created_at = 2;
+  
+  string entity_id = 3;
+  string entity_type = 4;  // brand, venue, product
+  string name = 5;
+  string category = 6;
+  string city = 7;
+  
+  map<string, string> metadata = 10;
+}
+
+message EntityUpdated {
+  string event_id = 1;
+  Timestamp updated_at = 2;
+  
+  string entity_id = 3;
+  repeated string changed_fields = 4;
+  
+  // Previous and new values for changed fields
+  map<string, string> previous_values = 5;
+  map<string, string> new_values = 6;
+  
+  string updated_by = 7;
+}
+
+message EntityDeleted {
+  string event_id = 1;
+  Timestamp deleted_at = 2;
+  
+  string entity_id = 3;
+  string deletion_type = 4;  // soft, hard, gdpr
+  string deleted_by = 5;
+}
+
+message EntityEnriched {
+  string event_id = 1;
+  Timestamp enriched_at = 2;
+  
+  string entity_id = 3;
+  string enrichment_type = 4;  // vibe_dna, embedding, metadata
+  
+  // Vibe DNA scores (if applicable)
+  map<string, float> vibe_scores = 5;
+  
+  // Embedding info
+  int32 embedding_dimension = 6;
+  string embedding_model = 7;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Search Events
+// ═══════════════════════════════════════════════════════════════════════════
+
+message SearchExecuted {
+  string event_id = 1;
+  Timestamp executed_at = 2;
+  
+  string user_id = 3;
+  string session_id = 4;
+  
+  string query = 5;
+  string intent = 6;
+  
+  // Search parameters
+  string search_type = 7;  // vector, hybrid, keyword
+  int32 limit = 8;
+  
+  // Filters applied
+  string category_filter = 9;
+  string city_filter = 10;
+  
+  // Results
+  int32 result_count = 11;
+  repeated string result_ids = 12;
+  
+  // Performance
+  float latency_ms = 13;
+  bool cache_hit = 14;
+}
+
+message SearchResultClicked {
+  string event_id = 1;
+  Timestamp clicked_at = 2;
+  
+  string user_id = 3;
+  string session_id = 4;
+  string search_id = 5;
+  
+  string entity_id = 6;
+  int32 position = 7;  // Position in results (1-indexed)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Discovery Events
+// ═══════════════════════════════════════════════════════════════════════════
+
+message DiscoveryRequest {
+  string event_id = 1;
+  Timestamp requested_at = 2;
+  
+  string user_id = 3;
+  string session_id = 4;
+  
+  string query = 5;
+  string detected_intent = 6;
+  
+  // Context
+  string location = 7;
+  repeated string preferences = 8;
+}
+
+message DiscoveryResponse {
+  string event_id = 1;
+  Timestamp responded_at = 2;
+  
+  string request_id = 3;
+  string user_id = 4;
+  
+  // Status
+  string status = 5;  // success, error, timeout
+  
+  // Results
+  repeated string recommended_ids = 6;
+  string response_text = 7;  // First 500 chars
+  
+  // Performance
+  float total_latency_ms = 8;
+  float llm_latency_ms = 9;
+  float search_latency_ms = 10;
+  
+  // Tokens
+  int32 prompt_tokens = 11;
+  int32 completion_tokens = 12;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Feedback Events
+// ═══════════════════════════════════════════════════════════════════════════
+
+message FeedbackSubmitted {
+  string event_id = 1;
+  Timestamp submitted_at = 2;
+  
+  string user_id = 3;
+  string entity_id = 4;
+  string response_id = 5;
+  
+  string feedback_type = 6;  // thumbs_up, thumbs_down, report
+  string feedback_text = 7;
+  
+  int32 rating = 8;  // 1-5 if applicable
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Audit Events
+// ═══════════════════════════════════════════════════════════════════════════
+
+message AuditEvent {
+  string event_id = 1;
+  Timestamp occurred_at = 2;
+  
+  string actor_id = 3;
+  string actor_type = 4;  // user, admin, system
+  
+  string action = 5;
+  string resource_type = 6;
+  string resource_id = 7;
+  
+  string ip_address = 8;
+  string user_agent = 9;
+  
+  map<string, string> context = 10;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Wrapper for all event types
+// ═══════════════════════════════════════════════════════════════════════════
+
+message ArborEvent {
+  string event_type = 1;
+  
+  oneof payload {
+    EntityCreated entity_created = 10;
+    EntityUpdated entity_updated = 11;
+    EntityDeleted entity_deleted = 12;
+    EntityEnriched entity_enriched = 13;
+    
+    SearchExecuted search_executed = 20;
+    SearchResultClicked search_result_clicked = 21;
+    
+    DiscoveryRequest discovery_request = 30;
+    DiscoveryResponse discovery_response = 31;
+    
+    FeedbackSubmitted feedback_submitted = 40;
+    
+    AuditEvent audit_event = 50;
+  }
+}

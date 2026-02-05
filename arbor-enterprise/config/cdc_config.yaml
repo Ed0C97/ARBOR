@@ -1,0 +1,152 @@
+# CDC (Change Data Capture) Configuration
+# TIER 10 - Point 55: CDC (Debezium/Custom)
+
+# This configuration file defines CDC for PostgreSQL changes.
+# Can be used with Debezium or a custom CDC solution.
+
+# -----------------------------------------------------------------
+# DEBEZIUM POSTGRESQL CONNECTOR CONFIGURATION
+# -----------------------------------------------------------------
+# Copy to your Kafka Connect configuration
+
+connector:
+  name: arbor-postgres-cdc
+  class: io.debezium.connector.postgresql.PostgresConnector
+  
+  # Database connection
+  database:
+    hostname: ${POSTGRES_HOST}
+    port: 5432
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    dbname: arbor_db
+    
+  # Logical decoding
+  plugin:
+    name: pgoutput  # Built-in PostgreSQL plugin
+  
+  # Tables to capture (ARBOR enrichment tables)
+  table:
+    include:
+      list: |
+        arbor_db.public.enriched_entities,
+        arbor_db.public.gold_standard_entities,
+        arbor_db.public.entity_feedback,
+        arbor_db.public.user_preferences
+  
+  # Topic configuration
+  topic:
+    prefix: arbor.cdc
+    
+  # Transform configuration
+  transforms:
+    unwrap:
+      type: io.debezium.transforms.ExtractNewRecordState
+    route:
+      type: org.apache.kafka.connect.transforms.RegexRouter
+      regex: (.*)
+      replacement: arbor.cdc.$1
+  
+  # Snapshot configuration
+  snapshot:
+    mode: initial  # Take initial snapshot, then stream changes
+    
+  # Error handling
+  errors:
+    tolerance: all
+    log:
+      enable: true
+
+# -----------------------------------------------------------------
+# CUSTOM PYTHON CDC IMPLEMENTATION
+# -----------------------------------------------------------------
+# For environments without Kafka Connect
+
+custom_cdc:
+  # PostgreSQL logical replication slot
+  slot_name: arbor_cdc_slot
+  publication_name: arbor_publication
+  
+  # Tables to track
+  tracked_tables:
+    - enriched_entities
+    - gold_standard_entities
+    - entity_feedback
+    - user_preferences
+  
+  # Event handlers
+  handlers:
+    insert:
+      - trigger: cache_invalidation
+        config:
+          invalidate_pattern: "entity:*"
+      - trigger: vector_sync
+        config:
+          collection: entities_vectors
+    
+    update:
+      - trigger: cache_invalidation
+      - trigger: vector_sync
+      - trigger: graph_sync
+        config:
+          neo4j_update: true
+    
+    delete:
+      - trigger: cascade_delete
+        config:
+          targets:
+            - cache
+            - vectors
+            - graph
+  
+  # Batch configuration
+  batching:
+    max_size: 100
+    max_wait_ms: 1000
+  
+  # Error handling
+  error_handling:
+    retry_count: 3
+    dead_letter_topic: arbor.cdc.dlq
+
+# -----------------------------------------------------------------
+# SQL TO CREATE PUBLICATION AND SLOT
+# -----------------------------------------------------------------
+# Run these on PostgreSQL:
+#
+# -- Create publication for tracked tables
+# CREATE PUBLICATION arbor_publication FOR TABLE 
+#   enriched_entities, 
+#   gold_standard_entities, 
+#   entity_feedback, 
+#   user_preferences;
+#
+# -- Create replication slot
+# SELECT pg_create_logical_replication_slot('arbor_cdc_slot', 'pgoutput');
+#
+# -- Grant replication permissions
+# ALTER ROLE arbor_app WITH REPLICATION;
+# GRANT USAGE ON SCHEMA public TO arbor_app;
+
+# -----------------------------------------------------------------
+# MONITORING
+# -----------------------------------------------------------------
+monitoring:
+  metrics:
+    - name: cdc_lag_seconds
+      description: Replication lag in seconds
+      type: gauge
+    - name: cdc_events_processed
+      description: Total CDC events processed
+      type: counter
+    - name: cdc_errors
+      description: CDC processing errors
+      type: counter
+  
+  alerts:
+    - name: high_replication_lag
+      condition: cdc_lag_seconds > 60
+      severity: warning
+    - name: cdc_stuck
+      condition: cdc_events_processed == 0 for 5m
+      severity: critical

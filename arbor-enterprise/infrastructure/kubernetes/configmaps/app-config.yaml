@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arbor-app-config
+  namespace: arbor
+  labels:
+    app.kubernetes.io/name: arbor
+    app.kubernetes.io/component: config
+data:
+  # -----------------------------------------------------------------------
+  # Application settings
+  # -----------------------------------------------------------------------
+  APP_NAME: "arbor-enterprise"
+  APP_ENV: "production"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+
+  # -----------------------------------------------------------------------
+  # API settings
+  # -----------------------------------------------------------------------
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  API_WORKERS: "4"
+  API_CORS_ORIGINS: '["https://arbor.ai","https://admin.arbor.ai"]'
+  API_RATE_LIMIT: "100/minute"
+
+  # -----------------------------------------------------------------------
+  # Database endpoints (service DNS)
+  # -----------------------------------------------------------------------
+  POSTGRES_HOST: "postgres-service.arbor.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "arbor"
+
+  NEO4J_URI: "bolt://neo4j-service.arbor.svc.cluster.local:7687"
+
+  QDRANT_HOST: "qdrant-service.arbor.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "arbor_entities"
+
+  REDIS_HOST: "redis-service.arbor.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+  # -----------------------------------------------------------------------
+  # Kafka
+  # -----------------------------------------------------------------------
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-service.arbor.svc.cluster.local:9092"
+  KAFKA_CONSUMER_GROUP: "arbor-events"
+
+  # -----------------------------------------------------------------------
+  # LLM / AI
+  # -----------------------------------------------------------------------
+  LITELLM_MODEL: "gpt-4o-mini"
+  LITELLM_FALLBACK_MODEL: "gpt-3.5-turbo"
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  EMBEDDING_DIM: "1536"
+  LLM_CACHE_TTL: "3600"
+  LLM_MAX_TOKENS: "4096"
+
+  # -----------------------------------------------------------------------
+  # Observability
+  # -----------------------------------------------------------------------
+  OTEL_SERVICE_NAME: "arbor-api"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.monitoring.svc.cluster.local:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  PROMETHEUS_METRICS_PORT: "9090"
+  LANGFUSE_HOST: "https://cloud.langfuse.com"
+
+  # -----------------------------------------------------------------------
+  # Frontend
+  # -----------------------------------------------------------------------
+  NEXT_PUBLIC_API_URL: "https://api.arbor.ai"

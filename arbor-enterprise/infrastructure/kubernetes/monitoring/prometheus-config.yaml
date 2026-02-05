@@ -1,0 +1,338 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      scrape_timeout: 10s
+
+    # -----------------------------------------------------------------------
+    # Alerting rules
+    # -----------------------------------------------------------------------
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    # -----------------------------------------------------------------------
+    # Scrape targets
+    # -----------------------------------------------------------------------
+    scrape_configs:
+      # Prometheus self-monitoring
+      - job_name: "prometheus"
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      # A.R.B.O.R. API metrics
+      - job_name: "arbor-api"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: ["arbor"]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: arbor-api
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            regex: "(.+)"
+            target_label: __address__
+            replacement: "${1}:${2}"
+            source_labels:
+              - __meta_kubernetes_pod_ip
+              - __meta_kubernetes_pod_annotation_prometheus_io_port
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+      # A.R.B.O.R. Worker metrics
+      - job_name: "arbor-worker"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: ["arbor"]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: arbor-worker
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+      # Node exporter (host metrics)
+      - job_name: "node-exporter"
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: replace
+            source_labels: [__address__]
+            regex: "(.*):10250"
+            replacement: "${1}:9100"
+            target_label: __address__
+
+      # Kubernetes API server
+      - job_name: "kubernetes-apiservers"
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels:
+              - __meta_kubernetes_namespace
+              - __meta_kubernetes_service_name
+              - __meta_kubernetes_endpoint_port_name
+            action: keep
+            regex: default;kubernetes;https
+
+  # -----------------------------------------------------------------------
+  # Alert rules
+  # TIER 5 - Point 23: Prometheus Alert Rules
+  # -----------------------------------------------------------------------
+  alert-rules.yml: |
+    groups:
+      # =====================================================================
+      # API Performance & Reliability Alerts
+      # =====================================================================
+      - name: arbor-api-alerts
+        rules:
+          # TIER 5 Point 23: HighErrorRate - rate(500s) > 1% for 5m
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(arbor_discover_requests_total{status="error"}[5m]))
+              /
+              sum(rate(arbor_discover_requests_total[5m]))
+              > 0.01
+            for: 5m
+            labels:
+              severity: critical
+              team: backend
+            annotations:
+              summary: "High API error rate (>1%)"
+              description: "Discovery endpoint error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+              runbook_url: "https://docs.arbor.app/runbooks/high-error-rate"
+
+          # TIER 5 Point 23: SlowResponses - p99 > 5s for 5m
+          - alert: SlowResponses
+            expr: |
+              histogram_quantile(0.99, sum(rate(arbor_query_latency_seconds_bucket[5m])) by (le, endpoint))
+              > 5.0
+            for: 5m
+            labels:
+              severity: warning
+              team: backend
+            annotations:
+              summary: "Slow API responses (p99 > 5s)"
+              description: "Endpoint {{ $labels.endpoint }} p99 latency is {{ $value }}s"
+              runbook_url: "https://docs.arbor.app/runbooks/slow-responses"
+
+          - alert: VerySlowResponses
+            expr: |
+              histogram_quantile(0.99, sum(rate(arbor_query_latency_seconds_bucket[5m])) by (le))
+              > 10.0
+            for: 5m
+            labels:
+              severity: critical
+              team: backend
+            annotations:
+              summary: "Very slow API responses (p99 > 10s)"
+              description: "Overall p99 latency is {{ $value }}s - investigate immediately"
+
+          - alert: HighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+              > 2.0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High API latency (p95 > 2s)"
+              description: "95th percentile latency is {{ $value }}s"
+
+          - alert: PodCrashLooping
+            expr: |
+              rate(kube_pod_container_status_restarts_total{namespace="arbor"}[15m]) > 0
+            for: 10m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod {{ $labels.pod }} is crash-looping"
+
+          - alert: HighMemoryUsage
+            expr: |
+              container_memory_working_set_bytes{namespace="arbor"}
+              /
+              container_spec_memory_limit_bytes{namespace="arbor"}
+              > 0.85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Container {{ $labels.container }} using >85% memory"
+
+      # =====================================================================
+      # Cache Performance Alerts
+      # =====================================================================
+      - name: arbor-cache-alerts
+        rules:
+          # TIER 5 Point 23: LowCacheHit - rate(hits) / rate(total) < 0.1 for 1h
+          - alert: LowCacheHitRate
+            expr: |
+              sum(rate(arbor_cache_hits_total{result="hit"}[1h]))
+              /
+              (sum(rate(arbor_cache_hits_total[1h])) + 0.001)
+              < 0.1
+            for: 1h
+            labels:
+              severity: warning
+              team: backend
+            annotations:
+              summary: "Low cache hit rate (<10%)"
+              description: "Cache hit rate is {{ $value | humanizePercentage }} - consider cache warming or threshold adjustment"
+              runbook_url: "https://docs.arbor.app/runbooks/low-cache-hit"
+
+          - alert: CacheLayerDown
+            expr: |
+              sum(rate(arbor_cache_hits_total[5m])) == 0
+            for: 10m
+            labels:
+              severity: critical
+              team: infra
+            annotations:
+              summary: "Cache layer appears down"
+              description: "No cache operations recorded for 10 minutes"
+
+      # =====================================================================
+      # LLM & Embedding Alerts
+      # =====================================================================
+      - name: arbor-llm-alerts
+        rules:
+          - alert: LLMHighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(arbor_llm_latency_seconds_bucket[5m])) by (le, provider))
+              > 10.0
+            for: 5m
+            labels:
+              severity: warning
+              team: ml
+            annotations:
+              summary: "LLM requests p95 latency > 10s"
+              description: "Provider {{ $labels.provider }} p95 latency is {{ $value }}s"
+
+          - alert: EmbeddingHighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(arbor_embedding_latency_seconds_bucket[5m])) by (le))
+              > 2.0
+            for: 5m
+            labels:
+              severity: warning
+              team: ml
+            annotations:
+              summary: "Embedding generation p95 latency > 2s"
+
+          - alert: HighTokenUsage
+            expr: |
+              sum(increase(arbor_llm_tokens_used{direction="input"}[1h])) > 1000000
+            for: 0m
+            labels:
+              severity: info
+              team: ml
+            annotations:
+              summary: "High LLM token usage (>1M input tokens/hour)"
+              description: "Consider optimizing prompts or caching"
+
+          - alert: LLMHighCost
+            expr: |
+              sum(increase(llm_request_cost_total[1h])) > 10
+            for: 0m
+            labels:
+              severity: info
+            annotations:
+              summary: "LLM costs exceeded $10 in the last hour"
+
+      # =====================================================================
+      # Circuit Breaker Alerts
+      # =====================================================================
+      - name: arbor-circuit-breaker-alerts
+        rules:
+          - alert: CircuitBreakerOpen
+            expr: |
+              arbor_circuit_breaker_state == 1
+            for: 1m
+            labels:
+              severity: critical
+              team: backend
+            annotations:
+              summary: "Circuit breaker OPEN for {{ $labels.service }}"
+              description: "Service {{ $labels.service }} circuit breaker is open - traffic being rejected"
+              runbook_url: "https://docs.arbor.app/runbooks/circuit-breaker-open"
+
+          - alert: CircuitBreakerHalfOpen
+            expr: |
+              arbor_circuit_breaker_state == 0.5
+            for: 5m
+            labels:
+              severity: warning
+              team: backend
+            annotations:
+              summary: "Circuit breaker HALF-OPEN for {{ $labels.service }}"
+              description: "Service {{ $labels.service }} is recovering - monitoring"
+
+      # =====================================================================
+      # Guardrail & Security Alerts
+      # =====================================================================
+      - name: arbor-security-alerts
+        rules:
+          - alert: HighGuardrailBlockRate
+            expr: |
+              sum(rate(arbor_guardrail_blocks_total[5m])) > 10
+            for: 5m
+            labels:
+              severity: warning
+              team: security
+            annotations:
+              summary: "High guardrail block rate (>10/min)"
+              description: "Many requests being blocked - possible attack or misconfiguration"
+
+          - alert: RateLimitExceeded
+            expr: |
+              sum(rate(arbor_rate_limit_hits_total{result="blocked"}[5m])) > 100
+            for: 5m
+            labels:
+              severity: warning
+              team: security
+            annotations:
+              summary: "High rate limit violations (>100/5min)"
+              description: "Many users hitting rate limits - possible abuse"
+
+      # =====================================================================
+      # Database Connection Pool Alerts
+      # =====================================================================
+      - name: arbor-database-alerts
+        rules:
+          - alert: DatabasePoolExhausted
+            expr: |
+              arbor_db_pool_connections{state="active"}
+              /
+              (arbor_db_pool_connections{state="active"} + arbor_db_pool_connections{state="idle"} + 0.001)
+              > 0.9
+            for: 5m
+            labels:
+              severity: critical
+              team: infra
+            annotations:
+              summary: "Database {{ $labels.database }} connection pool nearly exhausted"
+              description: "Pool is {{ $value | humanizePercentage }} utilized"
+
+          - alert: DatabasePoolOverflow
+            expr: |
+              arbor_db_pool_connections{state="overflow"} > 10
+            for: 5m
+            labels:
+              severity: warning
+              team: infra
+            annotations:
+              summary: "Database {{ $labels.database }} using overflow connections"
+              description: "{{ $value }} overflow connections in use"
