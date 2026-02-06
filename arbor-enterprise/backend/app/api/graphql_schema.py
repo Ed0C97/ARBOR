@@ -371,7 +371,7 @@ class Query:
             edges: list[GraphEdge] = []
             seen_ids: set[str] = set()
 
-            for record in (raw if isinstance(raw, list) else [raw]):
+            for record in raw if isinstance(raw, list) else [raw]:
                 if isinstance(record, dict):
                     node_id = str(record.get("id", record.get("name", "")))
                     if node_id and node_id not in seen_ids:

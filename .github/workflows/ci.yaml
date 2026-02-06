@@ -40,7 +40,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       
       - name: Install linters
-        run: pip install flake8 black isort
+        run: pip install flake8 black==24.10.0 isort
       
       - name: Run Black (formatting check)
         working-directory: ${{ env.WORKING_DIR }}
