@@ -154,9 +154,7 @@ class ConfidenceEstimator:
             "reranking": 0.75,
             "agent_synthesis": 0.60,
         }
-        logger.info(
-            "ConfidenceEstimator initialised with thresholds: %s", self._thresholds
-        )
+        logger.info("ConfidenceEstimator initialised with thresholds: %s", self._thresholds)
 
     def estimate(
         self,
@@ -315,8 +313,7 @@ class StreamingInferenceEngine:
         }
 
         logger.info(
-            "StreamingInferenceEngine initialised with %d stages, "
-            "confidence_threshold=%.2f",
+            "StreamingInferenceEngine initialised with %d stages, " "confidence_threshold=%.2f",
             len(self._stages),
             self._confidence_threshold,
         )
@@ -518,9 +515,7 @@ class StreamingInferenceEngine:
         avg_cost = self._stats["total_cost"] / total
 
         # Compute saved as % of maximum
-        compute_saved = (
-            (1.0 - avg_cost / max_cost) * 100 if max_cost > 0 else 0.0
-        )
+        compute_saved = (1.0 - avg_cost / max_cost) * 100 if max_cost > 0 else 0.0
 
         return {
             "total_executions": total,
@@ -579,6 +574,7 @@ class StreamingInferenceEngine:
         """Check the semantic cache for a previous response."""
         try:
             from app.llm.cache import SemanticCache
+
             cache = SemanticCache()
             result = await cache.check_cache(query)
 
@@ -611,8 +607,8 @@ class StreamingInferenceEngine:
     async def _stage_dense_retrieval(query: str) -> dict[str, Any]:
         """Execute real dense vector retrieval via Qdrant."""
         try:
-            from app.llm.gateway import get_llm_gateway
             from app.db.qdrant.hybrid_search import HybridSearch
+            from app.llm.gateway import get_llm_gateway
 
             gateway = get_llm_gateway()
             hybrid = HybridSearch()
@@ -660,6 +656,7 @@ class StreamingInferenceEngine:
 
         try:
             from app.llm.gateway import get_llm_gateway
+
             gateway = get_llm_gateway()
 
             # Use the gateway's rerank_results which preserves full result objects
@@ -697,6 +694,7 @@ class StreamingInferenceEngine:
 
         try:
             from app.llm.gateway import get_llm_gateway
+
             gateway = get_llm_gateway()
 
             # Build context from results
@@ -748,8 +746,7 @@ class StreamingInferenceEngine:
                 )
             else:
                 synthesis_text = (
-                    f"No results found for '{query}'. "
-                    f"Try broadening your search criteria."
+                    f"No results found for '{query}'. " f"Try broadening your search criteria."
                 )
 
             return {

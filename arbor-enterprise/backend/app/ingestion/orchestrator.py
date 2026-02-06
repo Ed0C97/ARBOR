@@ -46,9 +46,7 @@ class MasterIngestor:
         self.qdrant = qdrant or QdrantCollections()
         self.neo4j = neo4j or Neo4jQueries()
 
-    async def ingest(
-        self, query: str, location: str, category: str
-    ) -> list[ProcessedEntity]:
+    async def ingest(self, query: str, location: str, category: str) -> list[ProcessedEntity]:
         """Run the full ingestion pipeline for a query."""
         logger.info(f"Starting ingestion: '{query}' in {location} [{category}]")
 

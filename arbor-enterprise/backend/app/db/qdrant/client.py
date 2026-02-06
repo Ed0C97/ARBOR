@@ -59,9 +59,7 @@ async def get_async_qdrant_client() -> AsyncQdrantClient | None:
             grpc_port=6334,  # Standard gRPC port
             timeout=30,
         )
-        logger.info(
-            f"Async Qdrant client initialized (grpc={settings.qdrant_prefer_grpc})"
-        )
+        logger.info(f"Async Qdrant client initialized (grpc={settings.qdrant_prefer_grpc})")
 
     return _async_client
 
@@ -203,4 +201,3 @@ async def check_qdrant_health() -> dict[str, Any]:
             "healthy": False,
             "error": str(e),
         }
-

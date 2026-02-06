@@ -11,7 +11,7 @@ pipeline for continuous improvement:
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, func, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.models import (
@@ -126,9 +126,7 @@ class ContinuousLearner:
 
     # ─── Implicit Feedback Analysis ───────────────────────────────────
 
-    async def analyze_implicit_feedback(
-        self, since_hours: int = 24
-    ) -> dict:
+    async def analyze_implicit_feedback(self, since_hours: int = 24) -> dict:
         """Analyze user feedback to identify entities that may need re-scoring.
 
         Looks for patterns like:
@@ -170,23 +168,27 @@ class ContinuousLearner:
 
                 # High confidence but low engagement = possible over-scoring
                 if confidence > 0.7 and avg_reward < 0.2:
-                    anomalies.append({
-                        "entity_id": entity_id,
-                        "type": "over_scored",
-                        "avg_reward": round(avg_reward, 3),
-                        "confidence": round(confidence, 3),
-                        "interactions": row.interaction_count,
-                    })
+                    anomalies.append(
+                        {
+                            "entity_id": entity_id,
+                            "type": "over_scored",
+                            "avg_reward": round(avg_reward, 3),
+                            "confidence": round(confidence, 3),
+                            "interactions": row.interaction_count,
+                        }
+                    )
 
                 # Low confidence but high engagement = possible under-scoring
                 if confidence < 0.4 and avg_reward > 0.6:
-                    anomalies.append({
-                        "entity_id": entity_id,
-                        "type": "under_scored",
-                        "avg_reward": round(avg_reward, 3),
-                        "confidence": round(confidence, 3),
-                        "interactions": row.interaction_count,
-                    })
+                    anomalies.append(
+                        {
+                            "entity_id": entity_id,
+                            "type": "under_scored",
+                            "avg_reward": round(avg_reward, 3),
+                            "confidence": round(confidence, 3),
+                            "interactions": row.interaction_count,
+                        }
+                    )
 
         return {
             "period_hours": since_hours,
@@ -216,9 +218,7 @@ class ContinuousLearner:
 
     # ─── Embedding Refresh ────────────────────────────────────────────
 
-    async def get_entities_needing_refresh(
-        self, score_change_threshold: int = 10
-    ) -> list[dict]:
+    async def get_entities_needing_refresh(self, score_change_threshold: int = 10) -> list[dict]:
         """Find entities whose scores changed significantly and need embedding refresh.
 
         Looks for enrichments where neo4j_synced is False (indicating a change).
@@ -232,11 +232,13 @@ class ContinuousLearner:
 
         entities_to_refresh = []
         for enr in enrichments:
-            entities_to_refresh.append({
-                "entity_type": enr.entity_type,
-                "source_id": enr.source_id,
-                "entity_id": f"{enr.entity_type}_{enr.source_id}",
-            })
+            entities_to_refresh.append(
+                {
+                    "entity_type": enr.entity_type,
+                    "source_id": enr.source_id,
+                    "entity_id": f"{enr.entity_type}_{enr.source_id}",
+                }
+            )
 
         return entities_to_refresh
 
@@ -244,9 +246,7 @@ class ContinuousLearner:
 
     async def get_review_queue_stats(self) -> dict:
         """Get statistics about the review queue."""
-        total = await self.session.execute(
-            select(func.count()).select_from(ArborReviewQueue)
-        )
+        total = await self.session.execute(select(func.count()).select_from(ArborReviewQueue))
         pending = await self.session.execute(
             select(func.count())
             .select_from(ArborReviewQueue)

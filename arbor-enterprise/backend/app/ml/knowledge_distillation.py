@@ -71,9 +71,9 @@ class StudentConfig:
     """
 
     model_name: str = "arbor-student-v1"
-    model_type: str = "scorer"          # "classifier" | "scorer" | "ranker"
+    model_type: str = "scorer"  # "classifier" | "scorer" | "ranker"
     input_features: list[str] = field(default_factory=lambda: ["query", "category"])
-    output_type: str = "score"          # "label" | "score" | "ranking"
+    output_type: str = "score"  # "label" | "score" | "ranking"
     training_examples: list[dict] = field(default_factory=list)
 
 
@@ -116,9 +116,11 @@ class DistillationExample:
             teacher_confidence=data.get("teacher_confidence", 0.0),
             student_output=data.get("student_output"),
             student_score=data.get("student_score"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(timezone.utc),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if "created_at" in data
+                else datetime.now(timezone.utc)
+            ),
         )
 
 
@@ -142,10 +144,7 @@ class DistillationDataset:
 
     def get_training_set(self, min_confidence: float = 0.7) -> list[DistillationExample]:
         """Return examples whose teacher confidence meets the threshold."""
-        return [
-            ex for ex in self._examples
-            if ex.teacher_confidence >= min_confidence
-        ]
+        return [ex for ex in self._examples if ex.teacher_confidence >= min_confidence]
 
     def get_stats(self) -> dict:
         """Summary statistics for the dataset."""
@@ -163,9 +162,7 @@ class DistillationDataset:
             "max_confidence": max(confidences),
         }
 
-    def sample(
-        self, n: int, strategy: str = "stratified"
-    ) -> list[DistillationExample]:
+    def sample(self, n: int, strategy: str = "stratified") -> list[DistillationExample]:
         """Sample *n* examples from the dataset.
 
         Parameters
@@ -316,30 +313,34 @@ class DistillationPipeline:
 
         try:
             from app.llm.gateway import get_llm_gateway
+
             gateway = get_llm_gateway()
 
             if model_type == "classifier":
                 prompt = (
                     f"Classify this query into 'positive' (relevant to curated discovery) "
                     f"or 'negative' (irrelevant). Query: '{query}', Category: '{category}'. "
-                    f"Respond with JSON: {{\"label\": \"positive\" or \"negative\", \"score\": 0.0-1.0, \"confidence\": 0.0-1.0}}"
+                    f'Respond with JSON: {{"label": "positive" or "negative", "score": 0.0-1.0, "confidence": 0.0-1.0}}'
                 )
             elif model_type == "ranker":
                 prompt = (
                     f"Rate the relevance of this query for the category on a scale of 1 (best) "
                     f"to 10 (worst). Query: '{query}', Category: '{category}'. "
-                    f"Respond with JSON: {{\"rank\": 1-10, \"score\": 0.0-1.0, \"confidence\": 0.0-1.0}}"
+                    f'Respond with JSON: {{"rank": 1-10, "score": 0.0-1.0, "confidence": 0.0-1.0}}'
                 )
             else:
                 prompt = (
                     f"Score the quality and relevance of this query for curated discovery "
                     f"(0.0=irrelevant, 1.0=perfect). Query: '{query}', Category: '{category}'. "
-                    f"Respond with JSON: {{\"score\": 0.0-1.0, \"confidence\": 0.0-1.0}}"
+                    f'Respond with JSON: {{"score": 0.0-1.0, "confidence": 0.0-1.0}}'
                 )
 
             response = await gateway.complete(
                 messages=[
-                    {"role": "system", "content": "You are a scoring model. Respond ONLY with valid JSON."},
+                    {
+                        "role": "system",
+                        "content": "You are a scoring model. Respond ONLY with valid JSON.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 task_type="simple",
@@ -426,7 +427,9 @@ class DistillationPipeline:
         elif self.student_config.model_type == "ranker":
             model.update(self._train_ranker(training_set))
         else:
-            logger.warning("Unknown model_type %r; defaulting to scorer", self.student_config.model_type)
+            logger.warning(
+                "Unknown model_type %r; defaulting to scorer", self.student_config.model_type
+            )
             model.update(self._train_scorer(training_set))
 
         self._student_model = model
@@ -458,10 +461,7 @@ class DistillationPipeline:
             all_scores.append(score)
 
         global_mean = sum(all_scores) / len(all_scores) if all_scores else 0.5
-        category_means = {
-            cat: sum(scores) / len(scores)
-            for cat, scores in category_scores.items()
-        }
+        category_means = {cat: sum(scores) / len(scores) for cat, scores in category_scores.items()}
 
         return {
             "global_mean": round(global_mean, 6),
@@ -505,10 +505,7 @@ class DistillationPipeline:
             all_ranks.append(rank)
 
         global_avg_rank = sum(all_ranks) / len(all_ranks) if all_ranks else 5.0
-        category_avg_ranks = {
-            cat: sum(ranks) / len(ranks)
-            for cat, ranks in category_ranks.items()
-        }
+        category_avg_ranks = {cat: sum(ranks) / len(ranks) for cat, ranks in category_ranks.items()}
 
         return {
             "global_avg_rank": round(global_avg_rank, 4),
@@ -556,13 +553,15 @@ class DistillationPipeline:
                 agreements += 1
             score_diffs.append(diff)
 
-            details.append({
-                "input": input_data,
-                "teacher": teacher_out,
-                "student": student_out,
-                "agreed": agreed,
-                "diff": round(diff, 6),
-            })
+            details.append(
+                {
+                    "input": input_data,
+                    "teacher": teacher_out,
+                    "student": student_out,
+                    "agreed": agreed,
+                    "diff": round(diff, 6),
+                }
+            )
 
         total = len(test_inputs) or 1
         avg_diff = sum(score_diffs) / total if score_diffs else 0.0
@@ -594,9 +593,7 @@ class DistillationPipeline:
 
         if model_type == "scorer":
             category_means = self._student_model.get("category_means", {})
-            score = category_means.get(
-                category, self._student_model.get("global_mean", 0.5)
-            )
+            score = category_means.get(category, self._student_model.get("global_mean", 0.5))
             return {"score": round(score, 4)}
 
         elif model_type == "classifier":
@@ -608,9 +605,7 @@ class DistillationPipeline:
 
         elif model_type == "ranker":
             category_ranks = self._student_model.get("category_avg_ranks", {})
-            rank = category_ranks.get(
-                category, self._student_model.get("global_avg_rank", 5.0)
-            )
+            rank = category_ranks.get(category, self._student_model.get("global_avg_rank", 5.0))
             return {"rank": int(round(rank))}
 
         return {"score": 0.5}
@@ -736,13 +731,15 @@ class EscalationRouter:
 
     def _record_route(self, input_data: dict, decision: str, reason: str) -> None:
         """Log a routing decision for observability."""
-        self._routing_log.append({
-            "id": uuid.uuid4().hex[:12],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "decision": decision,
-            "reason": reason,
-            "category": input_data.get("category", "unknown"),
-        })
+        self._routing_log.append(
+            {
+                "id": uuid.uuid4().hex[:12],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "decision": decision,
+                "reason": reason,
+                "category": input_data.get("category", "unknown"),
+            }
+        )
 
     # -- Outcome Tracking --------------------------------------------------
 
@@ -756,11 +753,13 @@ class EscalationRouter:
         quality:
             A 0-1 quality score for the response.
         """
-        self._outcome_log.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "route": route,
-            "quality": quality,
-        })
+        self._outcome_log.append(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "route": route,
+                "quality": quality,
+            }
+        )
 
     # -- Statistics --------------------------------------------------------
 

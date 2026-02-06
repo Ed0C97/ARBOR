@@ -83,17 +83,11 @@ Based on the above context, provide your curated response. Include:
             sections.append("\nKNOWLEDGE GRAPH RESULTS:")
             for gr in graph_results[:5]:
                 if gr.get("type") == "lineage":
-                    sections.append(
-                        f"  - {gr.get('entity')} trained by {gr.get('mentor')}"
-                    )
+                    sections.append(f"  - {gr.get('entity')} trained by {gr.get('mentor')}")
                 elif gr.get("type") == "style_related":
-                    sections.append(
-                        f"  - {gr.get('name')} shares style: {gr.get('shared_style')}"
-                    )
+                    sections.append(f"  - {gr.get('name')} shares style: {gr.get('shared_style')}")
                 elif gr.get("type") == "brand_retailer":
-                    sections.append(
-                        f"  - {gr.get('name')} ({gr.get('relationship')})"
-                    )
+                    sections.append(f"  - {gr.get('name')} ({gr.get('relationship')})")
 
         if metadata_results:
             sections.append("\nSTRUCTURED DATA:")
@@ -130,9 +124,7 @@ Based on the above context, provide your curated response. Include:
 
         return recommendations
 
-    def _calculate_confidence(
-        self, vector_results: list[dict], graph_results: list[dict]
-    ) -> float:
+    def _calculate_confidence(self, vector_results: list[dict], graph_results: list[dict]) -> float:
         """Calculate confidence score for the response."""
         if not vector_results:
             return 0.3

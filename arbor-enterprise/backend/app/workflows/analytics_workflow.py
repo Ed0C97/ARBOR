@@ -73,10 +73,7 @@ async def compute_search_analytics(since_hours: int = 24) -> dict:
             .order_by(func.count().desc())
             .limit(20)
         )
-        top_queries = [
-            {"query": row.query, "count": row.query_count}
-            for row in top_queries_result
-        ]
+        top_queries = [{"query": row.query, "count": row.query_count} for row in top_queries_result]
 
         # Conversion rate
         conversions_result = await session.execute(
@@ -99,14 +96,11 @@ async def compute_search_analytics(since_hours: int = 24) -> dict:
         )
         total_clicks = clicks_result.scalar_one()
 
-        conversion_rate = (
-            total_conversions / total_clicks if total_clicks > 0 else 0.0
-        )
+        conversion_rate = total_conversions / total_clicks if total_clicks > 0 else 0.0
 
         # Average reward (proxy for result quality)
         avg_reward_result = await session.execute(
-            select(func.avg(ArborFeedback.reward))
-            .where(
+            select(func.avg(ArborFeedback.reward)).where(
                 ArborFeedback.created_at >= cutoff,
                 ArborFeedback.reward.isnot(None),
             )
@@ -135,18 +129,12 @@ async def compute_entity_stats() -> dict:
     from app.db.postgres.models import ArborEnrichment, Brand, Venue
 
     async with async_session_factory() as session:
-        brands_count = (
-            await session.execute(select(func.count()).select_from(Brand))
-        ).scalar_one()
+        brands_count = (await session.execute(select(func.count()).select_from(Brand))).scalar_one()
 
-        venues_count = (
-            await session.execute(select(func.count()).select_from(Venue))
-        ).scalar_one()
+        venues_count = (await session.execute(select(func.count()).select_from(Venue))).scalar_one()
 
         enriched_count = (
-            await session.execute(
-                select(func.count()).select_from(ArborEnrichment)
-            )
+            await session.execute(select(func.count()).select_from(ArborEnrichment))
         ).scalar_one()
 
         synced_count = (
@@ -158,9 +146,7 @@ async def compute_entity_stats() -> dict:
         ).scalar_one()
 
         total_entities = brands_count + venues_count
-        enrichment_coverage = (
-            enriched_count / total_entities if total_entities > 0 else 0.0
-        )
+        enrichment_coverage = enriched_count / total_entities if total_entities > 0 else 0.0
 
         # Enrichments by entity type
         by_type_result = await session.execute(

@@ -87,7 +87,7 @@ class InstagramScraper(BaseScraper):
                     f"{GRAPH_API_BASE}/me",
                     params={
                         "fields": "id,username,name,biography,profile_picture_url,"
-                                  "followers_count,media_count,website",
+                        "followers_count,media_count,website",
                         "access_token": self.access_token,
                     },
                 )

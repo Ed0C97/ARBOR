@@ -448,9 +448,7 @@ class FewShotSelector:
         Raises:
             ValueError: If *strategy* is not recognised.
         """
-        candidates = [
-            ex for ex in self._pool if ex.signature_name == signature_name
-        ]
+        candidates = [ex for ex in self._pool if ex.signature_name == signature_name]
 
         if not candidates:
             return []
@@ -463,14 +461,10 @@ class FewShotSelector:
             selected = self._select_recent(candidates, k)
         else:
             raise ValueError(
-                f"Unknown selection strategy '{strategy}'. "
-                f"Choose from: best, diverse, recent"
+                f"Unknown selection strategy '{strategy}'. " f"Choose from: best, diverse, recent"
             )
 
-        return [
-            {"input": ex.input_data, "output": ex.output_data}
-            for ex in selected
-        ]
+        return [{"input": ex.input_data, "output": ex.output_data} for ex in selected]
 
     # ------------------------------------------------------------------
     # Bootstrapping
@@ -522,27 +516,19 @@ class FewShotSelector:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _select_best(
-        candidates: list[_FewShotExample], k: int
-    ) -> list[_FewShotExample]:
+    def _select_best(candidates: list[_FewShotExample], k: int) -> list[_FewShotExample]:
         """Return the top-*k* examples by score (descending)."""
         sorted_candidates = sorted(candidates, key=lambda ex: ex.score, reverse=True)
         return sorted_candidates[:k]
 
     @staticmethod
-    def _select_recent(
-        candidates: list[_FewShotExample], k: int
-    ) -> list[_FewShotExample]:
+    def _select_recent(candidates: list[_FewShotExample], k: int) -> list[_FewShotExample]:
         """Return the most recently added *k* examples."""
-        sorted_candidates = sorted(
-            candidates, key=lambda ex: ex.added_at, reverse=True
-        )
+        sorted_candidates = sorted(candidates, key=lambda ex: ex.added_at, reverse=True)
         return sorted_candidates[:k]
 
     @staticmethod
-    def _select_diverse(
-        candidates: list[_FewShotExample], k: int
-    ) -> list[_FewShotExample]:
+    def _select_diverse(candidates: list[_FewShotExample], k: int) -> list[_FewShotExample]:
         """Greedy maximal marginal relevance for diversity.
 
         The algorithm starts by selecting the highest-scored example, then
@@ -631,8 +617,7 @@ class PromptOptimizer:
         # Register built-in signatures
         self._register_default_signatures()
 
-        logger.info("PromptOptimizer initialised with %d default signatures",
-                     len(self._signatures))
+        logger.info("PromptOptimizer initialised with %d default signatures", len(self._signatures))
 
     # ------------------------------------------------------------------
     # Signature management
@@ -648,9 +633,7 @@ class PromptOptimizer:
             signature: The :class:`PromptSignature` to register.
         """
         if signature.name in self._signatures:
-            logger.warning(
-                "Overwriting existing signature: %s", signature.name
-            )
+            logger.warning("Overwriting existing signature: %s", signature.name)
         self._signatures[signature.name] = signature
         self._version_counters.setdefault(signature.name, 1)
 
@@ -708,8 +691,7 @@ class PromptOptimizer:
 
         # If this is the first variant for the signature, auto-activate it
         existing_active = [
-            v for v in self._variants.values()
-            if v.signature_name == signature_name and v.is_active
+            v for v in self._variants.values() if v.signature_name == signature_name and v.is_active
         ]
         if not existing_active:
             variant.is_active = True
@@ -736,10 +718,7 @@ class PromptOptimizer:
         Returns:
             The best :class:`PromptVariant`, or ``None``.
         """
-        candidates = [
-            v for v in self._variants.values()
-            if v.signature_name == signature_name
-        ]
+        candidates = [v for v in self._variants.values() if v.signature_name == signature_name]
 
         if not candidates:
             return None
@@ -825,9 +804,7 @@ class PromptOptimizer:
         old_total = variant.score * variant.eval_count
         variant.eval_count += len(scores)
         variant.score = (
-            (old_total + sum(scores)) / variant.eval_count
-            if variant.eval_count > 0
-            else 0.0
+            (old_total + sum(scores)) / variant.eval_count if variant.eval_count > 0 else 0.0
         )
 
         result = EvaluationResult(
@@ -898,14 +875,10 @@ class PromptOptimizer:
             )
 
         # 1. Generate instruction mutations
-        instruction_candidates = self._mutator.generate_candidates(
-            seed.instruction, n=n_candidates
-        )
+        instruction_candidates = self._mutator.generate_candidates(seed.instruction, n=n_candidates)
 
         # 2. Select best few-shot examples
-        few_shots = self._few_shot_selector.select(
-            signature_name, k=3, strategy="diverse"
-        )
+        few_shots = self._few_shot_selector.select(signature_name, k=3, strategy="diverse")
 
         # 3. Create candidate variants
         new_variants: list[PromptVariant] = []
@@ -976,10 +949,7 @@ class PromptOptimizer:
             A list of dicts, each containing the variant id, version, score,
             evaluation count, active status, and all evaluation results.
         """
-        variants = [
-            v for v in self._variants.values()
-            if v.signature_name == signature_name
-        ]
+        variants = [v for v in self._variants.values() if v.signature_name == signature_name]
         variants.sort(key=lambda v: v.version)
 
         history: list[dict] = []
@@ -996,16 +966,18 @@ class PromptOptimizer:
                 if er.variant_id == variant.variant_id
             ]
 
-            history.append({
-                "variant_id": variant.variant_id,
-                "version": variant.version,
-                "instruction": variant.instruction,
-                "score": variant.score,
-                "eval_count": variant.eval_count,
-                "is_active": variant.is_active,
-                "created_at": variant.created_at.isoformat(),
-                "evaluations": evals,
-            })
+            history.append(
+                {
+                    "variant_id": variant.variant_id,
+                    "version": variant.version,
+                    "instruction": variant.instruction,
+                    "score": variant.score,
+                    "eval_count": variant.eval_count,
+                    "is_active": variant.is_active,
+                    "created_at": variant.created_at.isoformat(),
+                    "evaluations": evals,
+                }
+            )
 
         return history
 
@@ -1030,52 +1002,60 @@ class PromptOptimizer:
     def _register_default_signatures(self) -> None:
         """Register the pre-built ARBOR prompt signatures."""
 
-        self.register_signature(PromptSignature(
-            name="intent_classification",
-            input_fields=["user_query", "conversation_history"],
-            output_fields=["intent", "confidence", "entities"],
-            description=(
-                "Classify the user's query into one of the supported intents "
-                "(discover, compare, detail, navigate, general) and extract "
-                "mentioned entities."
-            ),
-            evaluation_metric="accuracy",
-        ))
+        self.register_signature(
+            PromptSignature(
+                name="intent_classification",
+                input_fields=["user_query", "conversation_history"],
+                output_fields=["intent", "confidence", "entities"],
+                description=(
+                    "Classify the user's query into one of the supported intents "
+                    "(discover, compare, detail, navigate, general) and extract "
+                    "mentioned entities."
+                ),
+                evaluation_metric="accuracy",
+            )
+        )
 
-        self.register_signature(PromptSignature(
-            name="entity_scoring",
-            input_fields=["entity_data", "scoring_criteria"],
-            output_fields=["vibe_scores", "reasoning"],
-            description=(
-                "Score an entity across multiple vibe dimensions (atmosphere, "
-                "design, cultural_relevance, exclusivity, innovation) on a "
-                "0-10 scale with supporting reasoning."
-            ),
-            evaluation_metric="mae",
-        ))
+        self.register_signature(
+            PromptSignature(
+                name="entity_scoring",
+                input_fields=["entity_data", "scoring_criteria"],
+                output_fields=["vibe_scores", "reasoning"],
+                description=(
+                    "Score an entity across multiple vibe dimensions (atmosphere, "
+                    "design, cultural_relevance, exclusivity, innovation) on a "
+                    "0-10 scale with supporting reasoning."
+                ),
+                evaluation_metric="mae",
+            )
+        )
 
-        self.register_signature(PromptSignature(
-            name="discovery_synthesis",
-            input_fields=["user_query", "search_results", "user_context"],
-            output_fields=["response", "recommendations", "follow_ups"],
-            description=(
-                "Synthesize search results into a coherent, conversational "
-                "discovery response with tailored recommendations and "
-                "follow-up questions."
-            ),
-            evaluation_metric="relevance",
-        ))
+        self.register_signature(
+            PromptSignature(
+                name="discovery_synthesis",
+                input_fields=["user_query", "search_results", "user_context"],
+                output_fields=["response", "recommendations", "follow_ups"],
+                description=(
+                    "Synthesize search results into a coherent, conversational "
+                    "discovery response with tailored recommendations and "
+                    "follow-up questions."
+                ),
+                evaluation_metric="relevance",
+            )
+        )
 
-        self.register_signature(PromptSignature(
-            name="fact_extraction",
-            input_fields=["text", "entity_type"],
-            output_fields=["facts", "confidence_scores"],
-            description=(
-                "Extract structured facts (attributes, relationships, events) "
-                "from unstructured text about a given entity type."
-            ),
-            evaluation_metric="f1",
-        ))
+        self.register_signature(
+            PromptSignature(
+                name="fact_extraction",
+                input_fields=["text", "entity_type"],
+                output_fields=["facts", "confidence_scores"],
+                description=(
+                    "Extract structured facts (attributes, relationships, events) "
+                    "from unstructured text about a given entity type."
+                ),
+                evaluation_metric="f1",
+            )
+        )
 
 
 # ---------------------------------------------------------------------------

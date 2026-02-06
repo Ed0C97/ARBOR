@@ -4,7 +4,7 @@ import json
 import logging
 
 from app.llm.gateway import get_llm_gateway
-from app.llm.prompts import load_prompt, VIBE_EXTRACTOR
+from app.llm.prompts import VIBE_EXTRACTOR, load_prompt
 
 logger = logging.getLogger(__name__)
 

@@ -12,12 +12,12 @@ from temporalio.common import RetryPolicy
 with workflow.unsafe.imports_passed_through():
     from app.workflows.enrichment_activities import (
         collect_entity_data,
+        generate_and_sync_embedding,
+        get_unenriched_entities,
         run_fact_analyzers,
+        run_full_enrichment,
         score_with_calibration,
         validate_and_persist,
-        run_full_enrichment,
-        get_unenriched_entities,
-        generate_and_sync_embedding,
     )
 
 
@@ -58,9 +58,7 @@ class EntityEnrichmentWorkflow:
                 )
                 result["embedding_synced"] = True
             except Exception as e:
-                workflow.logger.warning(
-                    f"Embedding sync failed for {entity_id}: {e}"
-                )
+                workflow.logger.warning(f"Embedding sync failed for {entity_id}: {e}")
                 result["embedding_synced"] = False
 
         return result

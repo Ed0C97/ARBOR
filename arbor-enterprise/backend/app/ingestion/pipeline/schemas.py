@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
@@ -190,7 +189,9 @@ class FactSheet:
         if self.signature_items:
             lines.append(f"Signature items: {', '.join(self.signature_items)}")
         if self.review_count > 0:
-            lines.append(f"Review sentiment: {self.review_sentiment:.2f} ({self.review_count} reviews)")
+            lines.append(
+                f"Review sentiment: {self.review_sentiment:.2f} ({self.review_count} reviews)"
+            )
         return "\n".join(lines)
 
 
@@ -245,9 +246,7 @@ class ScoredVibeDNA:
             "dimensions": {d.dimension: d.score for d in self.dimensions},
             "confidence": {d.dimension: round(d.confidence, 3) for d in self.dimensions},
             "disagreements": {
-                d.dimension: d.has_disagreement
-                for d in self.dimensions
-                if d.has_disagreement
+                d.dimension: d.has_disagreement for d in self.dimensions if d.has_disagreement
             },
             "tags": self.tags,
             "signature_items": self.signature_items,
@@ -301,9 +300,7 @@ class GoldStandardEntity:
 
     def to_few_shot_example(self, fact_sheet_text: str) -> str:
         """Format as a few-shot example for the scoring LLM."""
-        scores_str = ", ".join(
-            f"{k}: {v}" for k, v in sorted(self.ground_truth_scores.items())
-        )
+        scores_str = ", ".join(f"{k}: {v}" for k, v in sorted(self.ground_truth_scores.items()))
         tags_str = ", ".join(self.ground_truth_tags[:10])
         return (
             f"### Example: {self.name} ({self.category})\n"

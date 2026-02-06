@@ -49,7 +49,9 @@ class VisionFactAnalyzer:
     def __init__(self):
         self.gateway = get_llm_gateway()
 
-    async def analyze(self, image_urls: list[str], source: SourceType = SourceType.GOOGLE_PHOTOS) -> dict:
+    async def analyze(
+        self, image_urls: list[str], source: SourceType = SourceType.GOOGLE_PHOTOS
+    ) -> dict:
         """Analyze images and return visual facts.
 
         Returns a dict of visual facts ready to merge into a FactSheet.
@@ -63,10 +65,12 @@ class VisionFactAnalyzer:
 
         content = [{"type": "text", "text": "Analyze these images of a venue or shop:"}]
         for img in images_b64:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{img}"},
-            })
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{img}"},
+                }
+            )
 
         try:
             response = await self.gateway.complete_json(
@@ -90,23 +94,37 @@ class VisionFactAnalyzer:
         ]
         interior = []
         if raw.get("lighting"):
-            interior.append(ExtractedFact(fact_type="lighting", value=raw["lighting"], source=source))
+            interior.append(
+                ExtractedFact(fact_type="lighting", value=raw["lighting"], source=source)
+            )
         if raw.get("layout"):
             interior.append(ExtractedFact(fact_type="layout", value=raw["layout"], source=source))
         if raw.get("furniture_style"):
-            interior.append(ExtractedFact(fact_type="furniture_style", value=raw["furniture_style"], source=source))
+            interior.append(
+                ExtractedFact(
+                    fact_type="furniture_style", value=raw["furniture_style"], source=source
+                )
+            )
         if raw.get("cleanliness"):
-            interior.append(ExtractedFact(fact_type="cleanliness", value=raw["cleanliness"], source=source))
-        for elem in (raw.get("decor_elements") or []):
+            interior.append(
+                ExtractedFact(fact_type="cleanliness", value=raw["cleanliness"], source=source)
+            )
+        for elem in raw.get("decor_elements") or []:
             interior.append(ExtractedFact(fact_type="decor_element", value=elem, source=source))
 
         audience = []
         if raw.get("crowd_density"):
-            audience.append(ExtractedFact(fact_type="crowd_density", value=raw["crowd_density"], source=source))
+            audience.append(
+                ExtractedFact(fact_type="crowd_density", value=raw["crowd_density"], source=source)
+            )
 
         brand = []
         if raw.get("brand_presentation"):
-            brand.append(ExtractedFact(fact_type="brand_presentation", value=raw["brand_presentation"], source=source))
+            brand.append(
+                ExtractedFact(
+                    fact_type="brand_presentation", value=raw["brand_presentation"], source=source
+                )
+            )
 
         return {
             "materials": materials,

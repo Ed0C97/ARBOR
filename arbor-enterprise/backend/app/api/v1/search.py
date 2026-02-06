@@ -78,8 +78,8 @@ async def hybrid_search(
     Combines semantic embedding search with keyword matching via Reciprocal
     Rank Fusion for higher-quality results than either method alone.
     """
-    from app.llm.gateway import get_llm_gateway
     from app.db.qdrant.hybrid_search import HybridSearch
+    from app.llm.gateway import get_llm_gateway
 
     gateway = get_llm_gateway()
     hybrid = HybridSearch()

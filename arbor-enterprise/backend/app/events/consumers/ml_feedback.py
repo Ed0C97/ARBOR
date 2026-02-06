@@ -172,9 +172,7 @@ class MLFeedbackConsumer:
         if batch_size == 0:
             return
 
-        logger.info(
-            "Flushing %d ML feedback samples to feedback collector", batch_size
-        )
+        logger.info("Flushing %d ML feedback samples to feedback collector", batch_size)
 
         from app.ml.feedback_loop import get_feedback_collector
 

@@ -6,25 +6,24 @@ Covers:
 """
 
 import hashlib
-
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.core.multi_tenant import (
-    DEFAULT_TIER_LIMITS,
-    DEFAULT_TIER_FEATURES,
-    Tenant,
-    TenantContext,
-    TenantIsolation,
-    TenantManager,
-)
+import pytest
+
 from app.core.domain_portability import (
     DomainAdapter,
     DomainConfig,
     DomainExporter,
     DomainRegistry,
 )
-
+from app.core.multi_tenant import (
+    DEFAULT_TIER_FEATURES,
+    DEFAULT_TIER_LIMITS,
+    Tenant,
+    TenantContext,
+    TenantIsolation,
+    TenantManager,
+)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TestTenant
@@ -504,11 +503,10 @@ class TestDomainExporter:
     def test_export_roundtrip(self):
         """Exporting a domain config then importing it back produces an equivalent config."""
         # Create a fresh registry with the pre-built fashion domain
-        with patch(
-            "app.core.domain_portability._registry", None
-        ), patch(
-            "app.core.domain_portability.get_domain_registry"
-        ) as mock_get_registry:
+        with (
+            patch("app.core.domain_portability._registry", None),
+            patch("app.core.domain_portability.get_domain_registry") as mock_get_registry,
+        ):
             registry = DomainRegistry()
             mock_get_registry.return_value = registry
 

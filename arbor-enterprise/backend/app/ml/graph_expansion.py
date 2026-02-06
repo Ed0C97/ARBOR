@@ -299,8 +299,7 @@ class GraphExpander:
             with driver.session() as session:
                 # Fetch source coordinates
                 source_result = session.run(
-                    "MATCH (e:Entity {id: $id}) "
-                    "RETURN e.latitude AS lat, e.longitude AS lon",
+                    "MATCH (e:Entity {id: $id}) " "RETURN e.latitude AS lat, e.longitude AS lon",
                     id=entity_id,
                 )
                 source_record = source_result.single()
@@ -323,9 +322,7 @@ class GraphExpander:
                 )
 
                 for record in others_result:
-                    dist = _haversine_km(
-                        src_lat, src_lon, record["lat"], record["lon"]
-                    )
+                    dist = _haversine_km(src_lat, src_lon, record["lat"], record["lon"])
                     if dist <= radius_km:
                         # Confidence is inversely proportional to distance
                         confidence = max(0.0, 1.0 - (dist / radius_km))
@@ -487,9 +484,7 @@ class GraphExpander:
             )
 
             if not points or points[0].vector is None:
-                logger.debug(
-                    "Entity %s not found in Qdrant collection — skipping", entity_id
-                )
+                logger.debug("Entity %s not found in Qdrant collection — skipping", entity_id)
                 return candidates
 
             query_vector = points[0].vector
@@ -524,8 +519,7 @@ class GraphExpander:
                     )
 
             logger.info(
-                "Embedding cluster expansion for %s: %d candidates "
-                "(top_k=%d, threshold=%.2f)",
+                "Embedding cluster expansion for %s: %d candidates " "(top_k=%d, threshold=%.2f)",
                 entity_id,
                 len(candidates),
                 top_k,
@@ -755,15 +749,12 @@ class AutoExpansionScheduler:
                 candidates = await self._expander.run_full_expansion(entity_id)
                 all_candidates.extend(candidates)
             except Exception as exc:
-                logger.error(
-                    "Expansion failed for entity %s: %s", entity_id, exc
-                )
+                logger.error("Expansion failed for entity %s: %s", entity_id, exc)
 
         self._total_processed += len(batch)
 
         logger.info(
-            "Batch complete: %d entities processed, %d candidates found "
-            "(total processed: %d)",
+            "Batch complete: %d entities processed, %d candidates found " "(total processed: %d)",
             len(batch),
             len(all_candidates),
             self._total_processed,

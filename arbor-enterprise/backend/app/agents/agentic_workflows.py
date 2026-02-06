@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Shared gather helper — calls real VectorAgent + MetadataAgent
 # ---------------------------------------------------------------------------
 
+
 async def _gather_entities_for_query(
     sub_query: str,
     limit: int = 10,
@@ -38,9 +39,12 @@ async def _gather_entities_for_query(
         (findings_list, entities_list) — findings contain query+results,
         entities are the raw result dicts for downstream analysis.
     """
-    from app.agents.vector_agent import VectorAgent
-    from app.db.postgres.connection import magazine_session_factory, arbor_session_factory
     from app.agents.metadata_agent import MetadataAgent
+    from app.agents.vector_agent import VectorAgent
+    from app.db.postgres.connection import (
+        arbor_session_factory,
+        magazine_session_factory,
+    )
 
     vector_results: list[dict] = []
     metadata_results: list[dict] = []
@@ -49,7 +53,9 @@ async def _gather_entities_for_query(
     try:
         vector_agent = VectorAgent()
         vector_results = await vector_agent.execute(
-            query=sub_query, filters=None, limit=limit,
+            query=sub_query,
+            filters=None,
+            limit=limit,
         )
     except Exception as exc:
         logger.warning("VectorAgent failed for '%s': %s", sub_query[:60], exc)
@@ -63,12 +69,14 @@ async def _gather_entities_for_query(
                     async with arb_ctx as arb_session:
                         metadata_agent = MetadataAgent(session, arb_session)
                         metadata_results = await metadata_agent.execute(
-                            filters={"search": sub_query}, limit=limit,
+                            filters={"search": sub_query},
+                            limit=limit,
                         )
                 else:
                     metadata_agent = MetadataAgent(session, None)
                     metadata_results = await metadata_agent.execute(
-                        filters={"search": sub_query}, limit=limit,
+                        filters={"search": sub_query},
+                        limit=limit,
                     )
     except Exception as exc:
         logger.warning("MetadataAgent failed for '%s': %s", sub_query[:60], exc)
@@ -93,6 +101,7 @@ async def _gather_entities_for_query(
 
     return [finding], all_results
 
+
 # ---------------------------------------------------------------------------
 # LangGraph imports - graceful fallback when not installed
 # ---------------------------------------------------------------------------
@@ -104,9 +113,7 @@ except ImportError:
     LANGGRAPH_AVAILABLE = False
     StateGraph = None
     END = "__end__"
-    logger.warning(
-        "langgraph not installed - agentic workflows will use fallback execution"
-    )
+    logger.warning("langgraph not installed - agentic workflows will use fallback execution")
 
 
 # ===========================================================================
@@ -238,7 +245,7 @@ class QueryDecomposer:
             if sep in query_lower:
                 idx = query_lower.index(sep)
                 part_a = query[:idx].strip()
-                part_b = query[idx + len(sep):].strip()
+                part_b = query[idx + len(sep) :].strip()
                 return [
                     part_a,
                     part_b,
@@ -246,9 +253,7 @@ class QueryDecomposer:
                 ]
 
         # Fallback: treat the whole query as a single sub-query
-        logger.debug(
-            "QueryDecomposer: no comparison separator found in '%s'", query[:60]
-        )
+        logger.debug("QueryDecomposer: no comparison separator found in '%s'", query[:60])
         return [query]
 
 
@@ -291,7 +296,9 @@ class DeepResearchAgent:
         for sq in sub_queries:
             try:
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=10, source_label="deep_research",
+                    sq,
+                    limit=10,
+                    source_label="deep_research",
                 )
                 for f in findings:
                     f["iteration"] = iteration
@@ -299,12 +306,14 @@ class DeepResearchAgent:
                 new_entities.extend(entities)
             except Exception as exc:
                 logger.warning("Research sub-query failed '%s': %s", sq[:50], exc)
-                new_findings.append({
-                    "query": sq,
-                    "iteration": iteration,
-                    "results": [],
-                    "source": "deep_research",
-                })
+                new_findings.append(
+                    {
+                        "query": sq,
+                        "iteration": iteration,
+                        "results": [],
+                        "source": "deep_research",
+                    }
+                )
 
         # -- Step 2: identify gaps ------------------------------------------
         all_findings = list(prior_findings) + new_findings
@@ -455,9 +464,7 @@ class TrendAnalysisAgent:
             ``intermediate_findings``.
         """
         entities = state.get("entities_discovered", [])
-        logger.info(
-            "TrendAnalysisAgent: analyzing %d entities for trends", len(entities)
-        )
+        logger.info("TrendAnalysisAgent: analyzing %d entities for trends", len(entities))
 
         trends = self._extract_trends(entities)
 
@@ -510,17 +517,13 @@ class TrendAnalysisAgent:
         # nascent trends rather than established ones)
         total = len(entities) if entities else 1
         emerging = [
-            cat
-            for cat, count in category_counts.items()
-            if 0 < count <= max(total * 0.1, 2)
+            cat for cat, count in category_counts.items() if 0 < count <= max(total * 0.1, 2)
         ]
 
         return {
             "category_distribution": category_counts,
             "city_distribution": city_counts,
-            "popular_tags": dict(
-                sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:20]
-            ),
+            "popular_tags": dict(sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:20]),
             "price_range_spread": price_counts,
             "emerging": emerging,
         }
@@ -545,9 +548,7 @@ class EntityComparisonAgent:
             State update with comparison result in ``intermediate_findings``.
         """
         entities = state.get("entities_discovered", [])
-        logger.info(
-            "EntityComparisonAgent: comparing %d entities", len(entities)
-        )
+        logger.info("EntityComparisonAgent: comparing %d entities", len(entities))
 
         if len(entities) < 2:
             comparison = {
@@ -697,6 +698,7 @@ class WorkflowSynthesizer:
         # Try LLM synthesis, fall back to structured text
         try:
             from app.llm.gateway import get_llm_gateway
+
             gateway = get_llm_gateway()
             synthesis_text = await gateway.complete(
                 messages=[
@@ -800,9 +802,7 @@ class WorkflowOrchestrator:
         synthesizer = self._synthesizer
 
         async def decompose_node(state: WorkflowState) -> dict:
-            sub_queries = decomposer.decompose(
-                state["original_query"], WorkflowType.DEEP_RESEARCH
-            )
+            sub_queries = decomposer.decompose(state["original_query"], WorkflowType.DEEP_RESEARCH)
             return {"sub_queries": sub_queries, "iteration": 0}
 
         async def research_node(state: WorkflowState) -> dict:
@@ -841,9 +841,7 @@ class WorkflowOrchestrator:
         synthesizer = self._synthesizer
 
         async def decompose_node(state: WorkflowState) -> dict:
-            sub_queries = decomposer.decompose(
-                state["original_query"], WorkflowType.TREND_ANALYSIS
-            )
+            sub_queries = decomposer.decompose(state["original_query"], WorkflowType.TREND_ANALYSIS)
             return {"sub_queries": sub_queries, "iteration": 0}
 
         async def gather_node(state: WorkflowState) -> dict:
@@ -852,7 +850,9 @@ class WorkflowOrchestrator:
             all_entities: list[dict] = []
             for sq in state.get("sub_queries", []):
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=10, source_label="trend_gather",
+                    sq,
+                    limit=10,
+                    source_label="trend_gather",
                 )
                 all_findings.extend(findings)
                 all_entities.extend(entities)
@@ -900,7 +900,9 @@ class WorkflowOrchestrator:
             all_entities: list[dict] = []
             for sq in state.get("sub_queries", []):
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=10, source_label="comparison_gather",
+                    sq,
+                    limit=10,
+                    source_label="comparison_gather",
                 )
                 all_findings.extend(findings)
                 all_entities.extend(entities)
@@ -941,9 +943,7 @@ class WorkflowOrchestrator:
         synthesizer = self._synthesizer
 
         async def decompose_node(state: WorkflowState) -> dict:
-            sub_queries = decomposer.decompose(
-                state["original_query"], WorkflowType.MARKET_MAPPING
-            )
+            sub_queries = decomposer.decompose(state["original_query"], WorkflowType.MARKET_MAPPING)
             return {"sub_queries": sub_queries, "iteration": 0}
 
         async def gather_node(state: WorkflowState) -> dict:
@@ -952,7 +952,9 @@ class WorkflowOrchestrator:
             all_entities: list[dict] = []
             for sq in state.get("sub_queries", []):
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=15, source_label="market_gather",
+                    sq,
+                    limit=15,
+                    source_label="market_gather",
                 )
                 all_findings.extend(findings)
                 all_entities.extend(entities)
@@ -1071,9 +1073,7 @@ class WorkflowOrchestrator:
     # Fallback execution (no LangGraph)
     # ------------------------------------------------------------------
 
-    async def _fallback_run(
-        self, workflow_type: WorkflowType, state: dict
-    ) -> dict:
+    async def _fallback_run(self, workflow_type: WorkflowType, state: dict) -> dict:
         """Execute the workflow nodes sequentially without LangGraph.
 
         This allows the module to function (with reduced orchestration
@@ -1082,9 +1082,7 @@ class WorkflowOrchestrator:
         logger.info("Fallback execution for workflow '%s'", workflow_type)
 
         # Step 1: Decompose
-        sub_queries = self._decomposer.decompose(
-            state["original_query"], workflow_type
-        )
+        sub_queries = self._decomposer.decompose(state["original_query"], workflow_type)
         state["sub_queries"] = sub_queries
         state["iteration"] = 0
 
@@ -1105,14 +1103,12 @@ class WorkflowOrchestrator:
             # Gather real data first
             for sq in state["sub_queries"]:
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=10, source_label=f"{workflow_type.value}_gather",
+                    sq,
+                    limit=10,
+                    source_label=f"{workflow_type.value}_gather",
                 )
-                state["intermediate_findings"] = state.get(
-                    "intermediate_findings", []
-                ) + findings
-                state["entities_discovered"] = state.get(
-                    "entities_discovered", []
-                ) + entities
+                state["intermediate_findings"] = state.get("intermediate_findings", []) + findings
+                state["entities_discovered"] = state.get("entities_discovered", []) + entities
             # Then analyze trends
             trend_update = await self._trend_agent.analyze(state)
             state["intermediate_findings"] = state.get(
@@ -1123,14 +1119,12 @@ class WorkflowOrchestrator:
             # Gather real data first
             for sq in state["sub_queries"]:
                 findings, entities = await _gather_entities_for_query(
-                    sq, limit=10, source_label="comparison_gather",
+                    sq,
+                    limit=10,
+                    source_label="comparison_gather",
                 )
-                state["intermediate_findings"] = state.get(
-                    "intermediate_findings", []
-                ) + findings
-                state["entities_discovered"] = state.get(
-                    "entities_discovered", []
-                ) + entities
+                state["intermediate_findings"] = state.get("intermediate_findings", []) + findings
+                state["entities_discovered"] = state.get("entities_discovered", []) + entities
             # Then compare
             comp_update = await self._comparison_agent.compare(state)
             state["intermediate_findings"] = state.get(
@@ -1142,9 +1136,7 @@ class WorkflowOrchestrator:
             state["intermediate_findings"] = state.get(
                 "intermediate_findings", []
             ) + research_update.get("intermediate_findings", [])
-            state["iteration"] = research_update.get(
-                "iteration", state["iteration"] + 1
-            )
+            state["iteration"] = research_update.get("iteration", state["iteration"] + 1)
             trend_update = await self._trend_agent.analyze(state)
             state["intermediate_findings"] = state.get(
                 "intermediate_findings", []

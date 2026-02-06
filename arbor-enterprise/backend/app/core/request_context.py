@@ -193,9 +193,7 @@ class RequestContext:
 # ContextVar storage
 # ---------------------------------------------------------------------------
 
-_request_ctx: ContextVar[RequestContext | None] = ContextVar(
-    "request_context", default=None
-)
+_request_ctx: ContextVar[RequestContext | None] = ContextVar("request_context", default=None)
 
 
 def set_request_context(ctx: RequestContext) -> Any:
@@ -229,6 +227,7 @@ def get_or_create_context() -> RequestContext:
 # ---------------------------------------------------------------------------
 # Structured logger
 # ---------------------------------------------------------------------------
+
 
 class StructuredLogger:
     """Thin wrapper around :mod:`logging` that auto-injects request context.
@@ -321,6 +320,7 @@ _logger = get_structured_logger(__name__)
 # OpenTelemetry traceparent helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_traceparent(header: str) -> tuple[str, str]:
     """Extract trace_id and span_id from a W3C ``traceparent`` header.
 
@@ -341,16 +341,18 @@ def _parse_traceparent(header: str) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 # Paths that bypass context creation (health checks, docs, etc.).
-_SKIP_PATHS: frozenset[str] = frozenset({
-    "/health",
-    "/healthz",
-    "/ready",
-    "/readyz",
-    "/metrics",
-    "/docs",
-    "/openapi.json",
-    "/redoc",
-})
+_SKIP_PATHS: frozenset[str] = frozenset(
+    {
+        "/health",
+        "/healthz",
+        "/ready",
+        "/readyz",
+        "/metrics",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+    }
+)
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
@@ -501,6 +503,7 @@ def with_context(fn: F) -> F:
     """
 
     if asyncio.iscoroutinefunction(fn):
+
         @functools.wraps(fn)
         async def _async_wrapper(*args: Any, **kwargs: Any) -> Any:
             ctx = get_request_context()
@@ -516,6 +519,7 @@ def with_context(fn: F) -> F:
         return _async_wrapper  # type: ignore[return-value]
 
     else:
+
         @functools.wraps(fn)
         def _sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             ctx = get_request_context()
@@ -551,6 +555,7 @@ def track_cost(operation_name: str, estimated_cost: float = 0.0) -> Callable[[F]
 
     def decorator(fn: F) -> F:
         if asyncio.iscoroutinefunction(fn):
+
             @functools.wraps(fn)
             async def _async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 ctx = get_request_context()
@@ -562,6 +567,7 @@ def track_cost(operation_name: str, estimated_cost: float = 0.0) -> Callable[[F]
             return _async_wrapper  # type: ignore[return-value]
 
         else:
+
             @functools.wraps(fn)
             def _sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 ctx = get_request_context()

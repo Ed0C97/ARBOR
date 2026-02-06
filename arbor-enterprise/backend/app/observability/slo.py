@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class SLOType(Enum):
     """Classification of service level objective types."""
 
@@ -49,6 +50,7 @@ class SLOType(Enum):
 # ---------------------------------------------------------------------------
 # Dataclasses
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class SLODefinition:
@@ -137,6 +139,7 @@ class ErrorBudget:
 # Internal data containers
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _RequestRecord:
     """A single recorded request outcome."""
@@ -162,6 +165,7 @@ class _EndpointBucket:
 # ---------------------------------------------------------------------------
 # BurnRateCalculator
 # ---------------------------------------------------------------------------
+
 
 class BurnRateCalculator:
     """Utility methods for error-budget burn-rate analysis."""
@@ -260,6 +264,7 @@ class BurnRateCalculator:
 # ---------------------------------------------------------------------------
 # SLOMonitor
 # ---------------------------------------------------------------------------
+
 
 class SLOMonitor:
     """In-memory SLO tracker with error-budget and burn-rate analysis.
@@ -419,10 +424,7 @@ class SLOMonitor:
         with self._lock:
             definitions = list(self._definitions.values())
             buckets = {defn.slo_id: self._aggregate(defn) for defn in definitions}
-        return [
-            self._compute_metric(defn, buckets[defn.slo_id])
-            for defn in definitions
-        ]
+        return [self._compute_metric(defn, buckets[defn.slo_id]) for defn in definitions]
 
     def get_burn_rate_alerts(self) -> list[dict]:
         """Return SLOs whose burn rate exceeds sustainable levels.
@@ -440,19 +442,21 @@ class SLOMonitor:
         for defn in definitions:
             budget = self._compute_budget(defn, buckets[defn.slo_id])
             if budget.burn_rate > 1.0:
-                alerts.append({
-                    "slo_id": defn.slo_id,
-                    "name": defn.name,
-                    "burn_rate": round(budget.burn_rate, 3),
-                    "severity": self._calculator.classify_severity(budget.burn_rate),
-                    "remaining_budget": round(budget.remaining, 6),
-                    "tier": defn.tier,
-                    "projected_exhaustion": (
-                        budget.projected_exhaustion_time.isoformat()
-                        if budget.projected_exhaustion_time
-                        else None
-                    ),
-                })
+                alerts.append(
+                    {
+                        "slo_id": defn.slo_id,
+                        "name": defn.name,
+                        "burn_rate": round(budget.burn_rate, 3),
+                        "severity": self._calculator.classify_severity(budget.burn_rate),
+                        "remaining_budget": round(budget.remaining, 6),
+                        "tier": defn.tier,
+                        "projected_exhaustion": (
+                            budget.projected_exhaustion_time.isoformat()
+                            if budget.projected_exhaustion_time
+                            else None
+                        ),
+                    }
+                )
         return alerts
 
     def should_allow_deployment(
@@ -475,14 +479,11 @@ class SLOMonitor:
         with self._lock:
             if slo_ids is None:
                 definitions = [
-                    d for d in self._definitions.values()
-                    if d.tier in ("critical", "high")
+                    d for d in self._definitions.values() if d.tier in ("critical", "high")
                 ]
             else:
                 definitions = [
-                    self._definitions[sid]
-                    for sid in slo_ids
-                    if sid in self._definitions
+                    self._definitions[sid] for sid in slo_ids if sid in self._definitions
                 ]
             buckets = {defn.slo_id: self._aggregate(defn) for defn in definitions}
 
@@ -526,32 +527,34 @@ class SLOMonitor:
             if metric.is_meeting_target:
                 meeting_count += 1
 
-            slo_details.append({
-                "slo_id": defn.slo_id,
-                "name": defn.name,
-                "type": defn.slo_type.value,
-                "tier": defn.tier,
-                "target": defn.target,
-                "endpoint": defn.endpoint,
-                "metric": {
-                    "total_requests": metric.total_requests,
-                    "good_requests": metric.good_requests,
-                    "current_value": round(metric.current_value, 6),
-                    "is_meeting_target": metric.is_meeting_target,
-                },
-                "budget": {
-                    "total_budget": round(budget.total_budget, 6),
-                    "consumed": round(budget.consumed, 6),
-                    "remaining": round(budget.remaining, 6),
-                    "burn_rate": round(budget.burn_rate, 3),
-                    "is_exhausted": budget.is_exhausted,
-                    "projected_exhaustion": (
-                        budget.projected_exhaustion_time.isoformat()
-                        if budget.projected_exhaustion_time
-                        else None
-                    ),
-                },
-            })
+            slo_details.append(
+                {
+                    "slo_id": defn.slo_id,
+                    "name": defn.name,
+                    "type": defn.slo_type.value,
+                    "tier": defn.tier,
+                    "target": defn.target,
+                    "endpoint": defn.endpoint,
+                    "metric": {
+                        "total_requests": metric.total_requests,
+                        "good_requests": metric.good_requests,
+                        "current_value": round(metric.current_value, 6),
+                        "is_meeting_target": metric.is_meeting_target,
+                    },
+                    "budget": {
+                        "total_budget": round(budget.total_budget, 6),
+                        "consumed": round(budget.consumed, 6),
+                        "remaining": round(budget.remaining, 6),
+                        "burn_rate": round(budget.burn_rate, 3),
+                        "is_exhausted": budget.is_exhausted,
+                        "projected_exhaustion": (
+                            budget.projected_exhaustion_time.isoformat()
+                            if budget.projected_exhaustion_time
+                            else None
+                        ),
+                    },
+                }
+            )
 
         alerts = self.get_burn_rate_alerts()
         total = len(definitions)

@@ -290,9 +290,7 @@ class BaseConsumerWithDLQ(ABC):
             "retry_count": self._retry_count,
             "dlq_count": self._dlq_count,
             "dlq_rate": (
-                self._dlq_count / self._processed_count
-                if self._processed_count > 0
-                else 0.0
+                self._dlq_count / self._processed_count if self._processed_count > 0 else 0.0
             ),
         }
 
@@ -356,11 +354,13 @@ class DLQProcessor:
         count = 0
 
         async for message in self._consumer:
-            messages.append({
-                "partition": message.partition,
-                "offset": message.offset,
-                "value": message.value,
-            })
+            messages.append(
+                {
+                    "partition": message.partition,
+                    "offset": message.offset,
+                    "value": message.value,
+                }
+            )
             count += 1
             if count >= limit:
                 break

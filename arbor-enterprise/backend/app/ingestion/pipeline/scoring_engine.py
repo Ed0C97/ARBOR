@@ -89,21 +89,27 @@ class CalibratedScoringEngine:
         # Add few-shot examples from gold standard
         if gold_examples:
             examples_text = self._build_few_shot_block(gold_examples)
-            messages.append({
-                "role": "user",
-                "content": f"Here are calibration examples from expert curators:\n\n{examples_text}\n\nUse these as reference for consistent scoring.",
-            })
-            messages.append({
-                "role": "assistant",
-                "content": "I've internalized these calibration examples. I'll score the next entity consistently with these references.",
-            })
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"Here are calibration examples from expert curators:\n\n{examples_text}\n\nUse these as reference for consistent scoring.",
+                }
+            )
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": "I've internalized these calibration examples. I'll score the next entity consistently with these references.",
+                }
+            )
 
         # Add the entity to score
         fact_text = fact_sheet.to_scoring_text()
-        messages.append({
-            "role": "user",
-            "content": f"Score this entity:\n\n{fact_text}",
-        })
+        messages.append(
+            {
+                "role": "user",
+                "content": f"Score this entity:\n\n{fact_text}",
+            }
+        )
 
         try:
             response = await self.gateway.complete_json(
@@ -139,9 +145,7 @@ class CalibratedScoringEngine:
         """Build few-shot example text from gold standard entities."""
         blocks = []
         for i, ex in enumerate(examples, 1):
-            scores_str = ", ".join(
-                f"{k}: {v}" for k, v in sorted(ex.ground_truth_scores.items())
-            )
+            scores_str = ", ".join(f"{k}: {v}" for k, v in sorted(ex.ground_truth_scores.items()))
             tags_str = ", ".join(ex.ground_truth_tags[:8])
             block = (
                 f"--- Example {i}: {ex.name} ({ex.category}) ---\n"
@@ -175,12 +179,14 @@ class CalibratedScoringEngine:
                 score = 50
                 confidence = 0.2
 
-            dimensions.append(DimensionScore(
-                dimension=dim_name,
-                score=score,
-                confidence=confidence,
-                source_scores={"llm_calibrated": score},
-            ))
+            dimensions.append(
+                DimensionScore(
+                    dimension=dim_name,
+                    score=score,
+                    confidence=confidence,
+                    source_scores={"llm_calibrated": score},
+                )
+            )
 
         # Determine if review is needed
         needs_review = False
@@ -189,9 +195,7 @@ class CalibratedScoringEngine:
         low_confidence_dims = [d for d in dimensions if d.confidence < 0.4]
         if len(low_confidence_dims) >= 3:
             needs_review = True
-            review_reasons.append(
-                f"Low confidence on {len(low_confidence_dims)} dimensions"
-            )
+            review_reasons.append(f"Low confidence on {len(low_confidence_dims)} dimensions")
 
         if len(fact_sheet.sources_used) < 2:
             needs_review = True
@@ -214,9 +218,7 @@ class CalibratedScoringEngine:
             needs_review=needs_review,
             review_reasons=review_reasons,
             calibrated=bool(gold_examples),
-            calibration_reference_ids=[
-                ex.entity_id for ex in (gold_examples or [])
-            ],
+            calibration_reference_ids=[ex.entity_id for ex in (gold_examples or [])],
         )
 
     def _cross_calibrate(self, scored_batch: list[ScoredVibeDNA]) -> list[ScoredVibeDNA]:

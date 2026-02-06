@@ -12,11 +12,7 @@ Produces a CollectedSources object with all raw data.
 
 import logging
 
-from app.ingestion.pipeline.schemas import (
-    CollectedSources,
-    SourceData,
-    SourceType,
-)
+from app.ingestion.pipeline.schemas import CollectedSources, SourceData, SourceType
 
 logger = logging.getLogger(__name__)
 

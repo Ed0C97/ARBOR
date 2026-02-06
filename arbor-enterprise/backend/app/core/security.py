@@ -40,9 +40,7 @@ class RBACMiddleware:
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"https://{self.domain}/.well-known/jwks.json"
-                )
+                response = await client.get(f"https://{self.domain}/.well-known/jwks.json")
                 self._jwks_cache = response.json()
                 return self._jwks_cache
         except Exception as e:

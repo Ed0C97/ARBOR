@@ -199,8 +199,7 @@ class WebhookDelivery:
                         await asyncio.sleep(delay)
 
         logger.error(
-            "Webhook delivery exhausted retries: subscription=%s event=%s "
-            "url=%s last_error=%s",
+            "Webhook delivery exhausted retries: subscription=%s event=%s " "url=%s last_error=%s",
             subscription.id,
             payload.event_type.value,
             subscription.url,
@@ -272,18 +271,12 @@ class WebhookManager:
         if removed is not None:
             logger.info("Webhook unregistered: id=%s", subscription_id)
             return True
-        logger.warning(
-            "Webhook unregister failed (not found): id=%s", subscription_id
-        )
+        logger.warning("Webhook unregister failed (not found): id=%s", subscription_id)
         return False
 
     def list_subscriptions(self, tenant_id: str) -> list[WebhookSubscription]:
         """Return all subscriptions belonging to *tenant_id*."""
-        return [
-            sub
-            for sub in self._subscriptions.values()
-            if sub.tenant_id == tenant_id
-        ]
+        return [sub for sub in self._subscriptions.values() if sub.tenant_id == tenant_id]
 
     # -- Dispatch -----------------------------------------------------------
 
@@ -304,9 +297,7 @@ class WebhookManager:
         ]
 
         if not matching:
-            logger.debug(
-                "No active subscriptions for event %s", event_type.value
-            )
+            logger.debug("No active subscriptions for event %s", event_type.value)
             return
 
         for sub in matching:
@@ -347,12 +338,8 @@ class WebhookManager:
             "url": sub.url,
             "is_active": sub.is_active,
             "failure_count": sub.failure_count,
-            "last_success_at": (
-                sub.last_success_at.isoformat() if sub.last_success_at else None
-            ),
-            "last_failure_at": (
-                sub.last_failure_at.isoformat() if sub.last_failure_at else None
-            ),
+            "last_success_at": (sub.last_success_at.isoformat() if sub.last_success_at else None),
+            "last_failure_at": (sub.last_failure_at.isoformat() if sub.last_failure_at else None),
             "registered_events": [e.value for e in sub.events],
             "created_at": sub.created_at.isoformat(),
         }

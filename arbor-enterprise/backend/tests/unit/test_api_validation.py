@@ -1,16 +1,24 @@
 """Unit tests for API request/response validation logic."""
 
-import pytest
 from datetime import datetime
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Validation helpers (inline to avoid heavy imports)
 # ---------------------------------------------------------------------------
 
 VALID_CATEGORIES = {
-    "restaurant", "bar", "hotel", "shop", "cafe",
-    "gallery", "spa", "club", "tailoring", "clothing",
+    "restaurant",
+    "bar",
+    "hotel",
+    "shop",
+    "cafe",
+    "gallery",
+    "spa",
+    "club",
+    "tailoring",
+    "clothing",
 }
 
 VALID_STATUSES = {"pending", "vetted", "selected", "rejected"}

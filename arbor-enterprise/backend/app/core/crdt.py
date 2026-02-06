@@ -269,9 +269,7 @@ class ORSet:
     @property
     def elements(self) -> frozenset[str]:
         """Return the set of elements with at least one live tag."""
-        return frozenset(
-            elem for elem, tags in self._entries.items() if len(tags) > 0
-        )
+        return frozenset(elem for elem, tags in self._entries.items() if len(tags) > 0)
 
     def __len__(self) -> int:
         return len(self.elements)
@@ -306,18 +304,14 @@ class ORSet:
     def to_dict(self) -> dict:
         return {
             "type": "ORSet",
-            "entries": {
-                elem: sorted(tags) for elem, tags in self._entries.items()
-            },
+            "entries": {elem: sorted(tags) for elem, tags in self._entries.items()},
             "tombstones": sorted(self._tombstones),
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "ORSet":
         instance = cls()
-        instance._entries = {
-            elem: set(tags) for elem, tags in data["entries"].items()
-        }
+        instance._entries = {elem: set(tags) for elem, tags in data["entries"].items()}
         instance._tombstones = set(data["tombstones"])
         return instance
 
@@ -445,25 +439,15 @@ class LWWMap:
 
     def keys(self) -> list[str]:
         """Return keys whose current value is not ``None``."""
-        return [
-            k for k, reg in self._registers.items() if reg.get() is not None
-        ]
+        return [k for k, reg in self._registers.items() if reg.get() is not None]
 
     def values(self) -> list[Any]:
         """Return non-``None`` values."""
-        return [
-            reg.get()
-            for reg in self._registers.values()
-            if reg.get() is not None
-        ]
+        return [reg.get() for reg in self._registers.values() if reg.get() is not None]
 
     def items(self) -> list[tuple[str, Any]]:
         """Return ``(key, value)`` pairs for non-``None`` entries."""
-        return [
-            (k, reg.get())
-            for k, reg in self._registers.items()
-            if reg.get() is not None
-        ]
+        return [(k, reg.get()) for k, reg in self._registers.items() if reg.get() is not None]
 
     def __len__(self) -> int:
         return len(self.keys())
@@ -484,17 +468,14 @@ class LWWMap:
         return {
             "type": "LWWMap",
             "node_id": self.node_id,
-            "registers": {
-                k: reg.to_dict() for k, reg in self._registers.items()
-            },
+            "registers": {k: reg.to_dict() for k, reg in self._registers.items()},
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "LWWMap":
         instance = cls(node_id=data["node_id"])
         instance._registers = {
-            k: LWWRegister.from_dict(reg_data)
-            for k, reg_data in data["registers"].items()
+            k: LWWRegister.from_dict(reg_data) for k, reg_data in data["registers"].items()
         }
         return instance
 

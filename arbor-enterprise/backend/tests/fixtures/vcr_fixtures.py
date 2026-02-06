@@ -24,6 +24,7 @@ import pytest
 try:
     import vcr
     from vcr import VCR
+
     HAS_VCR = True
 except ImportError:
     HAS_VCR = False
@@ -35,7 +36,7 @@ CASSETTES_DIR = Path(__file__).parent / "cassettes"
 
 def get_vcr_config():
     """Return VCR configuration for LLM API mocking.
-    
+
     TIER 9 - Point 45: Test suite runs offline in <10 seconds.
     """
     return {

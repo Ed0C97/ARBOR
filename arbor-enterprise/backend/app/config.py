@@ -128,10 +128,10 @@ class Settings(BaseSettings):
     # -----------------------------------------------------------------------
     # LLM routing — which provider for which task
     # -----------------------------------------------------------------------
-    llm_primary_provider: str = "google"        # Text generation → Gemini
-    llm_vision_provider: str = "google"          # Image analysis → Gemini
-    llm_embedding_provider: str = "cohere"       # Embedding → Cohere
-    llm_fast_provider: str = "google"            # Fast tasks → Gemini
+    llm_primary_provider: str = "google"  # Text generation → Gemini
+    llm_vision_provider: str = "google"  # Image analysis → Gemini
+    llm_embedding_provider: str = "cohere"  # Embedding → Cohere
+    llm_fast_provider: str = "google"  # Fast tasks → Gemini
 
     # -----------------------------------------------------------------------
     # Google Maps (for venue scraping)

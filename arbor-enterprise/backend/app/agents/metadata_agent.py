@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 class MetadataAgent:
     """Query structured metadata from PostgreSQL."""
 
-    def __init__(self, session: AsyncSession | None = None, arbor_session: AsyncSession | None = None):
+    def __init__(
+        self, session: AsyncSession | None = None, arbor_session: AsyncSession | None = None
+    ):
         self._session = session
         self._arbor_session = arbor_session
 

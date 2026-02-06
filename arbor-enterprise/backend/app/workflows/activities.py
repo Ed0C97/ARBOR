@@ -76,9 +76,7 @@ async def save_to_qdrant(entity_id: str, vector: list[float], payload: dict) -> 
 
 
 @activity.defn
-async def save_to_neo4j(
-    entity_id: str, name: str, category: str, city: str | None
-) -> None:
+async def save_to_neo4j(entity_id: str, name: str, category: str, city: str | None) -> None:
     """Activity: Create entity node in Neo4j."""
     from app.db.neo4j.queries import Neo4jQueries
 

@@ -250,9 +250,7 @@ class CompetitiveIntelligenceEngine:
         competitors: list[CompetitorProfile] = []
         for sim, cand in top_candidates:
             cand_vibe = cand.get("vibe_dna", {})
-            strengths, weaknesses = self._compare_vibe_dimensions(
-                entity_vibe, cand_vibe
-            )
+            strengths, weaknesses = self._compare_vibe_dimensions(entity_vibe, cand_vibe)
             position = self._classify_market_position(sim, cand, candidates)
             profile = CompetitorProfile(
                 entity_id=cand.get("entity_id", cand.get("id", "")),
@@ -275,9 +273,7 @@ class CompetitiveIntelligenceEngine:
         position_score = self.compute_market_position(entity_data, competitors)
 
         # 6. Differentiators and overlap
-        unique_differentiators = self._find_differentiators(
-            entity_vibe, entity_tags, competitors
-        )
+        unique_differentiators = self._find_differentiators(entity_vibe, entity_tags, competitors)
         overlap_areas = self._find_overlap_areas(entity_vibe, competitors)
 
         # 7. Gap analysis and SWOT
@@ -419,9 +415,7 @@ class CompetitiveIntelligenceEngine:
         for dim, weight in entity_vibe.items():
             if weight < 0.5:
                 continue
-            dim_present_in_segments = any(
-                seg.avg_vibe_dna.get(dim, 0.0) >= 0.3 for seg in segments
-            )
+            dim_present_in_segments = any(seg.avg_vibe_dna.get(dim, 0.0) >= 0.3 for seg in segments)
             if not dim_present_in_segments:
                 gaps.append(
                     f"Strong '{dim}' vibe (weight={weight:.2f}) has no dominant "
@@ -474,36 +468,25 @@ class CompetitiveIntelligenceEngine:
         entity_vibe: dict[str, float] = entity_data.get("vibe_dna", {})
 
         # --- Distinctiveness (40%) ---
-        avg_competitor_dna = self._average_vibe_dna(
-            [{"vibe_dna": c.vibe_dna} for c in competitors]
-        )
+        avg_competitor_dna = self._average_vibe_dna([{"vibe_dna": c.vibe_dna} for c in competitors])
         avg_similarity = _vibe_similarity(entity_vibe, avg_competitor_dna)
         # Lower similarity → more distinctive → higher score
         distinctiveness_score = (1.0 - avg_similarity) * 100.0
 
         # --- Competitive density (30%) ---
-        close_competitors = sum(
-            1 for c in competitors if c.similarity_score >= 0.7
-        )
+        close_competitors = sum(1 for c in competitors if c.similarity_score >= 0.7)
         # Fewer close competitors is better; cap at 10 for normalisation
         density_score = max(0.0, 100.0 - (close_competitors / max(len(competitors), 1)) * 100.0)
 
         # --- Quality signal (30%) ---
-        quality_raw = float(
-            entity_data.get("quality_score", entity_data.get("rating", 3.0))
-        )
+        quality_raw = float(entity_data.get("quality_score", entity_data.get("rating", 3.0)))
         # Normalise to 0-100 assuming a 1-5 rating scale
         quality_score = max(0.0, min(100.0, (quality_raw - 1.0) / 4.0 * 100.0))
 
-        position = (
-            0.40 * distinctiveness_score
-            + 0.30 * density_score
-            + 0.30 * quality_score
-        )
+        position = 0.40 * distinctiveness_score + 0.30 * density_score + 0.30 * quality_score
 
         logger.debug(
-            "Market position: distinctiveness=%.1f density=%.1f quality=%.1f "
-            "=> position=%.1f",
+            "Market position: distinctiveness=%.1f density=%.1f quality=%.1f " "=> position=%.1f",
             distinctiveness_score,
             density_score,
             quality_score,
@@ -545,9 +528,7 @@ class CompetitiveIntelligenceEngine:
         # --- Strengths ---
         # Vibe dimensions where the entity significantly exceeds competitors
         if competitors:
-            avg_comp_dna = self._average_vibe_dna(
-                [{"vibe_dna": c.vibe_dna} for c in competitors]
-            )
+            avg_comp_dna = self._average_vibe_dna([{"vibe_dna": c.vibe_dna} for c in competitors])
             for dim, weight in entity_vibe.items():
                 comp_weight = avg_comp_dna.get(dim, 0.0)
                 if weight - comp_weight >= 0.2:
@@ -561,9 +542,7 @@ class CompetitiveIntelligenceEngine:
             competitor_tags.update(c.tags)
         unique_tags = [t for t in entity_tags if t not in competitor_tags]
         if unique_tags:
-            strengths.append(
-                f"Unique positioning tags: {', '.join(unique_tags[:5])}"
-            )
+            strengths.append(f"Unique positioning tags: {', '.join(unique_tags[:5])}")
 
         # --- Weaknesses ---
         if competitors:
@@ -584,28 +563,22 @@ class CompetitiveIntelligenceEngine:
         # Growing segments in the entity's category
         for seg in segments:
             if seg.category == entity_category and seg.growth_trend == "growing":
-                opportunities.append(
-                    f"Growing segment '{seg.name}' — align to capture demand"
-                )
+                opportunities.append(f"Growing segment '{seg.name}' — align to capture demand")
 
         # --- Threats ---
         close_count = sum(1 for c in competitors if c.similarity_score >= 0.8)
         if close_count >= 3:
             threats.append(
-                f"{close_count} competitors with >=80% vibe similarity — "
-                f"high substitution risk"
+                f"{close_count} competitors with >=80% vibe similarity — " f"high substitution risk"
             )
 
         leaders = [c for c in competitors if c.market_position == "leader"]
         if leaders:
             leader_names = ", ".join(c.name for c in leaders[:3])
-            threats.append(
-                f"Market leaders present: {leader_names}"
-            )
+            threats.append(f"Market leaders present: {leader_names}")
 
         declining_segments = [
-            s for s in segments
-            if s.category == entity_category and s.growth_trend == "declining"
+            s for s in segments if s.category == entity_category and s.growth_trend == "declining"
         ]
         for seg in declining_segments:
             threats.append(f"Declining segment '{seg.name}' — demand erosion risk")
@@ -689,13 +662,9 @@ class CompetitiveIntelligenceEngine:
         Returns:
             One of ``"leader"``, ``"challenger"``, ``"niche"``, ``"follower"``.
         """
-        quality = float(
-            candidate.get("quality_score", candidate.get("rating", 3.0))
-        )
+        quality = float(candidate.get("quality_score", candidate.get("rating", 3.0)))
         tag_count = len(candidate.get("tags", []))
-        avg_tags = (
-            sum(len(c.get("tags", [])) for c in all_candidates) / max(len(all_candidates), 1)
-        )
+        avg_tags = sum(len(c.get("tags", [])) for c in all_candidates) / max(len(all_candidates), 1)
 
         if quality >= 4.0 and tag_count >= avg_tags:
             return "leader"
@@ -873,9 +842,7 @@ class CompetitiveIntelligenceEngine:
         for dim, weight in entity_vibe.items():
             if weight < threshold:
                 continue
-            matching = sum(
-                1 for c in competitors if c.vibe_dna.get(dim, 0.0) >= threshold
-            )
+            matching = sum(1 for c in competitors if c.vibe_dna.get(dim, 0.0) >= threshold)
             if matching >= majority:
                 overlaps.append(dim)
 

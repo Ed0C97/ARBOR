@@ -79,7 +79,9 @@ async def enrich_entity(
     """
     parts = entity_id.split("_", 1)
     if len(parts) != 2:
-        raise HTTPException(status_code=400, detail="Invalid entity_id format. Use 'brand_42' or 'venue_17'")
+        raise HTTPException(
+            status_code=400, detail="Invalid entity_id format. Use 'brand_42' or 'venue_17'"
+        )
 
     entity_type, raw_id = parts
     if entity_type not in ("brand", "venue"):
@@ -146,6 +148,7 @@ async def delete_enrichment(
 
 class ServiceHealth(BaseModel):
     """Health status for a single service."""
+
     name: str
     status: str  # "healthy", "unhealthy", "degraded"
     latency_ms: float | None = None
@@ -155,6 +158,7 @@ class ServiceHealth(BaseModel):
 
 class DeepHealthResponse(BaseModel):
     """Deep health check response with all service statuses."""
+
     status: str  # "healthy", "unhealthy", "degraded"
     version: str
     environment: str
@@ -165,6 +169,7 @@ class DeepHealthResponse(BaseModel):
 async def _check_postgres_magazine() -> ServiceHealth:
     """Check Magazine PostgreSQL (read-only) connectivity."""
     from app.db.postgres.connection import magazine_engine
+
     start = time.perf_counter()
     try:
         if magazine_engine is None:
@@ -175,6 +180,7 @@ async def _check_postgres_magazine() -> ServiceHealth:
             )
         async with magazine_engine.connect() as conn:
             from sqlalchemy import text
+
             await conn.execute(text("SELECT 1"))
         latency = (time.perf_counter() - start) * 1000
         return ServiceHealth(
@@ -195,6 +201,7 @@ async def _check_postgres_magazine() -> ServiceHealth:
 async def _check_postgres_arbor() -> ServiceHealth:
     """Check ARBOR PostgreSQL (read-write) connectivity."""
     from app.db.postgres.connection import arbor_engine
+
     start = time.perf_counter()
     try:
         if arbor_engine is None:
@@ -205,6 +212,7 @@ async def _check_postgres_arbor() -> ServiceHealth:
             )
         async with arbor_engine.connect() as conn:
             from sqlalchemy import text
+
             await conn.execute(text("SELECT 1"))
         latency = (time.perf_counter() - start) * 1000
         return ServiceHealth(
@@ -225,6 +233,7 @@ async def _check_postgres_arbor() -> ServiceHealth:
 async def _check_qdrant() -> ServiceHealth:
     """Check Qdrant vector database connectivity."""
     from app.db.qdrant.client import get_async_qdrant_client
+
     start = time.perf_counter()
     try:
         client = await get_async_qdrant_client()
@@ -255,6 +264,7 @@ async def _check_qdrant() -> ServiceHealth:
 async def _check_neo4j() -> ServiceHealth:
     """Check Neo4j graph database connectivity."""
     from app.db.neo4j.driver import get_neo4j_driver
+
     start = time.perf_counter()
     try:
         driver = get_neo4j_driver()
@@ -286,6 +296,7 @@ async def _check_neo4j() -> ServiceHealth:
 async def _check_redis() -> ServiceHealth:
     """Check Redis connectivity."""
     from app.db.redis.client import get_redis_client
+
     start = time.perf_counter()
     try:
         client = await get_redis_client()
@@ -315,6 +326,7 @@ async def _check_redis() -> ServiceHealth:
 async def _check_cohere() -> ServiceHealth:
     """Check Cohere API connectivity."""
     from app.llm.gateway import get_async_cohere_client
+
     start = time.perf_counter()
     try:
         client = await get_async_cohere_client()
@@ -377,8 +389,7 @@ async def deep_health_check():
     # Critical services: postgres_magazine, postgres_arbor, qdrant, cohere
     critical_services = {"postgres_magazine", "postgres_arbor", "qdrant", "cohere"}
     any_critical_unhealthy = any(
-        c.status == "unhealthy" and c.name in critical_services
-        for c in checks
+        c.status == "unhealthy" and c.name in critical_services for c in checks
     )
     any_degraded = any(c.status == "degraded" for c in checks)
 

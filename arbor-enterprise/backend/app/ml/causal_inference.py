@@ -70,9 +70,7 @@ class CausalVariable:
     def __post_init__(self) -> None:
         valid_types = {"treatment", "outcome", "confounder", "instrument"}
         if self.var_type not in valid_types:
-            raise ValueError(
-                f"var_type must be one of {valid_types}, got '{self.var_type}'"
-            )
+            raise ValueError(f"var_type must be one of {valid_types}, got '{self.var_type}'")
 
 
 @dataclass
@@ -155,9 +153,7 @@ class CausalGraph:
             # Roll back
             self._edges[from_var].discard(to_var)
             self._reverse_edges[to_var].discard(from_var)
-            raise ValueError(
-                f"Adding edge {from_var} → {to_var} would create a cycle"
-            )
+            raise ValueError(f"Adding edge {from_var} → {to_var} would create a cycle")
 
         logger.debug("Added causal edge: %s → %s", from_var, to_var)
 
@@ -311,36 +307,48 @@ def build_arbor_causal_graph() -> CausalGraph:
     graph = CausalGraph()
 
     # Variables
-    graph.add_variable(CausalVariable(
-        name="recommendation",
-        var_type="treatment",
-        values=["shown", "not_shown"],
-    ))
-    graph.add_variable(CausalVariable(
-        name="click",
-        var_type="outcome",
-        values=["clicked", "not_clicked"],
-    ))
-    graph.add_variable(CausalVariable(
-        name="conversion",
-        var_type="outcome",
-        values=["converted", "not_converted"],
-    ))
-    graph.add_variable(CausalVariable(
-        name="user_preference",
-        var_type="confounder",
-        values=["high_affinity", "medium_affinity", "low_affinity"],
-    ))
-    graph.add_variable(CausalVariable(
-        name="entity_quality",
-        var_type="confounder",
-        values=["high", "medium", "low"],
-    ))
-    graph.add_variable(CausalVariable(
-        name="position",
-        var_type="confounder",
-        values=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    ))
+    graph.add_variable(
+        CausalVariable(
+            name="recommendation",
+            var_type="treatment",
+            values=["shown", "not_shown"],
+        )
+    )
+    graph.add_variable(
+        CausalVariable(
+            name="click",
+            var_type="outcome",
+            values=["clicked", "not_clicked"],
+        )
+    )
+    graph.add_variable(
+        CausalVariable(
+            name="conversion",
+            var_type="outcome",
+            values=["converted", "not_converted"],
+        )
+    )
+    graph.add_variable(
+        CausalVariable(
+            name="user_preference",
+            var_type="confounder",
+            values=["high_affinity", "medium_affinity", "low_affinity"],
+        )
+    )
+    graph.add_variable(
+        CausalVariable(
+            name="entity_quality",
+            var_type="confounder",
+            values=["high", "medium", "low"],
+        )
+    )
+    graph.add_variable(
+        CausalVariable(
+            name="position",
+            var_type="confounder",
+            values=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        )
+    )
 
     # Edges (cause → effect)
     graph.add_edge("recommendation", "click")
@@ -456,26 +464,18 @@ class UpliftEstimator:
         Returns:
             The incremental conversion rate lift attributable to the entity.
         """
-        entity_interactions = [
-            i for i in interactions if i.get("entity_id") == entity_id
-        ]
-        other_interactions = [
-            i for i in interactions if i.get("entity_id") != entity_id
-        ]
+        entity_interactions = [i for i in interactions if i.get("entity_id") == entity_id]
+        other_interactions = [i for i in interactions if i.get("entity_id") != entity_id]
 
         if not entity_interactions:
             logger.warning("No interactions found for entity %s", entity_id)
             return 0.0
 
-        entity_conversions = sum(
-            1 for i in entity_interactions if i.get("action") == "convert"
-        )
+        entity_conversions = sum(1 for i in entity_interactions if i.get("action") == "convert")
         entity_rate = entity_conversions / len(entity_interactions)
 
         if other_interactions:
-            other_conversions = sum(
-                1 for i in other_interactions if i.get("action") == "convert"
-            )
+            other_conversions = sum(1 for i in other_interactions if i.get("action") == "convert")
             baseline_rate = other_conversions / len(other_interactions)
         else:
             baseline_rate = 0.0
@@ -514,8 +514,12 @@ class UpliftEstimator:
         # Rational approximation (Abramowitz & Stegun 26.2.23)
         p = (1 + confidence_level) / 2
         t = math.sqrt(-2 * math.log(1 - p))
-        return round(t - (2.515517 + 0.802853 * t + 0.010328 * t ** 2) /
-                      (1 + 1.432788 * t + 0.189269 * t ** 2 + 0.001308 * t ** 3), 4)
+        return round(
+            t
+            - (2.515517 + 0.802853 * t + 0.010328 * t**2)
+            / (1 + 1.432788 * t + 0.189269 * t**2 + 0.001308 * t**3),
+            4,
+        )
 
     @staticmethod
     def _compute_p_value(ate: float, se: float) -> float:
@@ -603,9 +607,7 @@ class CounterfactualExplainer:
         user_preferred = context.get("user_preferred_categories", [])
         entity_category = context.get("category")
         if entity_category and entity_category in user_preferred:
-            explanations.append(
-                f"User has strong affinity for '{entity_category}' category"
-            )
+            explanations.append(f"User has strong affinity for '{entity_category}' category")
 
         # Was-recommended counterfactual
         was_recommended = context.get("was_recommended", True)
@@ -617,8 +619,7 @@ class CounterfactualExplainer:
 
         if not explanations:
             explanations.append(
-                f"User {action}ed entity {entity_id} -- "
-                f"no strong causal factor identified"
+                f"User {action}ed entity {entity_id} -- " f"no strong causal factor identified"
             )
 
         explanation = "; ".join(explanations)
@@ -774,9 +775,8 @@ class CausalInferenceEngine:
 
         for interaction in interactions:
             outcome = 1.0 if interaction.get("action") == "convert" else 0.0
-            if (
-                interaction.get("entity_id") == entity_id
-                and interaction.get("was_recommended", False)
+            if interaction.get("entity_id") == entity_id and interaction.get(
+                "was_recommended", False
             ):
                 treatment_outcomes.append(outcome)
             elif interaction.get("entity_id") == entity_id:
@@ -900,9 +900,7 @@ class CausalInferenceEngine:
                 )
 
         # -- Interaction volume insight
-        entity_interactions = [
-            i for i in interactions if i.get("entity_id") == entity_id
-        ]
+        entity_interactions = [i for i in interactions if i.get("entity_id") == entity_id]
         total = len(entity_interactions)
         if total < 10:
             insights.append(
@@ -910,9 +908,7 @@ class CausalInferenceEngine:
                 f"causal estimates are uncertain. More data needed."
             )
         elif total > 100:
-            convert_count = sum(
-                1 for i in entity_interactions if i.get("action") == "convert"
-            )
+            convert_count = sum(1 for i in entity_interactions if i.get("action") == "convert")
             rate = convert_count / total
             if rate > 0.15:
                 insights.append(
@@ -922,8 +918,7 @@ class CausalInferenceEngine:
 
         if not insights:
             insights.append(
-                f"No strong causal signals detected for '{entity_name}'. "
-                f"Continue monitoring."
+                f"No strong causal signals detected for '{entity_name}'. " f"Continue monitoring."
             )
 
         logger.info(

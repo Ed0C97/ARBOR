@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agents.graph import create_agent_graph
 from app.core.rate_limiter import check_rate_limit
 from app.core.security import get_optional_user
-from app.db.postgres.connection import get_db, get_arbor_db
+from app.db.postgres.connection import get_arbor_db, get_db
 from app.llm.cache import get_semantic_cache
 from app.llm.guardrails import get_guardrails
 from app.observability.metrics import record_discover_request
@@ -140,7 +140,7 @@ async def discover(
             tags=r.get("tags", []),
             dimensions=r.get("dimensions", {}),
         )
-        for r in result.get("recommendations", [])[:request_body.limit]
+        for r in result.get("recommendations", [])[: request_body.limit]
     ]
 
     # Record metrics
@@ -166,6 +166,7 @@ async def discover(
 
 class StreamingDiscoverRequest(BaseModel):
     """Request model for streaming discovery."""
+
     query: str = Field(..., min_length=2, max_length=1000)
     location: str | None = None
     category: str | None = None
@@ -220,7 +221,7 @@ async def stream_discovery_response(
         # Stream cached response character by character (typewriter effect)
         response_text = cache_result.response or ""
         for i in range(0, len(response_text), 10):  # 10 chars at a time
-            chunk = response_text[i:i+10]
+            chunk = response_text[i : i + 10]
             yield f"event: text\ndata: {json.dumps({'chunk': chunk})}\n\n"
             await asyncio.sleep(0.02)  # Small delay for effect
 
@@ -266,7 +267,8 @@ async def stream_discovery_response(
         record_discover_request(status="error", intent="unknown", cache_hit=False)
         return
 
-    yield f"event: status\ndata: {json.dumps({'stage': 'found', 'message': f'Found {len(result.get(\"recommendations\", []))} recommendations'})}\n\n"
+    rec_count = len(result.get("recommendations", []))
+    yield f"event: status\ndata: {json.dumps({'stage': 'found', 'message': f'Found {rec_count} recommendations'})}\n\n"
 
     # Stream recommendations one by one
     recommendations = result.get("recommendations", [])[:limit]
@@ -291,7 +293,7 @@ async def stream_discovery_response(
         # Stream in small chunks for typewriter effect
         chunk_size = 5  # Characters per chunk
         for i in range(0, len(response_text), chunk_size):
-            chunk = response_text[i:i+chunk_size]
+            chunk = response_text[i : i + chunk_size]
             yield f"event: text\ndata: {json.dumps({'chunk': chunk})}\n\n"
             await asyncio.sleep(0.015)  # ~66 chars/second typing speed
 

@@ -322,9 +322,7 @@ class SessionPredictor:
                 )
 
         # --- "compare {A} vs {B}" --------------------------------------
-        compare_match = re.match(
-            r"compare\s+(.+?)\s+vs\.?\s+(.+)", query_lower
-        )
+        compare_match = re.match(r"compare\s+(.+?)\s+vs\.?\s+(.+)", query_lower)
         if compare_match:
             entity_a = compare_match.group(1).strip()
             entity_b = compare_match.group(2).strip()
@@ -359,16 +357,12 @@ class SessionPredictor:
         if len(events) >= 2:
             prev_event = events[-2]
             prev_lower = prev_event.query.lower().strip()
-            city_match = re.match(
-                r"(?:search|explore|discover)\s+(.+)", prev_lower
-            )
+            city_match = re.match(r"(?:search|explore|discover)\s+(.+)", prev_lower)
             if city_match:
                 city = city_match.group(1).strip()
                 # If the latest query is already a category+city, predict
                 # neighbourhood drill-down
-                cat_city_match = re.match(
-                    rf"(\w+)\s+(?:in\s+)?{re.escape(city)}", query_lower
-                )
+                cat_city_match = re.match(rf"(\w+)\s+(?:in\s+)?{re.escape(city)}", query_lower)
                 if cat_city_match:
                     cat = cat_city_match.group(1)
                     for nbhd in ("centro", "downtown", "old town"):
@@ -514,9 +508,7 @@ class SessionPredictor:
 
         # Try to extract a (category, city) pair from the query
         # Handles patterns: "{category} in {city}", "{adj} {category} {city}"
-        cat_city_match = re.match(
-            r"(?:\w+\s+)?(\w+)\s+(?:in\s+)?(\w+)$", query_lower
-        )
+        cat_city_match = re.match(r"(?:\w+\s+)?(\w+)\s+(?:in\s+)?(\w+)$", query_lower)
         if not cat_city_match:
             return candidates
 
@@ -686,9 +678,7 @@ class PrefetchCache:
         """
         now = time.time()
         expired_keys = [
-            key
-            for key, entry in self._store.items()
-            if now - entry.computed_at > entry.ttl
+            key for key, entry in self._store.items() if now - entry.computed_at > entry.ttl
         ]
         for key in expired_keys:
             del self._store[key]
@@ -706,9 +696,7 @@ class PrefetchCache:
         """
         now = time.time()
         total_lookups = self._total_hits + self._total_misses
-        hit_rate = (
-            self._total_hits / total_lookups if total_lookups > 0 else 0.0
-        )
+        hit_rate = self._total_hits / total_lookups if total_lookups > 0 else 0.0
 
         ttl_remaining: list[float] = []
         for entry in self._store.values():
@@ -716,11 +704,7 @@ class PrefetchCache:
             if remaining > 0:
                 ttl_remaining.append(remaining)
 
-        avg_ttl_remaining = (
-            sum(ttl_remaining) / len(ttl_remaining)
-            if ttl_remaining
-            else 0.0
-        )
+        avg_ttl_remaining = sum(ttl_remaining) / len(ttl_remaining) if ttl_remaining else 0.0
 
         return {
             "size": len(self._store),
@@ -891,8 +875,8 @@ class PrefetchOrchestrator:
                 candidate.confidence,
             )
 
-            from app.llm.gateway import get_llm_gateway
             from app.db.qdrant.hybrid_search import HybridSearch
+            from app.llm.gateway import get_llm_gateway
 
             gateway = get_llm_gateway()
             hybrid = HybridSearch()
@@ -927,9 +911,7 @@ class PrefetchOrchestrator:
             )
 
         except Exception:
-            logger.exception(
-                "Prefetch failed for query=%r", candidate.predicted_query
-            )
+            logger.exception("Prefetch failed for query=%r", candidate.predicted_query)
 
     def get_stats(self) -> dict[str, Any]:
         """Return operational statistics for the orchestrator.
@@ -938,19 +920,13 @@ class PrefetchOrchestrator:
             A dict containing prefetch counts, hit rate, prediction volume,
             and the underlying cache stats.
         """
-        hit_rate = (
-            self._total_hits / self._total_prefetches
-            if self._total_prefetches > 0
-            else 0.0
-        )
+        hit_rate = self._total_hits / self._total_prefetches if self._total_prefetches > 0 else 0.0
         return {
             "total_prefetches": self._total_prefetches,
             "total_hits": self._total_hits,
             "prefetch_hit_rate": round(hit_rate, 4),
             "total_predictions": self._total_predictions,
-            "active_tasks": len(
-                [t for t in self._active_tasks if not t.done()]
-            ),
+            "active_tasks": len([t for t in self._active_tasks if not t.done()]),
             "cache": self._cache.stats(),
         }
 
@@ -960,9 +936,7 @@ class PrefetchOrchestrator:
 
     def _cleanup_finished_tasks(self) -> None:
         """Remove completed tasks from the active task list."""
-        self._active_tasks = [
-            t for t in self._active_tasks if not t.done()
-        ]
+        self._active_tasks = [t for t in self._active_tasks if not t.done()]
 
 
 # ---------------------------------------------------------------------------

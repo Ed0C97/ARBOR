@@ -5,9 +5,9 @@ and collection management for each database driver, using mocks to
 avoid real connections.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import pytest
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Neo4j Driver Tests
@@ -20,6 +20,7 @@ class TestNeo4jDriver:
     def setup_method(self):
         """Reset the global _driver singleton before each test."""
         import app.db.neo4j.driver as mod
+
         mod._driver = None
 
     # ── get_neo4j_driver ──────────────────────────────────────────────
@@ -183,6 +184,7 @@ class TestQdrantClient:
     def setup_method(self):
         """Reset global singletons before each test."""
         import app.db.qdrant.client as mod
+
         mod._async_client = None
         mod._sync_client = None
 
@@ -235,8 +237,7 @@ class TestQdrantClient:
         # Should create entities_vectors and semantic_cache
         assert mock_client.create_collection.await_count == 2
         call_names = [
-            call.kwargs["collection_name"]
-            for call in mock_client.create_collection.call_args_list
+            call.kwargs["collection_name"] for call in mock_client.create_collection.call_args_list
         ]
         assert "entities_vectors" in call_names
         assert "semantic_cache" in call_names
@@ -357,6 +358,7 @@ class TestRedisClient:
     def setup_method(self):
         """Reset the global _redis_client singleton before each test."""
         import app.db.redis.client as mod
+
         mod._redis_client = None
 
     # ── get_redis_client ──────────────────────────────────────────────
@@ -393,7 +395,9 @@ class TestRedisClient:
     @pytest.mark.asyncio
     @patch("app.db.redis.client.settings")
     @patch("app.db.redis.client.redis")
-    async def test_get_client_returns_none_on_connection_failure(self, mock_redis_mod, mock_settings):
+    async def test_get_client_returns_none_on_connection_failure(
+        self, mock_redis_mod, mock_settings
+    ):
         """get_redis_client returns None when ping fails."""
         mock_settings.redis_url = "redis://localhost:6379/0"
         mock_client = AsyncMock()
@@ -482,6 +486,7 @@ class TestRedisClient:
     async def test_redis_cache_get_returns_parsed_json(self, mock_get_client):
         """RedisCache.get() parses JSON values from Redis."""
         import json
+
         mock_client = AsyncMock()
         mock_client.get.return_value = json.dumps({"key": "value"})
         mock_get_client.return_value = mock_client
@@ -511,6 +516,7 @@ class TestRedisClient:
     async def test_redis_cache_set_serializes_dict(self, mock_get_client):
         """RedisCache.set() serializes dicts to JSON before storing."""
         import json
+
         mock_client = AsyncMock()
         mock_get_client.return_value = mock_client
 
@@ -561,6 +567,7 @@ class TestRedisClient:
     async def test_idempotency_store_returns_cached_for_existing_key(self, mock_get_client):
         """IdempotencyStore.check_and_set() returns cached response for a known key."""
         import json
+
         cached = {"status": "created", "id": 42}
         mock_client = AsyncMock()
         mock_client.get.return_value = json.dumps(cached)

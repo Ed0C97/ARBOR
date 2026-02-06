@@ -147,10 +147,10 @@ Rules:
             return []
         # Match currency patterns
         patterns = [
-            r'\$\d+(?:\.\d{2})?',  # $25, $25.00
-            r'€\d+(?:\.\d{2})?',   # €25
-            r'£\d+(?:\.\d{2})?',   # £25
-            r'\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)',  # 25 USD
+            r"\$\d+(?:\.\d{2})?",  # $25, $25.00
+            r"€\d+(?:\.\d{2})?",  # €25
+            r"£\d+(?:\.\d{2})?",  # £25
+            r"\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)",  # 25 USD
         ]
         mentions = []
         for pattern in patterns:

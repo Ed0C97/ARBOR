@@ -362,9 +362,8 @@ class GraphRAGStrategy(ExecutionStrategy):
         count_factor = min(len(results) / 3, 1.0) * 0.4
 
         # Boost if the raw result contains an LLM-generated summary
-        has_summary = (
-            isinstance(raw_result, dict)
-            and bool(raw_result.get("summary") or raw_result.get("answer"))
+        has_summary = isinstance(raw_result, dict) and bool(
+            raw_result.get("summary") or raw_result.get("answer")
         )
         summary_factor = 0.4 if has_summary else 0.1
 
@@ -822,9 +821,9 @@ class StrategySelector:
         self._all_strategies = all_strategies or []
 
         # (intent_type, complexity_bucket) -> strategy_name -> [records]
-        self._performance_log: dict[
-            tuple[str, str], dict[str, list[dict[str, float]]]
-        ] = defaultdict(lambda: defaultdict(list))
+        self._performance_log: dict[tuple[str, str], dict[str, list[dict[str, float]]]] = (
+            defaultdict(lambda: defaultdict(list))
+        )
 
         self._lock = asyncio.Lock()
 

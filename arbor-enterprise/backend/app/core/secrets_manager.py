@@ -140,8 +140,7 @@ class SecretManager:
             Dictionary mapping secret_id to value
         """
         return {
-            secret_id: self.get_secret(secret_id, required=required)
-            for secret_id in secret_ids
+            secret_id: self.get_secret(secret_id, required=required) for secret_id in secret_ids
         }
 
     def clear_cache(self) -> None:

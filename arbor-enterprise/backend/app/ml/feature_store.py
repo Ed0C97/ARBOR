@@ -806,8 +806,7 @@ class ModelRegistry:
         """
         if model_id not in self._models:
             raise KeyError(
-                f"Model '{model_id}' is not registered. "
-                f"Call register_model() first."
+                f"Model '{model_id}' is not registered. " f"Call register_model() first."
             )
 
         model_meta = self._models[model_id]
@@ -917,7 +916,8 @@ class ModelRegistry:
 
         # Find the most recent archived version (candidate for rollback)
         candidates = [
-            mv for mv in reversed(versions)
+            mv
+            for mv in reversed(versions)
             if mv.status == "archived" and mv.promoted_at is not None
         ]
         if not candidates:
@@ -998,9 +998,7 @@ class ModelRegistry:
             if isinstance(val1, (int, float)) and isinstance(val2, (int, float)):
                 diff = val2 - val1
                 entry["diff"] = round(diff, 6)
-                entry["pct_change"] = (
-                    round(diff / val1 * 100, 2) if val1 != 0 else None
-                )
+                entry["pct_change"] = round(diff / val1 * 100, 2) if val1 != 0 else None
             metric_comparison[metric] = entry
 
         # Parameter diff
@@ -1032,7 +1030,9 @@ class ModelRegistry:
                 "v1": mv1.feature_requirements,
                 "v2": mv2.feature_requirements,
                 "added": [f for f in mv2.feature_requirements if f not in mv1.feature_requirements],
-                "removed": [f for f in mv1.feature_requirements if f not in mv2.feature_requirements],
+                "removed": [
+                    f for f in mv1.feature_requirements if f not in mv2.feature_requirements
+                ],
             },
         }
 
@@ -1047,14 +1047,16 @@ class ModelRegistry:
         for model_id, meta in self._models.items():
             versions: list[ModelVersion] = meta["versions"]
             prod = self.get_production_model(model_id)
-            result.append({
-                "model_id": model_id,
-                "model_type": meta["model_type"],
-                "description": meta["description"],
-                "version_count": len(versions),
-                "production_version": prod.version if prod else None,
-                "created_at": meta["created_at"],
-            })
+            result.append(
+                {
+                    "model_id": model_id,
+                    "model_type": meta["model_type"],
+                    "description": meta["description"],
+                    "version_count": len(versions),
+                    "production_version": prod.version if prod else None,
+                    "created_at": meta["created_at"],
+                }
+            )
         return result
 
     def get_model_history(self, model_id: str) -> list[ModelVersion]:

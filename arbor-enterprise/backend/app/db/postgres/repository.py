@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import select, func, delete, or_, literal_column, literal
+from sqlalchemy import delete, func, literal, literal_column, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.models import (
@@ -21,17 +21,17 @@ from app.db.postgres.models import (
     Venue,
 )
 
-
 # ---------------------------------------------------------------------------
 # Unified entity dict — the common shape returned to the API
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class UnifiedEntity:
     """A brand or venue mapped to a common shape for the API."""
 
-    id: str                 # "brand_42" or "venue_17"
-    entity_type: str        # "brand" | "venue"
+    id: str  # "brand_42" or "venue_17"
+    entity_type: str  # "brand" | "venue"
     source_id: int
     name: str
     slug: str
@@ -174,15 +174,11 @@ class BrandRepository:
         self.session = session
 
     async def get_by_id(self, brand_id: int) -> Brand | None:
-        result = await self.session.execute(
-            select(Brand).where(Brand.id == brand_id)
-        )
+        result = await self.session.execute(select(Brand).where(Brand.id == brand_id))
         return result.scalar_one_or_none()
 
     async def get_by_slug(self, slug: str) -> Brand | None:
-        result = await self.session.execute(
-            select(Brand).where(Brand.slug == slug)
-        )
+        result = await self.session.execute(select(Brand).where(Brand.slug == slug))
         return result.scalar_one_or_none()
 
     async def list_brands(
@@ -226,7 +222,11 @@ class BrandRepository:
             query = query.where(f)
             count_q = count_q.where(f)
 
-        query = query.order_by(Brand.priority.desc().nullslast(), Brand.name).offset(offset).limit(limit)
+        query = (
+            query.order_by(Brand.priority.desc().nullslast(), Brand.name)
+            .offset(offset)
+            .limit(limit)
+        )
 
         result = await self.session.execute(query)
         brands = list(result.scalars().all())
@@ -253,15 +253,11 @@ class VenueRepository:
         self.session = session
 
     async def get_by_id(self, venue_id: int) -> Venue | None:
-        result = await self.session.execute(
-            select(Venue).where(Venue.id == venue_id)
-        )
+        result = await self.session.execute(select(Venue).where(Venue.id == venue_id))
         return result.scalar_one_or_none()
 
     async def get_by_slug(self, slug: str) -> Venue | None:
-        result = await self.session.execute(
-            select(Venue).where(Venue.slug == slug)
-        )
+        result = await self.session.execute(select(Venue).where(Venue.slug == slug))
         return result.scalar_one_or_none()
 
     async def list_venues(
@@ -311,7 +307,11 @@ class VenueRepository:
             query = query.where(f)
             count_q = count_q.where(f)
 
-        query = query.order_by(Venue.priority.desc().nullslast(), Venue.name).offset(offset).limit(limit)
+        query = (
+            query.order_by(Venue.priority.desc().nullslast(), Venue.name)
+            .offset(offset)
+            .limit(limit)
+        )
 
         result = await self.session.execute(query)
         venues = list(result.scalars().all())
@@ -360,20 +360,16 @@ class EnrichmentRepository:
 
         # Build optimized query using IN operator
         conditions = [
-            (ArborEnrichment.entity_type == entity_type) &
-            (ArborEnrichment.source_id.in_(source_ids))
+            (ArborEnrichment.entity_type == entity_type)
+            & (ArborEnrichment.source_id.in_(source_ids))
             for entity_type, source_ids in by_type.items()
         ]
 
-        result = await self.session.execute(
-            select(ArborEnrichment).where(or_(*conditions))
-        )
+        result = await self.session.execute(select(ArborEnrichment).where(or_(*conditions)))
         enrichments = result.scalars().all()
         return {(e.entity_type, e.source_id): e for e in enrichments}
 
-    async def upsert(
-        self, entity_type: str, source_id: int, **kwargs: Any
-    ) -> ArborEnrichment:
+    async def upsert(self, entity_type: str, source_id: int, **kwargs: Any) -> ArborEnrichment:
         existing = await self.get(entity_type, source_id)
         if existing:
             for key, value in kwargs.items():
@@ -507,7 +503,7 @@ class UnifiedEntityRepository:
         results.sort(key=lambda e: (-(e.priority or 0), e.name))
 
         # Apply pagination
-        paginated = results[offset: offset + limit]
+        paginated = results[offset : offset + limit]
 
         return paginated, total
 
@@ -584,9 +580,8 @@ class UnifiedEntityRepository:
                     count_q = count_q.where(f)
 
             # Order by created_at DESC, id DESC for stable pagination
-            query = (
-                query.order_by(Brand.created_at.desc(), Brand.id.desc())
-                .limit(limit if entity_type == "brand" else limit // 2)
+            query = query.order_by(Brand.created_at.desc(), Brand.id.desc()).limit(
+                limit if entity_type == "brand" else limit // 2
             )
 
             result = await self.session.execute(query)
@@ -629,9 +624,8 @@ class UnifiedEntityRepository:
                 if f != filters[-1] or cursor_dt is None:
                     count_q = count_q.where(f)
 
-            query = (
-                query.order_by(Venue.created_at.desc(), Venue.id.desc())
-                .limit(limit if entity_type == "venue" else limit // 2)
+            query = query.order_by(Venue.created_at.desc(), Venue.id.desc()).limit(
+                limit if entity_type == "venue" else limit // 2
             )
 
             result = await self.session.execute(query)
@@ -693,9 +687,7 @@ class FeedbackRepository:
         await self.session.flush()
         return feedback
 
-    async def get_by_user(
-        self, user_id: uuid.UUID, limit: int = 100
-    ) -> list[ArborFeedback]:
+    async def get_by_user(self, user_id: uuid.UUID, limit: int = 100) -> list[ArborFeedback]:
         result = await self.session.execute(
             select(ArborFeedback)
             .where(ArborFeedback.user_id == user_id)

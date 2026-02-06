@@ -33,6 +33,7 @@ class HybridReranker:
         self._cohere_client = None
         if settings.cohere_api_key:
             import cohere
+
             self._cohere_client = cohere.ClientV2(api_key=settings.cohere_api_key)
             logger.info("Cohere reranker enabled (model=%s)", settings.cohere_rerank_model)
 
@@ -153,6 +154,7 @@ class HybridReranker:
         """Lazy-load the local CrossEncoder model."""
         if self._cross_encoder is None:
             from sentence_transformers import CrossEncoder
+
             model_name = "cross-encoder/ms-marco-MiniLM-L-6-v2"
             logger.info("Loading local CrossEncoder model: %s", model_name)
             self._cross_encoder = CrossEncoder(model_name)

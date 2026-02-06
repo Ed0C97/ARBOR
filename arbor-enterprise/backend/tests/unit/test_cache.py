@@ -1,14 +1,15 @@
 """Unit tests for caching logic."""
 
-import pytest
 import hashlib
 import json
 import time
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Cache helpers (inline to avoid importing redis/llm deps)
 # ---------------------------------------------------------------------------
+
 
 class InMemoryCache:
     """Simple in-memory cache for testing cache logic."""

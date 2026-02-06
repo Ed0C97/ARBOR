@@ -47,23 +47,31 @@ if settings.database_ssl:
     _magazine_connect_args["ssl"] = _create_ssl_context()
 
 # Read-only database: smaller pool as it's only for reads
-magazine_engine = create_async_engine(
-    settings.database_url,  # magazine_h182 on Render
-    echo=settings.app_debug and settings.app_env != "production",
-    pool_size=settings.db_pool_size // 2,  # Half size for read-only
-    max_overflow=settings.db_max_overflow // 2,
-    pool_pre_ping=settings.db_pool_pre_ping,
-    pool_recycle=settings.db_pool_recycle,
-    pool_timeout=30,  # Wait max 30s for connection
-    connect_args=_magazine_connect_args,
-) if settings.database_url else None
+magazine_engine = (
+    create_async_engine(
+        settings.database_url,  # magazine_h182 on Render
+        echo=settings.app_debug and settings.app_env != "production",
+        pool_size=settings.db_pool_size // 2,  # Half size for read-only
+        max_overflow=settings.db_max_overflow // 2,
+        pool_pre_ping=settings.db_pool_pre_ping,
+        pool_recycle=settings.db_pool_recycle,
+        pool_timeout=30,  # Wait max 30s for connection
+        connect_args=_magazine_connect_args,
+    )
+    if settings.database_url
+    else None
+)
 
-magazine_session_factory = async_sessionmaker(
-    magazine_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autoflush=False,  # Read-only, no need for autoflush
-) if magazine_engine else None
+magazine_session_factory = (
+    async_sessionmaker(
+        magazine_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autoflush=False,  # Read-only, no need for autoflush
+    )
+    if magazine_engine
+    else None
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -76,22 +84,30 @@ if settings.arbor_database_ssl:
     _arbor_connect_args["ssl"] = _create_ssl_context()
 
 # Read-write database: full pool size
-arbor_engine = create_async_engine(
-    settings.arbor_database_url,  # Dedicated ARBOR database
-    echo=settings.app_debug and settings.app_env != "production",
-    pool_size=settings.db_pool_size,  # TIER 2: 40 connections
-    max_overflow=settings.db_max_overflow,  # TIER 2: 20 burst
-    pool_pre_ping=settings.db_pool_pre_ping,  # TIER 2: Check liveness
-    pool_recycle=settings.db_pool_recycle,  # TIER 2: 30 min recycle
-    pool_timeout=30,
-    connect_args=_arbor_connect_args,
-) if settings.arbor_database_url else None
+arbor_engine = (
+    create_async_engine(
+        settings.arbor_database_url,  # Dedicated ARBOR database
+        echo=settings.app_debug and settings.app_env != "production",
+        pool_size=settings.db_pool_size,  # TIER 2: 40 connections
+        max_overflow=settings.db_max_overflow,  # TIER 2: 20 burst
+        pool_pre_ping=settings.db_pool_pre_ping,  # TIER 2: Check liveness
+        pool_recycle=settings.db_pool_recycle,  # TIER 2: 30 min recycle
+        pool_timeout=30,
+        connect_args=_arbor_connect_args,
+    )
+    if settings.arbor_database_url
+    else None
+)
 
-arbor_session_factory = async_sessionmaker(
-    arbor_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-) if arbor_engine else None
+arbor_session_factory = (
+    async_sessionmaker(
+        arbor_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    if arbor_engine
+    else None
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

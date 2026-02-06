@@ -66,9 +66,7 @@ class HybridSearch:
                 FieldCondition(key="category", match=MatchValue(value=category))
             )
         if city:
-            filter_conditions.append(
-                FieldCondition(key="city", match=MatchValue(value=city))
-            )
+            filter_conditions.append(FieldCondition(key="city", match=MatchValue(value=city)))
 
         qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
 
@@ -138,21 +136,15 @@ class HybridSearch:
                 FieldCondition(key="category", match=MatchValue(value=category))
             )
         if city:
-            filter_conditions.append(
-                FieldCondition(key="city", match=MatchValue(value=city))
-            )
+            filter_conditions.append(FieldCondition(key="city", match=MatchValue(value=city)))
         qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
 
         # Prefetch more results for better fusion
         prefetch_limit = limit * prefetch_multiplier
 
         # Execute both searches in parallel
-        vector_task = self._vector_search(
-            client, query_vector, qdrant_filter, prefetch_limit
-        )
-        keyword_task = self._keyword_search(
-            client, query_text, qdrant_filter, prefetch_limit
-        )
+        vector_task = self._vector_search(client, query_vector, qdrant_filter, prefetch_limit)
+        keyword_task = self._keyword_search(client, query_text, qdrant_filter, prefetch_limit)
 
         vector_results, keyword_results = await asyncio.gather(
             vector_task, keyword_task, return_exceptions=True
@@ -216,9 +208,7 @@ class HybridSearch:
         """Execute keyword/text search on indexed text fields."""
         try:
             # Build keyword filter for name field
-            keyword_conditions = [
-                FieldCondition(key="name", match=MatchText(text=query_text))
-            ]
+            keyword_conditions = [FieldCondition(key="name", match=MatchText(text=query_text))]
 
             # Combine with existing filters
             if qdrant_filter and qdrant_filter.must:
@@ -401,9 +391,7 @@ class EntityResolver:
         # Start with highest priority source
         sorted_group = sorted(
             group,
-            key=lambda x: self.SOURCE_PRIORITY.get(
-                x.get("source", source), 0
-            ),
+            key=lambda x: self.SOURCE_PRIORITY.get(x.get("source", source), 0),
             reverse=True,
         )
 
@@ -432,6 +420,7 @@ class EntityResolver:
     def _normalize_name(self, name: str) -> str:
         """Normalize entity name for comparison."""
         import re
+
         # Lowercase, remove punctuation, normalize spaces
         name = name.lower()
         name = re.sub(r"[^\w\s]", "", name)

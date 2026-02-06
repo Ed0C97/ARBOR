@@ -120,74 +120,90 @@ def _build_model_list() -> list[dict]:
 
     # ── Google Gemini gemini-3-pro-preview (primary: text + vision) ───
     if settings.google_api_key:
-        models.append({
-            "model_name": "primary",
-            "litellm_params": {
-                "model": f"gemini/{settings.google_model}",
-                "api_key": settings.google_api_key,
-            },
-            "tpm": 200000,
-            "rpm": 2000,
-        })
-        models.append({
-            "model_name": "vision",
-            "litellm_params": {
-                "model": f"gemini/{settings.google_model}",
-                "api_key": settings.google_api_key,
-            },
-        })
+        models.append(
+            {
+                "model_name": "primary",
+                "litellm_params": {
+                    "model": f"gemini/{settings.google_model}",
+                    "api_key": settings.google_api_key,
+                },
+                "tpm": 200000,
+                "rpm": 2000,
+            }
+        )
+        models.append(
+            {
+                "model_name": "vision",
+                "litellm_params": {
+                    "model": f"gemini/{settings.google_model}",
+                    "api_key": settings.google_api_key,
+                },
+            }
+        )
         # Same model for simple/fast — Gemini is the only text provider
-        models.append({
-            "model_name": "simple",
-            "litellm_params": {
-                "model": f"gemini/{settings.google_model}",
-                "api_key": settings.google_api_key,
-            },
-        })
-        models.append({
-            "model_name": "fast",
-            "litellm_params": {
-                "model": f"gemini/{settings.google_model}",
-                "api_key": settings.google_api_key,
-            },
-        })
+        models.append(
+            {
+                "model_name": "simple",
+                "litellm_params": {
+                    "model": f"gemini/{settings.google_model}",
+                    "api_key": settings.google_api_key,
+                },
+            }
+        )
+        models.append(
+            {
+                "model_name": "fast",
+                "litellm_params": {
+                    "model": f"gemini/{settings.google_model}",
+                    "api_key": settings.google_api_key,
+                },
+            }
+        )
 
     # ── Fallback: Anthropic Claude (if configured) ────────────────────
     if settings.anthropic_api_key:
-        models.append({
-            "model_name": "primary",
-            "litellm_params": {
-                "model": f"anthropic/{settings.anthropic_model}",
-                "api_key": settings.anthropic_api_key,
-            },
-        })
-        models.append({
-            "model_name": "vision",
-            "litellm_params": {
-                "model": f"anthropic/{settings.anthropic_model}",
-                "api_key": settings.anthropic_api_key,
-            },
-        })
+        models.append(
+            {
+                "model_name": "primary",
+                "litellm_params": {
+                    "model": f"anthropic/{settings.anthropic_model}",
+                    "api_key": settings.anthropic_api_key,
+                },
+            }
+        )
+        models.append(
+            {
+                "model_name": "vision",
+                "litellm_params": {
+                    "model": f"anthropic/{settings.anthropic_model}",
+                    "api_key": settings.anthropic_api_key,
+                },
+            }
+        )
 
     # ── Fallback: OpenAI (if configured) ──────────────────────────────
     if settings.openai_api_key:
-        models.append({
-            "model_name": "primary",
-            "litellm_params": {
-                "model": f"openai/{settings.openai_model}",
-                "api_key": settings.openai_api_key,
-            },
-        })
+        models.append(
+            {
+                "model_name": "primary",
+                "litellm_params": {
+                    "model": f"openai/{settings.openai_model}",
+                    "api_key": settings.openai_api_key,
+                },
+            }
+        )
 
     # ── Fallback: Groq (if configured, for fast tasks) ───────────────
     if settings.groq_api_key:
-        models.append({
-            "model_name": "fast",
-            "litellm_params": {
-                "model": f"groq/{settings.groq_model}",
-                "api_key": settings.groq_api_key,
-            },
-        })
+        models.append(
+            {
+                "model_name": "fast",
+                "litellm_params": {
+                    "model": f"groq/{settings.groq_model}",
+                    "api_key": settings.groq_api_key,
+                },
+            }
+        )
 
     return models
 
@@ -350,6 +366,7 @@ class LLMGateway:
             logger.warning("Cohere not available, using OpenAI fallback for embeddings")
             try:
                 from litellm import aembedding
+
                 response = await aembedding(
                     model="text-embedding-3-small",
                     input=[text],
@@ -380,6 +397,7 @@ class LLMGateway:
             logger.warning("Cohere not available, using OpenAI fallback")
             try:
                 from litellm import aembedding
+
                 response = await aembedding(
                     model="text-embedding-3-small",
                     input=[query],
@@ -456,14 +474,7 @@ class LLMGateway:
             model=settings.cohere_embedding_model,
             input_type="image",
             embedding_types=["float"],
-            inputs=[{
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": image_base64}
-                    }
-                ]
-            }],
+            inputs=[{"content": [{"type": "image_url", "image_url": {"url": image_base64}}]}],
         )
         return response.embeddings.float_[0]
 

@@ -5,9 +5,9 @@ embedding, reranking, batch operations, and fallback behavior with
 all external calls (LiteLLM, Cohere) mocked out.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Helper: build a gateway with mocked config
@@ -22,9 +22,11 @@ def _make_gateway(
     groq_key="",
 ):
     """Construct an LLMGateway with controlled settings."""
-    with patch("app.llm.gateway.settings") as mock_settings, \
-         patch("app.llm.gateway.Router") as mock_router_cls, \
-         patch("app.llm.gateway.get_cohere_client") as mock_get_cohere:
+    with (
+        patch("app.llm.gateway.settings") as mock_settings,
+        patch("app.llm.gateway.Router") as mock_router_cls,
+        patch("app.llm.gateway.get_cohere_client") as mock_get_cohere,
+    ):
 
         mock_settings.google_api_key = google_key
         mock_settings.google_model = "gemini-3-pro-preview"
@@ -43,6 +45,7 @@ def _make_gateway(
         mock_get_cohere.return_value = MagicMock()
 
         from app.llm.gateway import LLMGateway
+
         gw = LLMGateway()
         return gw
 
@@ -202,7 +205,7 @@ class TestConvenienceMethods:
         """complete_json() calls complete with temperature=0.3."""
         gw = _make_gateway()
         mock_response = MagicMock()
-        mock_response.choices = [MagicMock(message=MagicMock(content='{}'))]
+        mock_response.choices = [MagicMock(message=MagicMock(content="{}"))]
         gw.router = AsyncMock()
         gw.router.acompletion.return_value = mock_response
 
@@ -331,6 +334,7 @@ class TestBatchEmbedding:
         gw = _make_gateway()
 
         mock_cohere = AsyncMock()
+
         # Each batch returns a list of embeddings matching its size
         async def fake_embed(**kwargs):
             texts = kwargs.get("texts", [])
@@ -456,21 +460,25 @@ class TestChunker:
 
     def test_chunker_splits_evenly(self):
         from app.llm.gateway import chunker
+
         result = chunker([1, 2, 3, 4, 5, 6], 3)
         assert result == [[1, 2, 3], [4, 5, 6]]
 
     def test_chunker_handles_remainder(self):
         from app.llm.gateway import chunker
+
         result = chunker([1, 2, 3, 4, 5], 2)
         assert result == [[1, 2], [3, 4], [5]]
 
     def test_chunker_single_chunk(self):
         from app.llm.gateway import chunker
+
         result = chunker([1, 2, 3], 10)
         assert result == [[1, 2, 3]]
 
     def test_chunker_empty_input(self):
         from app.llm.gateway import chunker
+
         result = chunker([], 5)
         assert result == []
 
@@ -490,9 +498,11 @@ class TestGatewaySingleton:
 
     def test_gateway_router_is_none_without_keys(self):
         """LLMGateway.router is None when no API keys are provided."""
-        with patch("app.llm.gateway.settings") as mock_settings, \
-             patch("app.llm.gateway.Router"), \
-             patch("app.llm.gateway.get_cohere_client") as mock_gc:
+        with (
+            patch("app.llm.gateway.settings") as mock_settings,
+            patch("app.llm.gateway.Router"),
+            patch("app.llm.gateway.get_cohere_client") as mock_gc,
+        ):
 
             mock_settings.google_api_key = ""
             mock_settings.openai_api_key = ""
@@ -503,6 +513,7 @@ class TestGatewaySingleton:
             mock_gc.return_value = None
 
             from app.llm.gateway import LLMGateway
+
             gw = LLMGateway()
             assert gw.router is None
 

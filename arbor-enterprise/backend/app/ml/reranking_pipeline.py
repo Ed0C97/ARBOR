@@ -49,21 +49,130 @@ settings = get_settings()
 # ═══════════════════════════════════════════════════════════════════════════
 
 STOPWORDS: set[str] = {
-    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-    "of", "with", "by", "from", "is", "it", "as", "was", "are", "be",
-    "been", "being", "have", "has", "had", "do", "does", "did", "will",
-    "would", "could", "should", "may", "might", "shall", "can", "need",
-    "not", "no", "nor", "so", "if", "than", "that", "this", "these",
-    "those", "then", "there", "here", "what", "which", "who", "whom",
-    "when", "where", "why", "how", "all", "each", "every", "both",
-    "few", "more", "most", "other", "some", "such", "only", "own",
-    "same", "too", "very", "just", "about", "above", "after", "again",
-    "also", "any", "because", "before", "below", "between", "during",
-    "into", "its", "me", "my", "our", "out", "over", "their", "them",
-    "up", "we", "you", "your", "he", "she", "her", "him", "his",
-    "i", "itself", "let", "many", "much", "must", "nor", "off",
-    "once", "ours", "ourselves", "shall", "still", "through", "under",
-    "until", "us", "while", "whom", "yours",
+    "a",
+    "an",
+    "the",
+    "and",
+    "or",
+    "but",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "of",
+    "with",
+    "by",
+    "from",
+    "is",
+    "it",
+    "as",
+    "was",
+    "are",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "shall",
+    "can",
+    "need",
+    "not",
+    "no",
+    "nor",
+    "so",
+    "if",
+    "than",
+    "that",
+    "this",
+    "these",
+    "those",
+    "then",
+    "there",
+    "here",
+    "what",
+    "which",
+    "who",
+    "whom",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "each",
+    "every",
+    "both",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "only",
+    "own",
+    "same",
+    "too",
+    "very",
+    "just",
+    "about",
+    "above",
+    "after",
+    "again",
+    "also",
+    "any",
+    "because",
+    "before",
+    "below",
+    "between",
+    "during",
+    "into",
+    "its",
+    "me",
+    "my",
+    "our",
+    "out",
+    "over",
+    "their",
+    "them",
+    "up",
+    "we",
+    "you",
+    "your",
+    "he",
+    "she",
+    "her",
+    "him",
+    "his",
+    "i",
+    "itself",
+    "let",
+    "many",
+    "much",
+    "must",
+    "nor",
+    "off",
+    "once",
+    "ours",
+    "ourselves",
+    "shall",
+    "still",
+    "through",
+    "under",
+    "until",
+    "us",
+    "while",
+    "whom",
+    "yours",
 }
 
 
@@ -176,7 +285,8 @@ class Stage1DenseRetrieval:
                 metadata={
                     k: v
                     for k, v in candidate.items()
-                    if k not in {"embedding", "entity_id", "id", "name", "category", "city", "score"}
+                    if k
+                    not in {"embedding", "entity_id", "id", "name", "category", "city", "score"}
                 },
             )
             scored.append(result)
@@ -354,7 +464,8 @@ class Stage2SparseRetrieval:
                 metadata={
                     k: v
                     for k, v in candidate.items()
-                    if k not in {"embedding", "entity_id", "id", "name", "category", "city", "score"}
+                    if k
+                    not in {"embedding", "entity_id", "id", "name", "category", "city", "score"}
                 },
             )
             scored.append(result)
@@ -418,9 +529,11 @@ class Stage2SparseRetrieval:
                 continue
 
             # BM25 TF normalisation
-            denominator = tf + self.K1 * (
-                1.0 - self.B + self.B * dl / self._avg_doc_len
-            ) if self._avg_doc_len > 0 else tf + self.K1
+            denominator = (
+                tf + self.K1 * (1.0 - self.B + self.B * dl / self._avg_doc_len)
+                if self._avg_doc_len > 0
+                else tf + self.K1
+            )
 
             score += idf * (tf * (self.K1 + 1.0)) / denominator
 
@@ -449,9 +562,7 @@ class Stage2SparseRetrieval:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _passthrough(
-        candidates: list[dict[str, Any]], top_k: int
-    ) -> list[RankedResult]:
+    def _passthrough(candidates: list[dict[str, Any]], top_k: int) -> list[RankedResult]:
         """Return candidates in their original order when BM25 cannot score."""
         results: list[RankedResult] = []
         for i, candidate in enumerate(candidates[:top_k]):
@@ -491,6 +602,7 @@ class Stage3CrossEncoder:
         if self._cohere_client is None and settings.cohere_api_key:
             try:
                 import cohere
+
                 self._cohere_client = cohere.AsyncClientV2(
                     api_key=settings.cohere_api_key,
                 )
@@ -503,6 +615,7 @@ class Stage3CrossEncoder:
         """Lazy-load the cohere circuit breaker."""
         if self._circuit_breaker is None:
             from app.core.circuit import cohere_circuit
+
             self._circuit_breaker = cohere_circuit
         return self._circuit_breaker
 
@@ -531,9 +644,7 @@ class Stage3CrossEncoder:
         try:
             return await self._rank_cohere(query, candidates, top_k)
         except Exception as exc:
-            logger.warning(
-                "Stage3 CrossEncoder: Cohere rerank failed, using fallback: %s", exc
-            )
+            logger.warning("Stage3 CrossEncoder: Cohere rerank failed, using fallback: %s", exc)
             return self._rank_keyword_overlap(query, candidates, top_k)
 
     # ------------------------------------------------------------------
@@ -725,9 +836,7 @@ class Stage4LLMReranker:
         try:
             return await self._rank_with_llm(query, candidates, top_k)
         except Exception as exc:
-            logger.warning(
-                "Stage4 LLMReranker: LLM scoring failed, passing through: %s", exc
-            )
+            logger.warning("Stage4 LLMReranker: LLM scoring failed, passing through: %s", exc)
             return self._passthrough(candidates, top_k)
 
     # ------------------------------------------------------------------
@@ -768,9 +877,7 @@ class Stage4LLMReranker:
                     )
                     llm_score = self._parse_score(response)
                 except Exception as exc:
-                    logger.debug(
-                        "LLM scoring failed for entity=%s: %s", r.entity_id, exc
-                    )
+                    logger.debug("LLM scoring failed for entity=%s: %s", r.entity_id, exc)
                     # Preserve existing score as a fallback
                     llm_score = r.score * 100.0
 
@@ -847,9 +954,7 @@ class Stage4LLMReranker:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _passthrough(
-        candidates: list[RankedResult], top_k: int
-    ) -> list[RankedResult]:
+    def _passthrough(candidates: list[RankedResult], top_k: int) -> list[RankedResult]:
         """Return candidates in their existing order (fallback)."""
         top = candidates[:top_k]
         for i, r in enumerate(top):
@@ -918,9 +1023,7 @@ class RRFMerger:
         best_result: dict[str, RankedResult] = {}
         merged_stage_scores: dict[str, dict[str, float]] = defaultdict(dict)
 
-        for list_idx, (ranked_list, weight) in enumerate(
-            zip(ranked_lists, weights)
-        ):
+        for list_idx, (ranked_list, weight) in enumerate(zip(ranked_lists, weights)):
             for result in ranked_list:
                 eid = result.entity_id
                 rrf_score = weight * (1.0 / (k + result.rank))
@@ -1076,8 +1179,14 @@ class RerankingPipeline:
 
         merged_results: list[RankedResult] = []
 
-        run_dense = RankingStage.DENSE_RETRIEVAL in self.stages and RankingStage.DENSE_RETRIEVAL.value not in skip_stages
-        run_sparse = RankingStage.SPARSE_RETRIEVAL in self.stages and RankingStage.SPARSE_RETRIEVAL.value not in skip_stages
+        run_dense = (
+            RankingStage.DENSE_RETRIEVAL in self.stages
+            and RankingStage.DENSE_RETRIEVAL.value not in skip_stages
+        )
+        run_sparse = (
+            RankingStage.SPARSE_RETRIEVAL in self.stages
+            and RankingStage.SPARSE_RETRIEVAL.value not in skip_stages
+        )
 
         if run_dense and run_sparse:
             # Run both in parallel
@@ -1101,18 +1210,22 @@ class RerankingPipeline:
 
             dense_ms = (time.perf_counter() - t0) * 1000
 
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.DENSE_RETRIEVAL.value,
-                latency_ms=dense_ms,
-                input_count=len(candidates),
-                output_count=len(dense_results),
-            ))
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.SPARSE_RETRIEVAL.value,
-                latency_ms=dense_ms,  # ran in parallel, same wall time
-                input_count=len(candidates),
-                output_count=len(sparse_results),
-            ))
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.DENSE_RETRIEVAL.value,
+                    latency_ms=dense_ms,
+                    input_count=len(candidates),
+                    output_count=len(dense_results),
+                )
+            )
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.SPARSE_RETRIEVAL.value,
+                    latency_ms=dense_ms,  # ran in parallel, same wall time
+                    input_count=len(candidates),
+                    output_count=len(sparse_results),
+                )
+            )
 
             # Merge via RRF
             if dense_results and sparse_results:
@@ -1130,22 +1243,26 @@ class RerankingPipeline:
             merged_results = await self._stage1.rank(
                 query_embedding, candidates, top_k=stage1_top_k
             )
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.DENSE_RETRIEVAL.value,
-                latency_ms=(time.perf_counter() - t0) * 1000,
-                input_count=len(candidates),
-                output_count=len(merged_results),
-            ))
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.DENSE_RETRIEVAL.value,
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    input_count=len(candidates),
+                    output_count=len(merged_results),
+                )
+            )
 
         elif run_sparse:
             t0 = time.perf_counter()
             merged_results = self._stage2.rank(query, candidates, top_k=stage2_top_k)
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.SPARSE_RETRIEVAL.value,
-                latency_ms=(time.perf_counter() - t0) * 1000,
-                input_count=len(candidates),
-                output_count=len(merged_results),
-            ))
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.SPARSE_RETRIEVAL.value,
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    input_count=len(candidates),
+                    output_count=len(merged_results),
+                )
+            )
 
         else:
             # No retrieval stages — convert candidates to RankedResults
@@ -1175,15 +1292,15 @@ class RerankingPipeline:
             and len(stage3_input) > 1
         ):
             t0 = time.perf_counter()
-            stage3_output = await self._stage3.rank(
-                query, stage3_input, top_k=stage3_top_k
+            stage3_output = await self._stage3.rank(query, stage3_input, top_k=stage3_top_k)
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.CROSS_ENCODER.value,
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    input_count=len(stage3_input),
+                    output_count=len(stage3_output),
+                )
             )
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.CROSS_ENCODER.value,
-                latency_ms=(time.perf_counter() - t0) * 1000,
-                input_count=len(stage3_input),
-                output_count=len(stage3_output),
-            ))
             stage3_input = stage3_output
 
         # ── Stage 4: LLM Reranker ──────────────────────────────────
@@ -1195,15 +1312,15 @@ class RerankingPipeline:
             and len(stage4_input) > 1
         ):
             t0 = time.perf_counter()
-            stage4_output = await self._stage4.rank(
-                query, stage4_input, top_k=stage4_top_k
+            stage4_output = await self._stage4.rank(query, stage4_input, top_k=stage4_top_k)
+            self._last_stats.append(
+                _StageStats(
+                    stage=RankingStage.LLM_RERANKER.value,
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    input_count=len(stage4_input),
+                    output_count=len(stage4_output),
+                )
             )
-            self._last_stats.append(_StageStats(
-                stage=RankingStage.LLM_RERANKER.value,
-                latency_ms=(time.perf_counter() - t0) * 1000,
-                input_count=len(stage4_input),
-                output_count=len(stage4_output),
-            ))
             return stage4_output
 
         return stage3_input

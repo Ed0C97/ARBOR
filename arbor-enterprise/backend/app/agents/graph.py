@@ -2,9 +2,8 @@
 
 import logging
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from langgraph.graph import END, StateGraph
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.curator import CuratorAgent
 from app.agents.historian_agent import HistorianAgent
@@ -14,7 +13,9 @@ from app.agents.state import AgentState
 from app.agents.vector_agent import VectorAgent
 
 
-def create_agent_graph(session: AsyncSession | None = None, arbor_session: AsyncSession | None = None):
+def create_agent_graph(
+    session: AsyncSession | None = None, arbor_session: AsyncSession | None = None
+):
     """Create and compile the LangGraph agent swarm.
 
     Flow: Entry -> IntentRouter -> [VectorAgent, MetadataAgent] -> (HistorianAgent?) -> Curator -> End

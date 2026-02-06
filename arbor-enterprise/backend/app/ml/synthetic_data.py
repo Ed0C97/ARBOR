@@ -97,62 +97,176 @@ NAME_TEMPLATES: dict[str, list[str]] = {
 }
 
 ADJECTIVES = [
-    "Golden", "Velvet", "Hidden", "Azure", "Artisan", "Nordic",
-    "Crimson", "Ivory", "Urban", "Rustic", "Verdant", "Sapphire",
-    "Copper", "Lunar", "Solar", "Misty", "Serene", "Bold",
-    "Wild", "Noble", "Polished", "Raw", "Lush", "Vivid",
+    "Golden",
+    "Velvet",
+    "Hidden",
+    "Azure",
+    "Artisan",
+    "Nordic",
+    "Crimson",
+    "Ivory",
+    "Urban",
+    "Rustic",
+    "Verdant",
+    "Sapphire",
+    "Copper",
+    "Lunar",
+    "Solar",
+    "Misty",
+    "Serene",
+    "Bold",
+    "Wild",
+    "Noble",
+    "Polished",
+    "Raw",
+    "Lush",
+    "Vivid",
 ]
 
 NOUNS = [
-    "Oak", "Bloom", "Stone", "Luna", "Flora", "Ember",
-    "Atlas", "Sage", "Onyx", "Ivy", "Lark", "Marble",
-    "Fern", "Dusk", "Prism", "Celeste", "Raven", "Cedar",
-    "Aura", "Jade", "Pearl", "Moss", "Flint", "Silk",
+    "Oak",
+    "Bloom",
+    "Stone",
+    "Luna",
+    "Flora",
+    "Ember",
+    "Atlas",
+    "Sage",
+    "Onyx",
+    "Ivy",
+    "Lark",
+    "Marble",
+    "Fern",
+    "Dusk",
+    "Prism",
+    "Celeste",
+    "Raven",
+    "Cedar",
+    "Aura",
+    "Jade",
+    "Pearl",
+    "Moss",
+    "Flint",
+    "Silk",
 ]
 
 CITIES = [
-    "Milan", "Paris", "Tokyo", "New York", "London", "Barcelona",
-    "Berlin", "Copenhagen", "Mexico City", "Seoul", "Amsterdam",
-    "Lisbon", "Melbourne", "Stockholm", "Montreal",
+    "Milan",
+    "Paris",
+    "Tokyo",
+    "New York",
+    "London",
+    "Barcelona",
+    "Berlin",
+    "Copenhagen",
+    "Mexico City",
+    "Seoul",
+    "Amsterdam",
+    "Lisbon",
+    "Melbourne",
+    "Stockholm",
+    "Montreal",
 ]
 
 TAGS_BY_CATEGORY: dict[str, list[str]] = {
     "cafe": [
-        "specialty-coffee", "minimalist", "third-wave", "brunch",
-        "laptop-friendly", "courtyard", "plant-filled", "industrial",
-        "artisanal-pastries", "matcha", "pour-over", "quiet",
+        "specialty-coffee",
+        "minimalist",
+        "third-wave",
+        "brunch",
+        "laptop-friendly",
+        "courtyard",
+        "plant-filled",
+        "industrial",
+        "artisanal-pastries",
+        "matcha",
+        "pour-over",
+        "quiet",
     ],
     "boutique": [
-        "designer", "vintage", "sustainable", "avant-garde", "streetwear",
-        "handmade", "curated", "emerging-designers", "luxury",
-        "gender-neutral", "slow-fashion", "denim",
+        "designer",
+        "vintage",
+        "sustainable",
+        "avant-garde",
+        "streetwear",
+        "handmade",
+        "curated",
+        "emerging-designers",
+        "luxury",
+        "gender-neutral",
+        "slow-fashion",
+        "denim",
     ],
     "gallery": [
-        "contemporary", "photography", "sculpture", "digital-art",
-        "installation", "emerging-artists", "mixed-media", "abstract",
-        "figurative", "pop-art", "site-specific", "immersive",
+        "contemporary",
+        "photography",
+        "sculpture",
+        "digital-art",
+        "installation",
+        "emerging-artists",
+        "mixed-media",
+        "abstract",
+        "figurative",
+        "pop-art",
+        "site-specific",
+        "immersive",
     ],
     "restaurant": [
-        "farm-to-table", "fine-dining", "tasting-menu", "casual",
-        "seafood", "plant-based", "omakase", "wine-pairing",
-        "open-kitchen", "rooftop", "historic-building", "michelin",
+        "farm-to-table",
+        "fine-dining",
+        "tasting-menu",
+        "casual",
+        "seafood",
+        "plant-based",
+        "omakase",
+        "wine-pairing",
+        "open-kitchen",
+        "rooftop",
+        "historic-building",
+        "michelin",
     ],
     "bar": [
-        "craft-cocktails", "speakeasy", "rooftop", "wine-bar",
-        "natural-wine", "live-music", "jazz", "dive",
-        "mezcal", "sake", "tiki", "aperitivo",
+        "craft-cocktails",
+        "speakeasy",
+        "rooftop",
+        "wine-bar",
+        "natural-wine",
+        "live-music",
+        "jazz",
+        "dive",
+        "mezcal",
+        "sake",
+        "tiki",
+        "aperitivo",
     ],
     "hotel": [
-        "boutique-hotel", "design-hotel", "historic", "eco-friendly",
-        "rooftop-pool", "spa", "art-collection", "minimalist",
-        "converted-warehouse", "seaside", "city-center", "luxury",
+        "boutique-hotel",
+        "design-hotel",
+        "historic",
+        "eco-friendly",
+        "rooftop-pool",
+        "spa",
+        "art-collection",
+        "minimalist",
+        "converted-warehouse",
+        "seaside",
+        "city-center",
+        "luxury",
     ],
 }
 
 # Vibe DNA dimensions (used across the platform)
 VIBE_DIMENSIONS = [
-    "cozy", "edgy", "luxurious", "minimalist", "eclectic",
-    "vintage", "modern", "artistic", "rustic", "futuristic",
+    "cozy",
+    "edgy",
+    "luxurious",
+    "minimalist",
+    "eclectic",
+    "vintage",
+    "modern",
+    "artistic",
+    "rustic",
+    "futuristic",
 ]
 
 # Category-specific vibe biases: which dimensions tend to score higher.
@@ -426,9 +540,7 @@ class SyntheticUserGenerator:
             "synthetic": True,
         }
 
-        logger.debug(
-            "Generated synthetic user: %s (segment=%s)", user["user_id"], segment
-        )
+        logger.debug("Generated synthetic user: %s (segment=%s)", user["user_id"], segment)
         return user
 
     def generate_batch(self, count: int) -> list[dict[str, Any]]:
@@ -549,12 +661,9 @@ class SyntheticInteractionGenerator:
         user_vibe = user.get("vibe_affinity", {})
         entity_vibe = entity.get("vibe_dna", {})
         if user_vibe and entity_vibe:
-            dot = sum(
-                user_vibe.get(d, 0.0) * entity_vibe.get(d, 0.0)
-                for d in VIBE_DIMENSIONS
-            )
-            mag_u = math.sqrt(sum(v ** 2 for v in user_vibe.values())) or 1.0
-            mag_e = math.sqrt(sum(v ** 2 for v in entity_vibe.values())) or 1.0
+            dot = sum(user_vibe.get(d, 0.0) * entity_vibe.get(d, 0.0) for d in VIBE_DIMENSIONS)
+            mag_u = math.sqrt(sum(v**2 for v in user_vibe.values())) or 1.0
+            mag_e = math.sqrt(sum(v**2 for v in entity_vibe.values())) or 1.0
             vibe_score = dot / (mag_u * mag_e)
         else:
             vibe_score = 0.5
@@ -793,9 +902,7 @@ class DataValidator:
         all_keys = set(dist_a.keys()) | set(dist_b.keys())
         if not all_keys:
             return 0.0
-        return 0.5 * sum(
-            abs(dist_a.get(k, 0.0) - dist_b.get(k, 0.0)) for k in all_keys
-        )
+        return 0.5 * sum(abs(dist_a.get(k, 0.0) - dist_b.get(k, 0.0)) for k in all_keys)
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:

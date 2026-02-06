@@ -8,18 +8,11 @@ are used as few-shot examples and calibration anchors.
 import logging
 from typing import Any
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres.models import (
-    ArborGoldStandard,
-    Brand,
-    Venue,
-)
-from app.ingestion.pipeline.schemas import (
-    DimensionName,
-    GoldStandardEntity,
-)
+from app.db.postgres.models import ArborGoldStandard, Brand, Venue
+from app.ingestion.pipeline.schemas import DimensionName, GoldStandardEntity
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +32,7 @@ class GoldStandardRepository:
         )
         return result.scalar_one_or_none()
 
-    async def upsert(
-        self, entity_type: str, source_id: int, **kwargs: Any
-    ) -> ArborGoldStandard:
+    async def upsert(self, entity_type: str, source_id: int, **kwargs: Any) -> ArborGoldStandard:
         existing = await self.get(entity_type, source_id)
         if existing:
             for key, value in kwargs.items():
@@ -60,16 +51,12 @@ class GoldStandardRepository:
             return gs
 
     async def list_all(self, limit: int = 200) -> list[ArborGoldStandard]:
-        result = await self.session.execute(
-            select(ArborGoldStandard).limit(limit)
-        )
+        result = await self.session.execute(select(ArborGoldStandard).limit(limit))
         return list(result.scalars().all())
 
     async def list_by_category(self, category: str, limit: int = 10) -> list[ArborGoldStandard]:
         """Find gold standard entities matching a category."""
-        result = await self.session.execute(
-            select(ArborGoldStandard).limit(limit)
-        )
+        result = await self.session.execute(select(ArborGoldStandard).limit(limit))
         all_gs = list(result.scalars().all())
         # Filter by matching category in the source entity
         matching = []
@@ -82,9 +69,7 @@ class GoldStandardRepository:
         return matching
 
     async def count(self) -> int:
-        result = await self.session.execute(
-            select(func.count()).select_from(ArborGoldStandard)
-        )
+        result = await self.session.execute(select(func.count()).select_from(ArborGoldStandard))
         return result.scalar_one()
 
     async def delete(self, entity_type: str, source_id: int) -> bool:

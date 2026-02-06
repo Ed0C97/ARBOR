@@ -16,13 +16,13 @@ from app.compliance.audit_log import (
     verify_audit_integrity,
 )
 from app.compliance.data_retention import (
+    DEFAULT_POLICIES,
     CleanupResult,
     DataRetentionEnforcer,
     RetentionPeriod,
     RetentionPolicy,
-    DEFAULT_POLICIES,
-    cleanup_redis_cache,
     cleanup_qdrant_cache,
+    cleanup_redis_cache,
 )
 from app.compliance.gdpr import (
     DeletionResult,
@@ -30,7 +30,6 @@ from app.compliance.gdpr import (
     GDPRDeletionJob,
     verify_deletion,
 )
-
 
 # ==========================================================================
 # Audit Log Tests
@@ -116,9 +115,11 @@ class TestAuditLogger:
     async def test_log_creates_entry_and_flushes(self):
         mock_entry = MagicMock()
         mock_entry.id = 42
+
         # Make add capture the argument so we can set id
         def capture_add(obj):
             obj.id = 42
+
         self.session.add = MagicMock(side_effect=capture_add)
 
         entry_id = await self.logger.log(
@@ -135,6 +136,7 @@ class TestAuditLogger:
     async def test_log_with_state_changes(self):
         def capture_add(obj):
             obj.id = 10
+
         self.session.add = MagicMock(side_effect=capture_add)
 
         await self.logger.log(
@@ -156,6 +158,7 @@ class TestAuditLogger:
     async def test_log_entry_delegates_to_log(self):
         def capture_add(obj):
             obj.id = 99
+
         self.session.add = MagicMock(side_effect=capture_add)
 
         entry = AuditEntry(
@@ -269,14 +272,18 @@ class TestVerifyAuditIntegrity:
         mock_entry.new_state = {"name": "Test"}
 
         # Calculate the expected checksum
-        content = json.dumps({
-            "actor_id": "user_1",
-            "action": "create",
-            "resource_type": "entity",
-            "resource_id": "venue_1",
-            "previous_state": None,
-            "new_state": {"name": "Test"},
-        }, sort_keys=True, default=str)
+        content = json.dumps(
+            {
+                "actor_id": "user_1",
+                "action": "create",
+                "resource_type": "entity",
+                "resource_id": "venue_1",
+                "previous_state": None,
+                "new_state": {"name": "Test"},
+            },
+            sort_keys=True,
+            default=str,
+        )
         mock_entry.checksum = hashlib.sha256(content.encode()).hexdigest()
 
         mock_result = MagicMock()
@@ -512,9 +519,7 @@ class TestCleanupRedisCache:
         mock_client = AsyncMock()
         mock_get_client.return_value = mock_client
         # Simulate scan returning keys then finishing
-        mock_client.scan = AsyncMock(
-            side_effect=[(0, [b"llm_cache:key1", b"llm_cache:key2"])]
-        )
+        mock_client.scan = AsyncMock(side_effect=[(0, [b"llm_cache:key1", b"llm_cache:key2"])])
         mock_client.ttl = AsyncMock(side_effect=[-1, 3600])
         mock_client.delete = AsyncMock()
 
@@ -705,6 +710,7 @@ class TestVerifyDeletion:
         session = AsyncMock()
         # First call returns count > 0, rest return 0
         call_count = 0
+
         def side_effect(*args, **kwargs):
             nonlocal call_count
             mock_r = MagicMock()
@@ -714,6 +720,7 @@ class TestVerifyDeletion:
                 mock_r.scalar.return_value = 0
             call_count += 1
             return mock_r
+
         session.execute = AsyncMock(side_effect=side_effect)
 
         result = await verify_deletion(session, "user_1")

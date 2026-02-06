@@ -8,34 +8,33 @@ import pytest
 from temporalio import activity, workflow
 
 from app.workflows.activities import (
-    scrape_entity,
     analyze_with_vision,
     extract_vibe,
     generate_embedding,
-    save_to_qdrant,
     save_to_neo4j,
+    save_to_qdrant,
+    scrape_entity,
 )
 from app.workflows.enrichment_activities import (
-    run_full_enrichment,
+    _compute_priority,
+    _entity_to_kwargs,
     collect_entity_data,
+    generate_and_sync_embedding,
+    get_unenriched_entities,
     run_fact_analyzers,
+    run_full_enrichment,
     score_with_calibration,
     validate_and_persist,
-    get_unenriched_entities,
-    generate_and_sync_embedding,
-    _entity_to_kwargs,
-    _compute_priority,
-)
-from app.workflows.ingestion_workflow import (
-    EntityIngestionWorkflow,
-    BatchIngestionWorkflow,
 )
 from app.workflows.enrichment_workflow import (
+    BatchEnrichmentWorkflow,
     EntityEnrichmentWorkflow,
     SteppedEnrichmentWorkflow,
-    BatchEnrichmentWorkflow,
 )
-
+from app.workflows.ingestion_workflow import (
+    BatchIngestionWorkflow,
+    EntityIngestionWorkflow,
+)
 
 # ==========================================================================
 # Activities — Existence and Signatures

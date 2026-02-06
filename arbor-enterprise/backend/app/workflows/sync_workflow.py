@@ -20,9 +20,12 @@ logger = logging.getLogger(__name__)
 @activity.defn
 async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
     """Fetch enrichments that have been updated but not yet synced to Qdrant/Neo4j."""
-    from sqlalchemy import select, or_
+    from sqlalchemy import or_, select
 
-    from app.db.postgres.connection import arbor_session_factory, magazine_session_factory
+    from app.db.postgres.connection import (
+        arbor_session_factory,
+        magazine_session_factory,
+    )
     from app.db.postgres.models import ArborEnrichment, Brand, Venue
 
     # 1. Fetch from Arbor DB
@@ -39,13 +42,13 @@ async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
         return []
 
     items = []
-    
+
     # 2. Fetch details from Magazine DB
     async with magazine_session_factory() as mag_session:
         for enr in enrichments:
             # Resolve entity name and category from source table
             name, category, city = None, None, None
-            
+
             if enr.entity_type == "brand":
                 brand = await mag_session.get(Brand, enr.source_id)
                 if brand:
@@ -62,17 +65,19 @@ async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
             if name is None:
                 continue
 
-            items.append({
-                "enrichment_id": str(enr.id),
-                "entity_type": enr.entity_type,
-                "source_id": enr.source_id,
-                "composite_id": f"{enr.entity_type}_{enr.source_id}",
-                "name": name,
-                "category": category or "",
-                "city": city,
-                "vibe_dna": enr.vibe_dna or {},
-                "tags": enr.tags or [],
-            })
+            items.append(
+                {
+                    "enrichment_id": str(enr.id),
+                    "entity_type": enr.entity_type,
+                    "source_id": enr.source_id,
+                    "composite_id": f"{enr.entity_type}_{enr.source_id}",
+                    "name": name,
+                    "category": category or "",
+                    "city": city,
+                    "vibe_dna": enr.vibe_dna or {},
+                    "tags": enr.tags or [],
+                }
+            )
 
     return items
 
@@ -135,8 +140,9 @@ async def sync_entity_to_neo4j(entity: dict) -> bool:
 @activity.defn
 async def mark_enrichments_synced(enrichment_ids: list[str]) -> int:
     """Mark enrichments as synced in PostgreSQL."""
-    from sqlalchemy import update
     from uuid import UUID
+
+    from sqlalchemy import update
 
     from app.db.postgres.connection import arbor_session_factory
     from app.db.postgres.models import ArborEnrichment
@@ -147,9 +153,7 @@ async def mark_enrichments_synced(enrichment_ids: list[str]) -> int:
     async with arbor_session_factory() as session:
         uuids = [UUID(eid) for eid in enrichment_ids]
         result = await session.execute(
-            update(ArborEnrichment)
-            .where(ArborEnrichment.id.in_(uuids))
-            .values(neo4j_synced=True)
+            update(ArborEnrichment).where(ArborEnrichment.id.in_(uuids)).values(neo4j_synced=True)
         )
         await session.commit()
         return result.rowcount
@@ -213,9 +217,7 @@ class SyncWorkflow:
                 synced_ids.append(entity["enrichment_id"])
 
             except Exception as e:
-                workflow.logger.error(
-                    f"Failed to sync {entity['composite_id']}: {e}"
-                )
+                workflow.logger.error(f"Failed to sync {entity['composite_id']}: {e}")
                 errors += 1
 
         # Step 4: Mark as synced

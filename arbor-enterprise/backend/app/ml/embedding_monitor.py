@@ -25,13 +25,15 @@ logger = logging.getLogger(__name__)
 # Alert types and severity constants
 # ---------------------------------------------------------------------------
 
-ALERT_TYPES = frozenset({
-    "centroid_drift",
-    "density_anomaly",
-    "anisotropy",
-    "query_doc_misalignment",
-    "dimension_collapse",
-})
+ALERT_TYPES = frozenset(
+    {
+        "centroid_drift",
+        "density_anomaly",
+        "anisotropy",
+        "query_doc_misalignment",
+        "dimension_collapse",
+    }
+)
 
 SEVERITY_LEVELS = ("info", "warning", "critical")
 
@@ -47,13 +49,14 @@ _SEVERITY_WEIGHT: dict[str, float] = {
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class EmbeddingAlert:
     """A single alert raised by an embedding health detector."""
 
     alert_id: str
-    alert_type: str          # one of ALERT_TYPES
-    severity: str            # one of SEVERITY_LEVELS
+    alert_type: str  # one of ALERT_TYPES
+    severity: str  # one of SEVERITY_LEVELS
     metric_value: float
     threshold: float
     message: str
@@ -79,6 +82,7 @@ class EmbeddingSnapshot:
 # ---------------------------------------------------------------------------
 # Helper functions (pure, stateless)
 # ---------------------------------------------------------------------------
+
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
     """Compute cosine similarity between two vectors.
@@ -141,6 +145,7 @@ def _average_pairwise_similarity(
 # Individual detectors
 # ---------------------------------------------------------------------------
 
+
 class CentroidDriftDetector:
     """Detect when the embedding centroid drifts from a stored baseline.
 
@@ -174,8 +179,7 @@ class CentroidDriftDetector:
         if self._baseline_centroid is None:
             self._baseline_centroid = list(self._current_centroid)
             logger.info(
-                "CentroidDriftDetector auto-initialised baseline from "
-                "first batch (%d vectors)",
+                "CentroidDriftDetector auto-initialised baseline from " "first batch (%d vectors)",
                 len(embeddings),
             )
 
@@ -185,7 +189,8 @@ class CentroidDriftDetector:
             return None
 
         similarity = _cosine_similarity(
-            self._baseline_centroid, self._current_centroid,
+            self._baseline_centroid,
+            self._current_centroid,
         )
         distance = 1.0 - similarity
 
@@ -311,18 +316,14 @@ class DensityAnomalyDetector:
 
         threshold = mean_dist + 2.0 * std_dist
 
-        anomaly_indices = [
-            i for i, d in enumerate(knn_distances) if d > threshold
-        ]
+        anomaly_indices = [i for i, d in enumerate(knn_distances) if d > threshold]
 
         if not anomaly_indices:
             return None
 
         affected_ids: list[str] = []
         if labels:
-            affected_ids = [
-                labels[i] for i in anomaly_indices if i < len(labels)
-            ]
+            affected_ids = [labels[i] for i in anomaly_indices if i < len(labels)]
 
         return EmbeddingAlert(
             alert_id=str(uuid.uuid4()),
@@ -437,6 +438,7 @@ class DimensionCollapseDetector:
 # ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
+
 
 class EmbeddingSpaceMonitor:
     """Central orchestrator for all embedding health checks.

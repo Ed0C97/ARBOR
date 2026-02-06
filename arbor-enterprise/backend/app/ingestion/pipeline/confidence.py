@@ -14,10 +14,10 @@ import statistics
 from app.ingestion.pipeline.schemas import (
     DimensionName,
     DimensionScore,
+    FactSheet,
     ReviewQueueItem,
     ReviewStatus,
     ScoredVibeDNA,
-    FactSheet,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,9 @@ class ConfidenceAnalyzer:
             dim_names = [d for d in disagreements]
             review_reasons.append(f"Source disagreement on: {', '.join(dim_names)}")
 
-        low_conf_dims = [d.dimension for d in scored.dimensions if d.confidence < MIN_CONFIDENCE_THRESHOLD]
+        low_conf_dims = [
+            d.dimension for d in scored.dimensions if d.confidence < MIN_CONFIDENCE_THRESHOLD
+        ]
         if low_conf_dims:
             review_reasons.append(f"Low confidence on: {', '.join(low_conf_dims)}")
 
@@ -106,7 +108,9 @@ class ConfidenceAnalyzer:
         if is_featured:
             priority += PRIORITY_WEIGHTS["is_featured"]
 
-        low_conf_count = sum(1 for d in scored.dimensions if d.confidence < MIN_CONFIDENCE_THRESHOLD)
+        low_conf_count = sum(
+            1 for d in scored.dimensions if d.confidence < MIN_CONFIDENCE_THRESHOLD
+        )
         priority += low_conf_count * PRIORITY_WEIGHTS["low_confidence"] * 0.3
 
         disagreement_count = sum(1 for d in scored.dimensions if d.has_disagreement)
@@ -128,9 +132,7 @@ class ConfidenceAnalyzer:
             status=ReviewStatus.NEEDS_REVIEW,
         )
 
-    def _analyze_dimension_confidence(
-        self, dim: DimensionScore, fact_sheet: FactSheet
-    ) -> None:
+    def _analyze_dimension_confidence(self, dim: DimensionScore, fact_sheet: FactSheet) -> None:
         """Adjust dimension confidence based on available evidence."""
         # Source coverage bonus
         source_count = len(fact_sheet.sources_used)

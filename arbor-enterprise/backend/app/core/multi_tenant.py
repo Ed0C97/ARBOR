@@ -68,9 +68,7 @@ class Tenant:
     def __post_init__(self) -> None:
         """Apply tier defaults for any fields left unset."""
         if self.tier not in VALID_TIERS:
-            raise ValueError(
-                f"Invalid tier '{self.tier}'. Must be one of {VALID_TIERS}"
-            )
+            raise ValueError(f"Invalid tier '{self.tier}'. Must be one of {VALID_TIERS}")
 
         tier_limits = DEFAULT_TIER_LIMITS[self.tier]
         if self.rate_limit_rpm is None:
@@ -187,8 +185,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=401,
-                content={"detail": "Tenant identification required. "
-                         "Provide X-Tenant-ID header or a valid API key."},
+                content={
+                    "detail": "Tenant identification required. "
+                    "Provide X-Tenant-ID header or a valid API key."
+                },
             )
 
         if not tenant.is_active:
@@ -232,6 +232,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 # ---------------------------------------------------------------------------
 # Tenant manager (singleton registry)
 # ---------------------------------------------------------------------------
+
 
 class TenantManager:
     """In-memory tenant registry with lookup and rate-limit helpers.
@@ -333,9 +334,7 @@ class TenantManager:
         rpm_window = self._rpm_counters.setdefault(tenant_id, [])
         # Purge entries older than 60 seconds
         cutoff_rpm = now - 60.0
-        self._rpm_counters[tenant_id] = [
-            ts for ts in rpm_window if ts > cutoff_rpm
-        ]
+        self._rpm_counters[tenant_id] = [ts for ts in rpm_window if ts > cutoff_rpm]
         if len(self._rpm_counters[tenant_id]) >= tenant.rate_limit_rpm:
             logger.warning(
                 "Tenant %s exceeded RPM limit (%d)",
@@ -348,9 +347,7 @@ class TenantManager:
         # --- Daily check ---
         daily_window = self._daily_counters.setdefault(tenant_id, [])
         cutoff_daily = now - 86_400.0
-        self._daily_counters[tenant_id] = [
-            ts for ts in daily_window if ts > cutoff_daily
-        ]
+        self._daily_counters[tenant_id] = [ts for ts in daily_window if ts > cutoff_daily]
         if len(self._daily_counters[tenant_id]) >= tenant.rate_limit_daily:
             logger.warning(
                 "Tenant %s exceeded daily limit (%d)",
@@ -382,6 +379,7 @@ def get_tenant_manager() -> TenantManager:
 # ---------------------------------------------------------------------------
 # Tenant isolation utilities
 # ---------------------------------------------------------------------------
+
 
 class TenantIsolation:
     """Utilities for deriving tenant-scoped resource names.

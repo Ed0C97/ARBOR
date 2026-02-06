@@ -26,7 +26,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # BASE CLASSES — one per database
 # ═══════════════════════════════════════════════════════════════════════════
@@ -34,11 +33,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class MagazineBase(DeclarativeBase):
     """Base for tables in magazine_h182 (read-only)."""
+
     pass
 
 
 class ArborBase(DeclarativeBase):
     """Base for tables in arbor_db (read-write)."""
+
     pass
 
 
@@ -157,9 +158,7 @@ class ArborEnrichment(ArborBase):
 
     __tablename__ = "arbor_enrichments"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Link to source: entity_type = "brand" | "venue", source_id = brands.id or venues.id
     entity_type: Mapped[str] = mapped_column(String(10), nullable=False)
@@ -172,9 +171,7 @@ class ArborEnrichment(ArborBase):
     neo4j_synced: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Audit
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -194,18 +191,14 @@ class ArborUser(ArborBase):
 
     __tablename__ = "arbor_users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     name: Mapped[str | None] = mapped_column(String(255))
     password_hash: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20), default="user")
     preferences: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     feedback: Mapped[list["ArborFeedback"]] = relationship(back_populates="user")
@@ -220,9 +213,7 @@ class ArborGoldStandard(ArborBase):
 
     __tablename__ = "arbor_gold_standard"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Link to source entity
     entity_type: Mapped[str] = mapped_column(String(10), nullable=False)
@@ -235,9 +226,7 @@ class ArborGoldStandard(ArborBase):
     curator_notes: Mapped[str | None] = mapped_column(Text)
     curated_by: Mapped[str | None] = mapped_column(String(255))
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -260,9 +249,7 @@ class ArborReviewQueue(ArborBase):
 
     __tablename__ = "arbor_review_queue"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Link to source entity
     entity_type: Mapped[str] = mapped_column(String(10), nullable=False)
@@ -282,9 +269,7 @@ class ArborReviewQueue(ArborBase):
     overridden_scores: Mapped[dict | None] = mapped_column(JSONB)
     overridden_tags: Mapped[list | None] = mapped_column(JSONB)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
         Index("idx_review_queue_status", "status"),
@@ -305,9 +290,7 @@ class ArborFeedback(ArborBase):
 
     __tablename__ = "arbor_feedback"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("arbor_users.id", ondelete="SET NULL")
     )
@@ -322,9 +305,7 @@ class ArborFeedback(ArborBase):
     position: Mapped[int | None] = mapped_column(Integer)
     reward: Mapped[float | None] = mapped_column(Float)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["ArborUser | None"] = relationship(back_populates="feedback")
 

@@ -1,24 +1,24 @@
 """Unit tests for Webhook Event System, Agentic Workflows, and GraphQL Schema."""
 
-import pytest
-import hmac
 import hashlib
+import hmac
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.events.webhooks import (
-    WebhookEvent,
-    WebhookSubscription,
-    WebhookManager,
-    verify_webhook_signature,
-    _compute_signature,
-)
+import pytest
+
 from app.agents.agentic_workflows import (
-    WorkflowType,
-    QueryDecomposer,
     DeepResearchAgent,
     EntityComparisonAgent,
+    QueryDecomposer,
+    WorkflowType,
 )
-
+from app.events.webhooks import (
+    WebhookEvent,
+    WebhookManager,
+    WebhookSubscription,
+    _compute_signature,
+    verify_webhook_signature,
+)
 
 # ===========================================================================
 # Webhook Event Types
@@ -45,9 +45,9 @@ class TestWebhookEvent:
         """Every WebhookEvent value is a dotted string (e.g. 'entity.created')."""
         for event in WebhookEvent:
             assert isinstance(event.value, str), f"{event.name} value should be a string"
-            assert "." in event.value, (
-                f"{event.name} value '{event.value}' should be a dotted string"
-            )
+            assert (
+                "." in event.value
+            ), f"{event.name} value '{event.value}' should be a dotted string"
 
 
 # ===========================================================================
@@ -236,9 +236,7 @@ class TestWebhookManager:
             "last_failure_at",
             "registered_events",
         }
-        assert expected_keys.issubset(stats.keys()), (
-            f"Missing keys: {expected_keys - stats.keys()}"
-        )
+        assert expected_keys.issubset(stats.keys()), f"Missing keys: {expected_keys - stats.keys()}"
 
 
 # ===========================================================================
@@ -265,9 +263,7 @@ class TestWorkflowType:
         """Every WorkflowType value is a lowercase string."""
         for wt in WorkflowType:
             assert isinstance(wt.value, str), f"{wt.name} value should be a string"
-            assert wt.value == wt.value.lower(), (
-                f"{wt.name} value '{wt.value}' should be lowercase"
-            )
+            assert wt.value == wt.value.lower(), f"{wt.name} value '{wt.value}' should be lowercase"
 
 
 # ===========================================================================
@@ -317,9 +313,7 @@ class TestQueryDecomposer:
             result = self.decomposer.decompose("test query", wt)
             assert isinstance(result, list), f"Result for {wt.name} should be a list"
             for item in result:
-                assert isinstance(item, str), (
-                    f"Each sub-query for {wt.name} should be a string"
-                )
+                assert isinstance(item, str), f"Each sub-query for {wt.name} should be a string"
 
 
 # ===========================================================================

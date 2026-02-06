@@ -49,7 +49,9 @@ class ContextAnalyzer:
             )
         if neighborhood:
             location_facts.append(
-                ExtractedFact(fact_type="neighborhood", value=neighborhood, source=SourceType.DATABASE)
+                ExtractedFact(
+                    fact_type="neighborhood", value=neighborhood, source=SourceType.DATABASE
+                )
             )
         if country:
             location_facts.append(

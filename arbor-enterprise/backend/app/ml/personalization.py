@@ -138,9 +138,7 @@ class PreferenceLearner:
         entity_price = entity_data.get("price_tier")
         if entity_price is not None:
             alpha = abs(learning_rate)
-            profile.price_tier = (1.0 - alpha) * profile.price_tier + alpha * float(
-                entity_price
-            )
+            profile.price_tier = (1.0 - alpha) * profile.price_tier + alpha * float(entity_price)
 
         profile.interaction_count += 1
 
@@ -189,7 +187,11 @@ class PreferenceLearner:
         Returns:
             Updated weight clamped to [0.0, 1.0].
         """
-        new_value = old_value + learning_rate * (1.0 - old_value) if learning_rate >= 0 else old_value + learning_rate * old_value
+        new_value = (
+            old_value + learning_rate * (1.0 - old_value)
+            if learning_rate >= 0
+            else old_value + learning_rate * old_value
+        )
         return max(0.0, min(1.0, new_value))
 
     @staticmethod
@@ -317,9 +319,7 @@ class PersonalizationEngine:
 
         # If the profile has no interactions yet, return results unchanged
         if profile.interaction_count == 0:
-            logger.debug(
-                "No interactions for user=%s, returning original order", user_id
-            )
+            logger.debug("No interactions for user=%s, returning original order", user_id)
             return results
 
         scored: list[dict[str, Any]] = []
@@ -348,9 +348,7 @@ class PersonalizationEngine:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _compute_boost(
-        self, profile: UserProfile, result: dict[str, Any]
-    ) -> float:
+    def _compute_boost(self, profile: UserProfile, result: dict[str, Any]) -> float:
         """Compute a personalisation boost score for a single result.
 
         The boost is the weighted average of three sub-scores:

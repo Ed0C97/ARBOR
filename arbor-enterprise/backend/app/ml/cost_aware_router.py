@@ -131,39 +131,147 @@ class RoutingPolicy:
 
 # Keywords used by the analyzer to detect domain specificity and filters.
 _QUESTION_WORDS: set[str] = {
-    "what", "where", "which", "who", "when", "how", "why", "is", "are",
-    "can", "could", "would", "should", "do", "does", "did", "recommend",
-    "suggest", "find", "show", "list", "compare", "rank",
+    "what",
+    "where",
+    "which",
+    "who",
+    "when",
+    "how",
+    "why",
+    "is",
+    "are",
+    "can",
+    "could",
+    "would",
+    "should",
+    "do",
+    "does",
+    "did",
+    "recommend",
+    "suggest",
+    "find",
+    "show",
+    "list",
+    "compare",
+    "rank",
 }
 
 _FILTER_KEYWORDS: set[str] = {
-    "near", "in", "under", "below", "above", "between", "within",
-    "cheaper", "cheapest", "best", "top", "most", "least", "only",
-    "open", "closed", "vegan", "vegetarian", "gluten-free", "organic",
-    "budget", "luxury", "mid-range", "price", "rating", "stars",
-    "outdoor", "indoor", "rooftop", "pet-friendly", "wifi",
+    "near",
+    "in",
+    "under",
+    "below",
+    "above",
+    "between",
+    "within",
+    "cheaper",
+    "cheapest",
+    "best",
+    "top",
+    "most",
+    "least",
+    "only",
+    "open",
+    "closed",
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "organic",
+    "budget",
+    "luxury",
+    "mid-range",
+    "price",
+    "rating",
+    "stars",
+    "outdoor",
+    "indoor",
+    "rooftop",
+    "pet-friendly",
+    "wifi",
 }
 
 _FASHION_KEYWORDS: set[str] = {
-    "fashion", "style", "designer", "brand", "collection", "runway",
-    "couture", "streetwear", "vintage", "sustainable", "luxury",
-    "accessories", "shoes", "sneakers", "denim", "leather", "silk",
-    "boutique", "atelier", "wardrobe", "trend", "aesthetic", "outfit",
-    "wear", "clothing", "apparel", "textile", "fabric",
+    "fashion",
+    "style",
+    "designer",
+    "brand",
+    "collection",
+    "runway",
+    "couture",
+    "streetwear",
+    "vintage",
+    "sustainable",
+    "luxury",
+    "accessories",
+    "shoes",
+    "sneakers",
+    "denim",
+    "leather",
+    "silk",
+    "boutique",
+    "atelier",
+    "wardrobe",
+    "trend",
+    "aesthetic",
+    "outfit",
+    "wear",
+    "clothing",
+    "apparel",
+    "textile",
+    "fabric",
 }
 
 _FOOD_KEYWORDS: set[str] = {
-    "restaurant", "cafe", "bar", "bistro", "taco", "sushi", "pizza",
-    "brunch", "cocktail", "wine", "coffee", "bakery", "pastry",
-    "mezcal", "tequila", "omakase", "ramen", "dim sum", "tapas",
-    "michelin", "chef", "kitchen", "menu", "dish", "cuisine",
-    "food", "dining", "eatery", "gastropub", "cantina",
+    "restaurant",
+    "cafe",
+    "bar",
+    "bistro",
+    "taco",
+    "sushi",
+    "pizza",
+    "brunch",
+    "cocktail",
+    "wine",
+    "coffee",
+    "bakery",
+    "pastry",
+    "mezcal",
+    "tequila",
+    "omakase",
+    "ramen",
+    "dim sum",
+    "tapas",
+    "michelin",
+    "chef",
+    "kitchen",
+    "menu",
+    "dish",
+    "cuisine",
+    "food",
+    "dining",
+    "eatery",
+    "gastropub",
+    "cantina",
 }
 
 _VAGUE_INDICATORS: set[str] = {
-    "something", "anything", "somewhere", "whatever", "stuff",
-    "things", "good", "nice", "cool", "fun", "interesting",
-    "vibes", "vibe", "chill", "awesome", "great", "place",
+    "something",
+    "anything",
+    "somewhere",
+    "whatever",
+    "stuff",
+    "things",
+    "good",
+    "nice",
+    "cool",
+    "fun",
+    "interesting",
+    "vibes",
+    "vibe",
+    "chill",
+    "awesome",
+    "great",
+    "place",
 }
 
 
@@ -395,12 +503,12 @@ class CostModel:
 
     # Default cost table (USD).  Rates are per-unit as indicated.
     DEFAULT_COSTS: dict[str, float] = {
-        "gemini_pro": 0.00125,       # per 1K tokens
-        "gpt4o": 0.005,              # per 1K tokens
-        "cohere_embed": 0.0001,      # per call
-        "cohere_rerank": 0.002,      # per call
-        "qdrant_search": 0.0001,     # per call
-        "neo4j_query": 0.0002,       # per call
+        "gemini_pro": 0.00125,  # per 1K tokens
+        "gpt4o": 0.005,  # per 1K tokens
+        "cohere_embed": 0.0001,  # per call
+        "cohere_rerank": 0.002,  # per call
+        "qdrant_search": 0.0001,  # per call
+        "neo4j_query": 0.0002,  # per call
     }
 
     # Mapping from retrieval stage names to the cost-table operations
@@ -485,12 +593,14 @@ class CostModel:
         """
         operations: list[dict[str, Any]] = []
         for op_name in sorted(self._operation_counts.keys()):
-            operations.append({
-                "operation": op_name,
-                "count": self._operation_counts[op_name],
-                "total_cost": round(self._operation_costs[op_name], 6),
-                "unit_cost": self.costs.get(op_name, 0.0),
-            })
+            operations.append(
+                {
+                    "operation": op_name,
+                    "count": self._operation_counts[op_name],
+                    "total_cost": round(self._operation_costs[op_name], 6),
+                    "unit_cost": self.costs.get(op_name, 0.0),
+                }
+            )
 
         return {
             "total_cost": round(self._total_cost, 6),
@@ -596,7 +706,7 @@ class BanditOptimizer:
         # Fractional update: reward contributes proportionally to both
         # alpha and beta so that partially-good outcomes are captured.
         self.alpha[arm_id] += reward
-        self.beta_param[arm_id] += (1.0 - reward)
+        self.beta_param[arm_id] += 1.0 - reward
 
         logger.debug(
             "BanditOptimizer: updated arm=%s reward=%.3f → alpha=%.2f beta=%.2f",
@@ -1042,12 +1152,14 @@ class MoERouter:
             actual_latency: Actual wall-clock latency (ms).
             quality_score: Observed quality score [0, 1].
         """
-        self._outcomes[plan_id].append({
-            "actual_cost": actual_cost,
-            "actual_latency": actual_latency,
-            "quality_score": quality_score,
-            "timestamp": time.time(),
-        })
+        self._outcomes[plan_id].append(
+            {
+                "actual_cost": actual_cost,
+                "actual_latency": actual_latency,
+                "quality_score": quality_score,
+                "timestamp": time.time(),
+            }
+        )
 
         # Reward = quality / cost ratio, normalised to [0, 1].
         # Higher quality and lower cost yield higher reward.

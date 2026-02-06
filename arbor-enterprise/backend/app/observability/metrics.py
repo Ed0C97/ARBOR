@@ -10,7 +10,14 @@ import logging
 import time
 from typing import Any, Callable
 
-from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    generate_latest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +145,7 @@ arbor_active_users = Gauge(
 # Convenience helpers
 # ---------------------------------------------------------------------------
 
+
 def record_cache_hit(cache_layer: str) -> None:
     """Increment cache hit counter.
 
@@ -171,6 +179,7 @@ def record_llm_tokens(model: str, prompt_tokens: int, completion_tokens: int) ->
 # ---------------------------------------------------------------------------
 # Decorator
 # ---------------------------------------------------------------------------
+
 
 def track_latency(
     endpoint: str,
@@ -248,6 +257,7 @@ def track_llm_latency(
         model: Model name
         task_type: Type of task (completion, embedding, rerank)
     """
+
     def decorator(fn: Callable) -> Callable:
         @functools.wraps(fn)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -278,6 +288,7 @@ def track_llm_latency(
                 ).observe(elapsed)
 
         import asyncio
+
         if asyncio.iscoroutinefunction(fn):
             return async_wrapper
         return sync_wrapper
@@ -354,9 +365,7 @@ def set_circuit_breaker_state(service: str, state: str) -> None:
         state: State (closed, open, half_open)
     """
     state_values = {"closed": 0.0, "open": 1.0, "half_open": 0.5}
-    arbor_circuit_breaker_state.labels(service=service).set(
-        state_values.get(state, 0.0)
-    )
+    arbor_circuit_breaker_state.labels(service=service).set(state_values.get(state, 0.0))
 
 
 def update_db_pool_metrics(database: str, active: int, idle: int, overflow: int) -> None:
@@ -384,11 +393,13 @@ def record_guardrail_block(block_type: str, reason: str) -> None:
 
 def set_build_info(version: str, environment: str, git_sha: str = "unknown") -> None:
     """Set build information."""
-    arbor_build_info.info({
-        "version": version,
-        "environment": environment,
-        "git_sha": git_sha,
-    })
+    arbor_build_info.info(
+        {
+            "version": version,
+            "environment": environment,
+            "git_sha": git_sha,
+        }
+    )
 
 
 def get_metrics() -> bytes:

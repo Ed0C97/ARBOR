@@ -128,20 +128,14 @@ class AnalyticsConsumer:
 
     def snapshot(self) -> dict:
         """Return a summary snapshot of current analytics aggregates."""
-        avg_latency = (
-            self.latency_sum_ms / self.total_searches if self.total_searches else 0.0
-        )
-        top_queries = sorted(
-            self.popular_queries.items(), key=lambda kv: kv[1], reverse=True
-        )[:20]
+        avg_latency = self.latency_sum_ms / self.total_searches if self.total_searches else 0.0
+        top_queries = sorted(self.popular_queries.items(), key=lambda kv: kv[1], reverse=True)[:20]
 
         return {
             "total_searches": self.total_searches,
             "zero_result_count": self.zero_result_count,
             "zero_result_rate": (
-                self.zero_result_count / self.total_searches
-                if self.total_searches
-                else 0.0
+                self.zero_result_count / self.total_searches if self.total_searches else 0.0
             ),
             "avg_latency_ms": round(avg_latency, 2),
             "top_queries": top_queries,

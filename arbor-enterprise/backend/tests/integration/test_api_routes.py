@@ -5,15 +5,14 @@ with mocked database and LLM dependencies so the tests run without real
 infrastructure.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Fixtures
@@ -32,9 +31,11 @@ async def client():
 # Fake data helpers
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FakeUnifiedEntity:
     """Mimics the dataclass returned by UnifiedEntityRepository."""
+
     id: str = "brand_1"
     entity_type: str = "brand"
     source_id: int = 1
@@ -152,7 +153,9 @@ class TestEntityEndpoints:
     @patch("app.api.v1.entities.get_arbor_db")
     @patch("app.api.v1.entities.get_db")
     @patch("app.api.v1.entities.UnifiedEntityRepository")
-    async def test_list_entities_returns_items(self, mock_repo_cls, mock_get_db, mock_get_arbor, client):
+    async def test_list_entities_returns_items(
+        self, mock_repo_cls, mock_get_db, mock_get_arbor, client
+    ):
         """GET /api/v1/entities returns paginated entity list."""
         entity = FakeUnifiedEntity()
         mock_repo = AsyncMock()

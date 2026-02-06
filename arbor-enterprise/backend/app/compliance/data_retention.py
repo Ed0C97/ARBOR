@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import text, delete, and_
+from sqlalchemy import and_, delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class RetentionPeriod(Enum):
     """Standard retention periods."""
+
     DAYS_7 = 7
     DAYS_30 = 30
     DAYS_90 = 90
@@ -36,6 +37,7 @@ class RetentionPeriod(Enum):
 @dataclass
 class RetentionPolicy:
     """Definition of a retention policy for a data type."""
+
     name: str
     table_name: str
     timestamp_column: str
@@ -47,6 +49,7 @@ class RetentionPolicy:
 @dataclass
 class CleanupResult:
     """Result of a cleanup job."""
+
     policy_name: str
     records_deleted: int
     space_freed_estimate_mb: float
@@ -103,16 +106,16 @@ DEFAULT_POLICIES = [
 
 class DataRetentionEnforcer:
     """Enforces data retention policies.
-    
+
     TIER 13 - Point 71: Automated data cleanup.
-    
+
     Usage:
         enforcer = DataRetentionEnforcer(session)
         results = await enforcer.run_cleanup()
-        
+
     Schedule this as a daily cron job.
     """
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -120,34 +123,34 @@ class DataRetentionEnforcer:
     ):
         self.session = session
         self.policies = policies or DEFAULT_POLICIES
-    
+
     async def run_cleanup(
         self,
         dry_run: bool = False,
     ) -> list[CleanupResult]:
         """Run cleanup for all policies.
-        
+
         Args:
             dry_run: If True, only report what would be deleted without deleting.
-            
+
         Returns:
             List of cleanup results for each policy.
         """
         results = []
-        
+
         for policy in self.policies:
             result = await self._enforce_policy(policy, dry_run=dry_run)
             results.append(result)
-            
+
             if result.records_deleted > 0:
                 logger.info(
                     f"Retention: {policy.name} - "
                     f"{'would delete' if dry_run else 'deleted'} "
                     f"{result.records_deleted} records"
                 )
-        
+
         return results
-    
+
     async def _enforce_policy(
         self,
         policy: RetentionPolicy,
@@ -155,13 +158,13 @@ class DataRetentionEnforcer:
     ) -> CleanupResult:
         """Enforce a single retention policy."""
         import time
-        
+
         start_time = time.time()
         errors = []
         records_deleted = 0
-        
+
         cutoff_date = datetime.utcnow() - timedelta(days=policy.retention_days)
-        
+
         try:
             # Count records to delete
             count_stmt = text(
@@ -170,12 +173,12 @@ class DataRetentionEnforcer:
             )
             result = await self.session.execute(count_stmt, {"cutoff": cutoff_date})
             records_to_delete = result.scalar() or 0
-            
+
             if not dry_run and records_to_delete > 0:
                 # Delete in batches to avoid long locks
                 batch_size = 1000
                 total_deleted = 0
-                
+
                 while total_deleted < records_to_delete:
                     if policy.soft_delete:
                         delete_stmt = text(
@@ -194,30 +197,28 @@ class DataRetentionEnforcer:
                             f"  LIMIT {batch_size}"
                             f")"
                         )
-                    
-                    result = await self.session.execute(
-                        delete_stmt, {"cutoff": cutoff_date}
-                    )
+
+                    result = await self.session.execute(delete_stmt, {"cutoff": cutoff_date})
                     batch_deleted = result.rowcount
                     total_deleted += batch_deleted
-                    
+
                     if batch_deleted < batch_size:
                         break
-                
+
                 await self.session.commit()
                 records_deleted = total_deleted
             else:
                 records_deleted = records_to_delete
-                
+
         except Exception as e:
             errors.append(f"{policy.table_name}: {str(e)}")
             logger.warning(f"Retention policy {policy.name} failed: {e}")
-        
+
         duration = time.time() - start_time
-        
+
         # Estimate space freed (rough: 1KB per record average)
         space_freed = (records_deleted * 1) / 1024  # MB
-        
+
         return CleanupResult(
             policy_name=policy.name,
             records_deleted=records_deleted,
@@ -225,21 +226,21 @@ class DataRetentionEnforcer:
             duration_seconds=round(duration, 2),
             errors=errors,
         )
-    
+
     async def add_policy(self, policy: RetentionPolicy) -> None:
         """Add a new retention policy."""
         self.policies.append(policy)
-    
+
     async def get_retention_stats(self) -> dict[str, Any]:
         """Get statistics about data eligible for deletion."""
         stats = {
             "timestamp": datetime.utcnow().isoformat(),
             "policies": [],
         }
-        
+
         for policy in self.policies:
             cutoff_date = datetime.utcnow() - timedelta(days=policy.retention_days)
-            
+
             try:
                 count_stmt = text(
                     f"SELECT COUNT(*) FROM {policy.table_name} "
@@ -247,19 +248,23 @@ class DataRetentionEnforcer:
                 )
                 result = await self.session.execute(count_stmt, {"cutoff": cutoff_date})
                 pending_count = result.scalar() or 0
-                
-                stats["policies"].append({
-                    "name": policy.name,
-                    "table": policy.table_name,
-                    "retention_days": policy.retention_days,
-                    "pending_deletion": pending_count,
-                })
+
+                stats["policies"].append(
+                    {
+                        "name": policy.name,
+                        "table": policy.table_name,
+                        "retention_days": policy.retention_days,
+                        "pending_deletion": pending_count,
+                    }
+                )
             except Exception as e:
-                stats["policies"].append({
-                    "name": policy.name,
-                    "error": str(e),
-                })
-        
+                stats["policies"].append(
+                    {
+                        "name": policy.name,
+                        "error": str(e),
+                    }
+                )
+
         return stats
 
 
@@ -269,56 +274,58 @@ async def cleanup_redis_cache(
     pattern: str = "llm_cache:*",
 ) -> int:
     """Clean up old Redis cache entries.
-    
+
     TIER 13 - Point 71: LRU cache cleanup.
     """
     from app.db.redis.client import get_redis_client
-    
+
     client = await get_redis_client()
     if not client:
         return 0
-    
+
     deleted = 0
     cursor = 0
-    
+
     try:
         while True:
             cursor, keys = await client.scan(cursor, match=pattern, count=100)
-            
+
             for key in keys:
                 # Check TTL - delete if no TTL set (stale)
                 ttl = await client.ttl(key)
                 if ttl == -1:  # No expiry set
                     await client.delete(key)
                     deleted += 1
-            
+
             if cursor == 0:
                 break
-                
+
     except Exception as e:
         logger.warning(f"Redis cleanup error: {e}")
-    
+
     return deleted
 
 
 # Qdrant vector cleanup
 async def cleanup_qdrant_cache(collection: str = "semantic_cache") -> int:
     """Clean up old Qdrant cache entries.
-    
+
     TIER 13 - Point 71: Vector cache cleanup.
     """
-    from app.db.qdrant.client import get_async_qdrant_client
-    from qdrant_client.models import Filter, FieldCondition, Range
     import time
-    
+
+    from qdrant_client.models import FieldCondition, Filter, Range
+
+    from app.db.qdrant.client import get_async_qdrant_client
+
     client = await get_async_qdrant_client()
     if not client:
         return 0
-    
+
     try:
         # Delete entries older than 7 days
         cutoff = time.time() - (7 * 24 * 60 * 60)
-        
+
         result = await client.delete(
             collection_name=collection,
             points_selector=Filter(
@@ -330,10 +337,10 @@ async def cleanup_qdrant_cache(collection: str = "semantic_cache") -> int:
                 ]
             ),
         )
-        
+
         logger.info(f"Qdrant cache cleanup completed for {collection}")
         return 1  # Success
-        
+
     except Exception as e:
         logger.warning(f"Qdrant cleanup error: {e}")
         return 0

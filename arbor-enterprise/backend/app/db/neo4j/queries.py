@@ -58,9 +58,7 @@ class Neo4jQueries:
         async with self.driver.session() as session:
             await session.run(query, from_id=from_id, to_id=to_id, props=props)
 
-    async def create_style_relationship(
-        self, entity_id: str, style_name: str
-    ) -> None:
+    async def create_style_relationship(self, entity_id: str, style_name: str) -> None:
         """Link an entity to a style."""
         query = """
         MATCH (e:Entity {id: $entity_id})
@@ -95,9 +93,7 @@ class Neo4jQueries:
             result = await session.run(query, name=entity_name)
             return [dict(record) async for record in result]
 
-    async def find_brand_retailers(
-        self, brand_name: str, city: str | None = None
-    ) -> list[dict]:
+    async def find_brand_retailers(self, brand_name: str, city: str | None = None) -> list[dict]:
         """Find entities that sell a specific brand."""
         query = """
         MATCH (v:Entity)-[r:SELLS_BRAND|IS_HQ_OF]->(b:AbstractEntity {name: $brand})
@@ -132,34 +128,31 @@ class Neo4jQueries:
             result = await session.run(query, limit=limit)
             nodes = {}
             links = []
-            
+
             async for record in result:
                 n = record["n"]
                 m = record["m"]
                 r = record["r"]
-                
+
                 # Use elementId or id property
                 n_id = n.get("id") or n.element_id
-                
+
                 if n_id not in nodes:
                     nodes[n_id] = dict(n)
                     nodes[n_id]["id"] = n_id
                     nodes[n_id]["labels"] = list(n.labels)
-                
+
                 # If there is a relationship
                 if r is not None and m is not None:
                     m_id = m.get("id") or m.element_id
-                    
+
                     if m_id not in nodes:
                         nodes[m_id] = dict(m)
                         nodes[m_id]["id"] = m_id
                         nodes[m_id]["labels"] = list(m.labels)
-                        
-                    links.append({
-                        "source": n_id,
-                        "target": m_id,
-                        "type": r.type,
-                        "properties": dict(r)
-                    })
-                
+
+                    links.append(
+                        {"source": n_id, "target": m_id, "type": r.type, "properties": dict(r)}
+                    )
+
             return {"nodes": list(nodes.values()), "links": links}

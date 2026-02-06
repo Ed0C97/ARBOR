@@ -107,6 +107,7 @@ class SemanticCache:
         # Second: semantic match in Qdrant (requires embedding)
         try:
             from app.llm.gateway import get_llm_gateway
+
             gateway = get_llm_gateway()
 
             # Compute embedding once (this is reusable on cache miss)
@@ -124,9 +125,7 @@ class SemanticCache:
                 if results:
                     cached_response = results[0].payload.get("response")
                     if cached_response:
-                        logger.debug(
-                            f"Semantic cache hit (score={results[0].score:.3f})"
-                        )
+                        logger.debug(f"Semantic cache hit (score={results[0].score:.3f})")
                         self._stats["semantic_hits"] += 1
                         return CacheResult(
                             hit=True,
@@ -188,6 +187,7 @@ class SemanticCache:
             # Use provided embedding or compute new one
             if embedding is None:
                 from app.llm.gateway import get_llm_gateway
+
                 gateway = get_llm_gateway()
                 embedding = await gateway.get_embedding(query)
 
@@ -259,7 +259,7 @@ class SemanticCache:
                 return 0
 
             # Search for entries mentioning this entity
-            from qdrant_client.models import Filter, FieldCondition, MatchText
+            from qdrant_client.models import FieldCondition, Filter, MatchText
 
             # Note: This requires a text index on the response field
             # For now, we'll skip this and let TTL handle staleness
@@ -272,19 +272,13 @@ class SemanticCache:
 
     def _hash_key(self, text: str) -> str:
         """Generate deterministic hash for exact matching."""
-        return hashlib.md5(text.strip().lower().encode()).hexdigest()
+        return hashlib.md5(text.strip().lower().encode(), usedforsecurity=False).hexdigest()
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics for monitoring."""
-        total = (
-            self._stats["exact_hits"]
-            + self._stats["semantic_hits"]
-            + self._stats["misses"]
-        )
+        total = self._stats["exact_hits"] + self._stats["semantic_hits"] + self._stats["misses"]
         hit_rate = (
-            (self._stats["exact_hits"] + self._stats["semantic_hits"]) / total
-            if total > 0
-            else 0
+            (self._stats["exact_hits"] + self._stats["semantic_hits"]) / total if total > 0 else 0
         )
 
         return {

@@ -60,15 +60,11 @@ class PreferencePair:
     preference: str  # "a", "b", "tie"
     confidence: float = 1.0
     annotator_id: str = ""
-    created_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __post_init__(self) -> None:
         if self.preference not in ("a", "b", "tie"):
-            raise ValueError(
-                f"preference must be 'a', 'b', or 'tie', got '{self.preference}'"
-            )
+            raise ValueError(f"preference must be 'a', 'b', or 'tie', got '{self.preference}'")
         self.confidence = max(0.0, min(1.0, self.confidence))
 
 
@@ -225,9 +221,7 @@ class RewardModel:
     # Comparison
     # ------------------------------------------------------------------
 
-    def compare(
-        self, response_a: dict, response_b: dict, query: str
-    ) -> str:
+    def compare(self, response_a: dict, response_b: dict, query: str) -> str:
         """Determine which response the reward model prefers.
 
         Args:
@@ -277,9 +271,7 @@ class RewardModel:
         conf = response.get("confidence", 0.0)
         if isinstance(results, list) and results:
             conf_values = [
-                r.get("confidence", r.get("score", 0.5))
-                for r in results
-                if isinstance(r, dict)
+                r.get("confidence", r.get("score", 0.5)) for r in results if isinstance(r, dict)
             ]
             conf = sum(conf_values) / len(conf_values) if conf_values else conf
         features["confidence"] = max(0.0, min(1.0, float(conf)))
@@ -348,9 +340,7 @@ class ConstitutionalConstraint:
 
     def __post_init__(self) -> None:
         if self.severity not in ("hard", "soft"):
-            raise ValueError(
-                f"severity must be 'hard' or 'soft', got '{self.severity}'"
-            )
+            raise ValueError(f"severity must be 'hard' or 'soft', got '{self.severity}'")
 
 
 class ConstitutionalAI:
@@ -410,9 +400,7 @@ class ConstitutionalAI:
             try:
                 passed = constraint.check_fn(query, response)
             except Exception as exc:
-                logger.warning(
-                    "Constraint %s raised an exception: %s", constraint.name, exc
-                )
+                logger.warning("Constraint %s raised an exception: %s", constraint.name, exc)
                 passed = False
 
             if not passed:
@@ -446,8 +434,7 @@ class ConstitutionalAI:
             ConstitutionalConstraint(
                 name="no_harmful_content",
                 description=(
-                    "Response must not contain harmful, dangerous, or "
-                    "exploitative language."
+                    "Response must not contain harmful, dangerous, or " "exploitative language."
                 ),
                 check_fn=self._check_no_harmful_content,
                 severity="hard",
@@ -471,9 +458,7 @@ class ConstitutionalAI:
         self.add_constraint(
             ConstitutionalConstraint(
                 name="relevance",
-                description=(
-                    "Response must be relevant to the original query."
-                ),
+                description=("Response must be relevant to the original query."),
                 check_fn=self._check_relevance,
                 severity="soft",
             )
@@ -514,11 +499,7 @@ class ConstitutionalAI:
             return True
         for result in results:
             if isinstance(result, dict):
-                has_id = (
-                    result.get("id")
-                    or result.get("entity_id")
-                    or result.get("_id")
-                )
+                has_id = result.get("id") or result.get("entity_id") or result.get("_id")
                 if not has_id:
                     return False
         return True
@@ -612,8 +593,7 @@ class RLHFOptimizer:
         self._preference_pairs.append(pair)
 
         logger.debug(
-            "Preference collected: query='%s' preference=%s annotator=%s "
-            "total_pairs=%d",
+            "Preference collected: query='%s' preference=%s annotator=%s " "total_pairs=%d",
             query[:60],
             preference,
             annotator,

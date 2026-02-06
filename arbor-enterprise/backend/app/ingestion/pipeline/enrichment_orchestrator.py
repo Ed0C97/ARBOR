@@ -163,9 +163,7 @@ class EnrichmentOrchestrator:
 
             # ── Layer 5: Persist results ──────────────────────────────
             logger.info(f"[L5] Persisting enrichment for {entity_id}")
-            await self._persist_results(
-                entity_type, source_id, scored, fact_sheet, review_item
-            )
+            await self._persist_results(entity_type, source_id, scored, fact_sheet, review_item)
 
             result.success = True
             logger.info(
@@ -224,7 +222,9 @@ class EnrichmentOrchestrator:
 
         for source in collected.sources:
             if source.source_type in (SourceType.GOOGLE_REVIEWS, SourceType.INSTAGRAM):
-                reviews_from_source = source.structured_data.get("reviews") or source.structured_data.get("captions", [])
+                reviews_from_source = source.structured_data.get(
+                    "reviews"
+                ) or source.structured_data.get("captions", [])
                 all_reviews.extend(reviews_from_source)
             all_images.extend(source.images)
 
@@ -238,9 +238,11 @@ class EnrichmentOrchestrator:
 
         vision_task = self.vision_analyzer.analyze(
             image_urls=all_images[:8],
-            source=SourceType.GOOGLE_PHOTOS if any(
-                s.source_type == SourceType.GOOGLE_REVIEWS for s in collected.sources
-            ) else SourceType.INSTAGRAM,
+            source=(
+                SourceType.GOOGLE_PHOTOS
+                if any(s.source_type == SourceType.GOOGLE_REVIEWS for s in collected.sources)
+                else SourceType.INSTAGRAM
+            ),
         )
 
         context_task = self.context_analyzer.analyze(
@@ -259,7 +261,9 @@ class EnrichmentOrchestrator:
         )
 
         text_result, vision_result, context_result = await asyncio.gather(
-            text_task, vision_task, context_task,
+            text_task,
+            vision_task,
+            context_task,
             return_exceptions=True,
         )
 
@@ -272,7 +276,11 @@ class EnrichmentOrchestrator:
             vision_result = self.vision_analyzer._empty_result()
         if isinstance(context_result, Exception):
             logger.error(f"Context analysis failed: {context_result}")
-            context_result = {"location_context": [], "brand_signals": [], "audience_indicators": []}
+            context_result = {
+                "location_context": [],
+                "brand_signals": [],
+                "audience_indicators": [],
+            }
 
         # Now run price analyzer with text facts as input
         price_result = await self.price_analyzer.analyze(
@@ -285,8 +293,12 @@ class EnrichmentOrchestrator:
 
         # ── Merge everything into the FactSheet ──
         fact_sheet.materials = text_result.get("materials", []) + vision_result.get("materials", [])
-        fact_sheet.price_points = text_result.get("price_points", []) + price_result.get("price_facts", [])
-        fact_sheet.interior_elements = text_result.get("interior_elements", []) + vision_result.get("interior_elements", [])
+        fact_sheet.price_points = text_result.get("price_points", []) + price_result.get(
+            "price_facts", []
+        )
+        fact_sheet.interior_elements = text_result.get("interior_elements", []) + vision_result.get(
+            "interior_elements", []
+        )
         fact_sheet.service_indicators = text_result.get("service_indicators", [])
         fact_sheet.audience_indicators = (
             text_result.get("audience_indicators", [])

@@ -11,14 +11,14 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select, func, update, delete
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres.connection import get_db, get_arbor_db
+from app.db.postgres.connection import get_arbor_db, get_db
 from app.db.postgres.models import (
+    ArborEnrichment,
     ArborGoldStandard,
     ArborReviewQueue,
-    ArborEnrichment,
     Brand,
     Venue,
 )
@@ -120,9 +120,12 @@ class DriftReportResponse(BaseModel):
 # Review Queue Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/review-queue", response_model=ReviewQueueListResponse)
 async def list_review_queue(
-    status: str | None = Query(None, description="Filter by status: needs_review, approved, rejected"),
+    status: str | None = Query(
+        None, description="Filter by status: needs_review, approved, rejected"
+    ),
     sort_by: str = Query("priority", description="Sort by: priority, created_at"),
     offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -147,10 +150,13 @@ async def list_review_queue(
     total = (await session.execute(count_stmt)).scalar_one()
 
     # Pending count
-    pending = (await session.execute(
-        select(func.count()).select_from(ArborReviewQueue)
-        .where(ArborReviewQueue.status == "needs_review")
-    )).scalar_one()
+    pending = (
+        await session.execute(
+            select(func.count())
+            .select_from(ArborReviewQueue)
+            .where(ArborReviewQueue.status == "needs_review")
+        )
+    ).scalar_one()
 
     # Paginated results
     stmt = stmt.offset(offset).limit(limit)
@@ -216,11 +222,13 @@ async def decide_review(
         scores = body.overridden_scores or (
             row.scored_vibe_snapshot.get("dimensions", {}) if row.scored_vibe_snapshot else {}
         )
-        existing_gold = (await session.execute(
-            select(ArborGoldStandard)
-            .where(ArborGoldStandard.entity_type == row.entity_type)
-            .where(ArborGoldStandard.source_id == row.source_id)
-        )).scalar_one_or_none()
+        existing_gold = (
+            await session.execute(
+                select(ArborGoldStandard)
+                .where(ArborGoldStandard.entity_type == row.entity_type)
+                .where(ArborGoldStandard.source_id == row.source_id)
+            )
+        ).scalar_one_or_none()
 
         if existing_gold:
             existing_gold.ground_truth_scores = scores
@@ -250,9 +258,9 @@ async def list_gold_standard(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """List all gold standard reference entities."""
-    total = (await session.execute(
-        select(func.count()).select_from(ArborGoldStandard)
-    )).scalar_one()
+    total = (
+        await session.execute(select(func.count()).select_from(ArborGoldStandard))
+    ).scalar_one()
 
     result = await session.execute(
         select(ArborGoldStandard)
@@ -286,11 +294,13 @@ async def add_gold_standard(
 ):
     """Add or update a gold standard reference entity."""
     # Upsert: check if already exists
-    existing = (await session.execute(
-        select(ArborGoldStandard)
-        .where(ArborGoldStandard.entity_type == body.entity_type)
-        .where(ArborGoldStandard.source_id == body.source_id)
-    )).scalar_one_or_none()
+    existing = (
+        await session.execute(
+            select(ArborGoldStandard)
+            .where(ArborGoldStandard.entity_type == body.entity_type)
+            .where(ArborGoldStandard.source_id == body.source_id)
+        )
+    ).scalar_one_or_none()
 
     if existing:
         existing.ground_truth_scores = body.scores
@@ -333,7 +343,9 @@ async def remove_gold_standard(
     """Remove an entity from the gold standard set."""
     parts = entity_id.split("_", 1)
     if len(parts) != 2:
-        raise HTTPException(status_code=400, detail="entity_id must be 'type_sourceId' (e.g., brand_123)")
+        raise HTTPException(
+            status_code=400, detail="entity_id must be 'type_sourceId' (e.g., brand_123)"
+        )
 
     entity_type, source_id_str = parts
     try:
@@ -352,6 +364,7 @@ async def remove_gold_standard(
         raise HTTPException(status_code=404, detail="Gold standard entry not found")
 
     return {"deleted": entity_id}
+
 
 @router.post("/enrich/single")
 async def trigger_single_enrichment(
@@ -406,6 +419,7 @@ async def trigger_batch_enrichment(
     This endpoint processes entities sequentially.
     """
     from sqlalchemy import and_
+
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
     entities_to_enrich = []
@@ -414,24 +428,26 @@ async def trigger_batch_enrichment(
     # This logic is tricky: "not in arbor_enrichments".
     # Since they are different DBs, we can't do a direct SQL subquery join unless fdw used.
     # We must fetch IDs from Arbor first, then query Magazine.
-    
+
     # 1. Get existing enriched IDs from Arbor
     existing_enrichments_result = await arbor_session.execute(
         select(ArborEnrichment.entity_type, ArborEnrichment.source_id)
     )
     existing_map = {(row.entity_type, row.source_id) for row in existing_enrichments_result.all()}
-    
+
     # 2. Query Magazine for entities (fetch slightly more to handle client-side filtering)
     # Warning: this is inefficient for large datasets, but acceptable for this batch endpoint logic
     # Better approach: Iterate Magazine entities and skip if in set.
-    
+
     # Simpler implementation for prototype:
     # Just fetch candidates from Magazine and check against local set.
-    
+
     candidates = []
-    
+
     if body.entity_type is None or body.entity_type == "brand":
-        res = await session.execute(select(Brand).where(Brand.is_active == True).limit(body.max_entities * 2))
+        res = await session.execute(
+            select(Brand).where(Brand.is_active == True).limit(body.max_entities * 2)
+        )
         for b in res.scalars().all():
             if ("brand", b.id) not in existing_map:
                 candidates.append(("brand", b))
@@ -440,13 +456,15 @@ async def trigger_batch_enrichment(
 
     remaining = body.max_entities - len(candidates)
     if remaining > 0 and (body.entity_type is None or body.entity_type == "venue"):
-        res = await session.execute(select(Venue).where(Venue.is_active == True).limit(remaining * 5))
+        res = await session.execute(
+            select(Venue).where(Venue.is_active == True).limit(remaining * 5)
+        )
         for v in res.scalars().all():
             if ("venue", v.id) not in existing_map:
                 candidates.append(("venue", v))
                 if len(candidates) >= body.max_entities:
-                     break
-                     
+                    break
+
     if not candidates:
         return {"message": "No unenriched entities found", "total": 0, "enriched": 0, "failed": 0}
 
@@ -464,11 +482,13 @@ async def trigger_batch_enrichment(
             enriched += 1
         else:
             failed += 1
-        results.append({
-            "entity_id": result.entity_id,
-            "success": result.success,
-            "error": result.error,
-        })
+        results.append(
+            {
+                "entity_id": result.entity_id,
+                "success": result.success,
+                "error": result.error,
+            }
+        )
 
     return {
         "total": len(candidates),
@@ -488,14 +508,13 @@ async def get_enrichment_status(
     stats = await repo.stats()
 
     pending_result = await arbor_session.execute(
-        select(func.count()).select_from(ArborReviewQueue)
+        select(func.count())
+        .select_from(ArborReviewQueue)
         .where(ArborReviewQueue.status == "needs_review")
     )
     pending_review = pending_result.scalar_one()
 
-    gold_result = await arbor_session.execute(
-        select(func.count()).select_from(ArborGoldStandard)
-    )
+    gold_result = await arbor_session.execute(select(func.count()).select_from(ArborGoldStandard))
     gold_count = gold_result.scalar_one()
 
     total = stats["total_entities"]
@@ -571,19 +590,23 @@ def _entity_to_enrichment_kwargs(entity, entity_type: str, source_id: int) -> di
     }
 
     if entity_type == "venue":
-        base.update({
-            "city": getattr(entity, "city", None),
-            "address": getattr(entity, "address", None),
-            "latitude": getattr(entity, "latitude", None),
-            "longitude": getattr(entity, "longitude", None),
-            "neighborhood": getattr(entity, "region", None),
-            "maps_url": getattr(entity, "maps_url", None),
-            "price_range": getattr(entity, "price_range", None),
-        })
+        base.update(
+            {
+                "city": getattr(entity, "city", None),
+                "address": getattr(entity, "address", None),
+                "latitude": getattr(entity, "latitude", None),
+                "longitude": getattr(entity, "longitude", None),
+                "neighborhood": getattr(entity, "region", None),
+                "maps_url": getattr(entity, "maps_url", None),
+                "price_range": getattr(entity, "price_range", None),
+            }
+        )
     else:
-        base.update({
-            "city": getattr(entity, "area", None),
-            "neighborhood": getattr(entity, "neighborhood", None),
-        })
+        base.update(
+            {
+                "city": getattr(entity, "area", None),
+                "neighborhood": getattr(entity, "neighborhood", None),
+            }
+        )
 
     return base

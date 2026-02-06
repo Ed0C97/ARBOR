@@ -8,11 +8,7 @@ and leaves scoring to the calibrated scoring engine in Layer 3.
 import json
 import logging
 
-from app.ingestion.pipeline.schemas import (
-    ExtractedFact,
-    FactSheet,
-    SourceType,
-)
+from app.ingestion.pipeline.schemas import ExtractedFact, FactSheet, SourceType
 from app.llm.gateway import get_llm_gateway
 
 logger = logging.getLogger(__name__)
@@ -91,7 +87,10 @@ class TextFactAnalyzer:
 
     def _parse_result(self, raw: dict) -> dict:
         """Parse LLM output into structured fact categories."""
-        def to_facts(items: list, fact_type: str, source: SourceType = SourceType.GOOGLE_REVIEWS) -> list[ExtractedFact]:
+
+        def to_facts(
+            items: list, fact_type: str, source: SourceType = SourceType.GOOGLE_REVIEWS
+        ) -> list[ExtractedFact]:
             return [
                 ExtractedFact(fact_type=fact_type, value=str(v), source=source)
                 for v in (items or [])
@@ -102,8 +101,12 @@ class TextFactAnalyzer:
             "materials": to_facts(raw.get("materials", []), "material"),
             "price_points": to_facts(raw.get("price_mentions", []), "price_point"),
             "interior_elements": to_facts(raw.get("interior_elements", []), "interior_element"),
-            "service_indicators": to_facts(raw.get("service_observations", []), "service_indicator"),
-            "audience_indicators": to_facts(raw.get("audience_indicators", []), "audience_indicator"),
+            "service_indicators": to_facts(
+                raw.get("service_observations", []), "service_indicator"
+            ),
+            "audience_indicators": to_facts(
+                raw.get("audience_indicators", []), "audience_indicator"
+            ),
             "brand_signals": to_facts(raw.get("brand_signals", []), "brand_signal"),
             "common_themes": raw.get("common_themes", []),
             "signature_items": raw.get("signature_items", []),

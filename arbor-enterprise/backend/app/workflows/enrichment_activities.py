@@ -100,11 +100,11 @@ async def run_fact_analyzers(collected_data: dict) -> dict:
     """Activity: Run fact-based analyzers on collected data (Layer 2)."""
     import asyncio
 
-    from app.ingestion.pipeline.text_fact_analyzer import TextFactAnalyzer
-    from app.ingestion.pipeline.vision_fact_analyzer import VisionFactAnalyzer
     from app.ingestion.pipeline.context_analyzer import ContextAnalyzer
     from app.ingestion.pipeline.price_analyzer import PriceAnalyzer
     from app.ingestion.pipeline.schemas import SourceType
+    from app.ingestion.pipeline.text_fact_analyzer import TextFactAnalyzer
+    from app.ingestion.pipeline.vision_fact_analyzer import VisionFactAnalyzer
 
     text_analyzer = TextFactAnalyzer()
     vision_analyzer = VisionFactAnalyzer()
@@ -119,7 +119,9 @@ async def run_fact_analyzers(collected_data: dict) -> dict:
     for source in collected_data.get("sources", []):
         st = source["source_type"]
         if st in ("google_reviews", "instagram"):
-            reviews = source["structured_data"].get("reviews") or source["structured_data"].get("captions", [])
+            reviews = source["structured_data"].get("reviews") or source["structured_data"].get(
+                "captions", []
+            )
             all_reviews.extend(reviews)
         all_images.extend(source.get("images", []))
         if st == "database":
@@ -172,27 +174,55 @@ async def run_fact_analyzers(collected_data: dict) -> dict:
         )
     except Exception as e:
         logger.error(f"Price analysis failed: {e}")
-        price_result = {"price_tier": "$$", "avg_price": None, "price_confidence": 0.2, "price_facts": []}
+        price_result = {
+            "price_tier": "$$",
+            "avg_price": None,
+            "price_confidence": 0.2,
+            "price_facts": [],
+        }
 
     # Serialize for inter-activity transfer
     def facts_to_dicts(facts):
-        return [{"fact_type": f.fact_type, "value": f.value, "source": f.source.value, "confidence": f.confidence}
-                for f in facts] if facts and hasattr(facts[0] if facts else None, 'fact_type') else facts
+        return (
+            [
+                {
+                    "fact_type": f.fact_type,
+                    "value": f.value,
+                    "source": f.source.value,
+                    "confidence": f.confidence,
+                }
+                for f in facts
+            ]
+            if facts and hasattr(facts[0] if facts else None, "fact_type")
+            else facts
+        )
 
     return {
         "entity_id": collected_data["entity_id"],
         "name": collected_data["name"],
         "category": collected_data["category"],
         "text_result": {
-            k: facts_to_dicts(v) if isinstance(v, list) and v and hasattr(v[0] if v else None, 'fact_type') else v
+            k: (
+                facts_to_dicts(v)
+                if isinstance(v, list) and v and hasattr(v[0] if v else None, "fact_type")
+                else v
+            )
             for k, v in text_result.items()
         },
         "vision_result": {
-            k: facts_to_dicts(v) if isinstance(v, list) and v and hasattr(v[0] if v else None, 'fact_type') else v
+            k: (
+                facts_to_dicts(v)
+                if isinstance(v, list) and v and hasattr(v[0] if v else None, "fact_type")
+                else v
+            )
             for k, v in vision_result.items()
         },
         "context_result": {
-            k: facts_to_dicts(v) if isinstance(v, list) and v and hasattr(v[0] if v else None, 'fact_type') else v
+            k: (
+                facts_to_dicts(v)
+                if isinstance(v, list) and v and hasattr(v[0] if v else None, "fact_type")
+                else v
+            )
             for k, v in context_result.items()
         },
         "price_result": {
@@ -220,8 +250,8 @@ async def score_with_calibration(
     """Activity: Score the fact sheet using the calibrated engine (Layer 3)."""
     from app.db.postgres.connection import async_session_factory
     from app.ingestion.pipeline.gold_standard import GoldStandardManager
-    from app.ingestion.pipeline.scoring_engine import CalibratedScoringEngine
     from app.ingestion.pipeline.schemas import FactSheet
+    from app.ingestion.pipeline.scoring_engine import CalibratedScoringEngine
 
     # Reconstruct a minimal FactSheet for scoring
     fact_sheet = FactSheet(
@@ -288,7 +318,9 @@ async def validate_and_persist(
     # Build vibe_dna dict for storage
     vibe_dna = {
         "dimensions": {d["dimension"]: d["score"] for d in scored_data["dimensions"]},
-        "confidence": {d["dimension"]: round(d["confidence"], 3) for d in scored_data["dimensions"]},
+        "confidence": {
+            d["dimension"]: round(d["confidence"], 3) for d in scored_data["dimensions"]
+        },
         "tags": scored_data.get("tags", []),
         "target_audience": scored_data.get("target_audience", "General"),
         "summary": scored_data.get("summary", ""),
@@ -346,7 +378,7 @@ async def get_unenriched_entities(
     entity_type: str | None = None,
 ) -> list[dict]:
     """Activity: Get list of entities that don't have enrichment data yet."""
-    from sqlalchemy import select, and_
+    from sqlalchemy import and_, select
 
     from app.db.postgres.connection import async_session_factory
     from app.db.postgres.models import ArborEnrichment, Brand, Venue
@@ -356,9 +388,7 @@ async def get_unenriched_entities(
 
         if entity_type is None or entity_type == "brand":
             # Find brands without enrichment
-            subq = select(ArborEnrichment.source_id).where(
-                ArborEnrichment.entity_type == "brand"
-            )
+            subq = select(ArborEnrichment.source_id).where(ArborEnrichment.entity_type == "brand")
             result = await session.execute(
                 select(Brand.id, Brand.name, Brand.category)
                 .where(
@@ -370,12 +400,14 @@ async def get_unenriched_entities(
                 .limit(max_entities)
             )
             for row in result:
-                entities.append({
-                    "entity_type": "brand",
-                    "source_id": row.id,
-                    "name": row.name,
-                    "category": row.category,
-                })
+                entities.append(
+                    {
+                        "entity_type": "brand",
+                        "source_id": row.id,
+                        "name": row.name,
+                        "category": row.category,
+                    }
+                )
 
         if entity_type is None or entity_type == "venue":
             remaining = max_entities - len(entities)
@@ -394,12 +426,14 @@ async def get_unenriched_entities(
                     .limit(remaining)
                 )
                 for row in result:
-                    entities.append({
-                        "entity_type": "venue",
-                        "source_id": row.id,
-                        "name": row.name,
-                        "category": row.category,
-                    })
+                    entities.append(
+                        {
+                            "entity_type": "venue",
+                            "source_id": row.id,
+                            "name": row.name,
+                            "category": row.category,
+                        }
+                    )
 
         return entities
 
@@ -407,17 +441,18 @@ async def get_unenriched_entities(
 @activity.defn
 async def generate_and_sync_embedding(entity_type: str, source_id: int) -> dict:
     """Activity: Generate embedding from enrichment and sync to Qdrant + Neo4j."""
+    from app.db.neo4j.queries import Neo4jQueries
     from app.db.postgres.connection import async_session_factory
     from app.db.postgres.models import ArborEnrichment, Brand, Venue
-    from app.ingestion.analyzers.embedding import EmbeddingGenerator
     from app.db.qdrant.collections import QdrantCollections
-    from app.db.neo4j.queries import Neo4jQueries
+    from app.ingestion.analyzers.embedding import EmbeddingGenerator
 
     entity_id = f"{entity_type}_{source_id}"
 
     async with async_session_factory() as session:
         # Get enrichment
         from sqlalchemy import select
+
         result = await session.execute(
             select(ArborEnrichment).where(
                 ArborEnrichment.entity_type == entity_type,
@@ -506,21 +541,25 @@ def _entity_to_kwargs(entity, entity_type: str, source_id: int) -> dict:
 
     # Venue-specific fields
     if entity_type == "venue":
-        base.update({
-            "city": getattr(entity, "city", None),
-            "address": getattr(entity, "address", None),
-            "latitude": getattr(entity, "latitude", None),
-            "longitude": getattr(entity, "longitude", None),
-            "neighborhood": getattr(entity, "region", None),  # region ≈ neighborhood
-            "maps_url": getattr(entity, "maps_url", None),
-            "price_range": getattr(entity, "price_range", None),
-        })
+        base.update(
+            {
+                "city": getattr(entity, "city", None),
+                "address": getattr(entity, "address", None),
+                "latitude": getattr(entity, "latitude", None),
+                "longitude": getattr(entity, "longitude", None),
+                "neighborhood": getattr(entity, "region", None),  # region ≈ neighborhood
+                "maps_url": getattr(entity, "maps_url", None),
+                "price_range": getattr(entity, "price_range", None),
+            }
+        )
     else:
         # Brand-specific
-        base.update({
-            "city": getattr(entity, "area", None),  # area ≈ city for brands
-            "neighborhood": getattr(entity, "neighborhood", None),
-        })
+        base.update(
+            {
+                "city": getattr(entity, "area", None),  # area ≈ city for brands
+                "neighborhood": getattr(entity, "neighborhood", None),
+            }
+        )
 
     return base
 

@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres.connection import get_db, get_arbor_db
+from app.db.postgres.connection import get_arbor_db, get_db
 from app.db.postgres.repository import (
     BrandRepository,
     UnifiedEntityRepository,
@@ -70,8 +70,8 @@ class EntityResponse(BaseModel):
     because the magazine_h182 data may have incomplete records.
     """
 
-    id: str                         # "brand_42" or "venue_17"
-    entity_type: str                # "brand" | "venue"
+    id: str  # "brand_42" or "venue_17"
+    entity_type: str  # "brand" | "venue"
     source_id: int
     name: str
     slug: str
@@ -109,6 +109,7 @@ class EntityResponse(BaseModel):
 
 class EntityListResponse(BaseModel):
     """Response for entity list endpoints."""
+
     items: list[EntityResponse]
     total: int
     offset: int
@@ -120,6 +121,7 @@ class CursorPaginatedResponse(BaseModel):
 
     TIER 1 - Point 3: Keyset pagination response.
     """
+
     items: list[EntityResponse]
     total: int
     next_cursor: str | None = None
@@ -280,10 +282,7 @@ async def list_entities_cursor(
     category: str | None = None,
     city: str | None = None,
     country: str | None = None,
-    cursor: str | None = Query(
-        None,
-        description="Base64-encoded cursor for keyset pagination"
-    ),
+    cursor: str | None = Query(None, description="Base64-encoded cursor for keyset pagination"),
     limit: int = Query(20, ge=1, le=100),
     session: AsyncSession = Depends(get_db),
     arbor_session: AsyncSession = Depends(get_arbor_db),
@@ -310,10 +309,7 @@ async def list_entities_cursor(
     if cursor:
         cursor_created_at, cursor_id = decode_cursor(cursor)
         if cursor_created_at is None:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid cursor format"
-            )
+            raise HTTPException(status_code=400, detail="Invalid cursor format")
 
     # Get entities using keyset pagination
     entities, total = await repo.list_with_cursor(

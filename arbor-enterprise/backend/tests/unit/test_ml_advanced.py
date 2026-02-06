@@ -5,21 +5,10 @@ Tests are designed to instantiate classes directly with mock/inline data and hav
 no external service dependencies (Neo4j, Qdrant, etc.).
 """
 
-import pytest
 import math
 from unittest.mock import AsyncMock, MagicMock, patch
 
-# ---------------------------------------------------------------------------
-# Federated Learning imports
-# ---------------------------------------------------------------------------
-from app.ml.federated_learning import (
-    GradientAggregator,
-    FederatedLearningCoordinator,
-    DifferentialPrivacy,
-    ModelUpdate,
-    FederatedModel,
-    AggregationStrategy,
-)
+import pytest
 
 # ---------------------------------------------------------------------------
 # Competitive Intelligence imports
@@ -30,15 +19,26 @@ from app.ml.competitive_intelligence import (
 )
 
 # ---------------------------------------------------------------------------
+# Federated Learning imports
+# ---------------------------------------------------------------------------
+from app.ml.federated_learning import (
+    AggregationStrategy,
+    DifferentialPrivacy,
+    FederatedLearningCoordinator,
+    FederatedModel,
+    GradientAggregator,
+    ModelUpdate,
+)
+
+# ---------------------------------------------------------------------------
 # Graph Expansion imports
 # ---------------------------------------------------------------------------
 from app.ml.graph_expansion import (
+    AutoExpansionScheduler,
+    RelationshipCandidate,
     _cosine_similarity,
     _haversine_km,
-    RelationshipCandidate,
-    AutoExpansionScheduler,
 )
-
 
 # =========================================================================
 # TestGradientAggregator
@@ -252,10 +252,7 @@ class TestDifferentialPrivacy:
 
         # At least one value should differ (probabilistically near-certain
         # given Gaussian noise with sigma > 0).
-        differs = any(
-            noisy["layer1"][i] != gradients["layer1"][i]
-            for i in range(5)
-        )
+        differs = any(noisy["layer1"][i] != gradients["layer1"][i] for i in range(5))
         assert differs, "Expected at least one value to change after noise injection"
 
     def test_clip_gradients_respects_norm(self):
@@ -313,15 +310,24 @@ class TestCompetitiveIntelligence:
     def test_analyze_competitors_finds_similar(self):
         """Entities in the same category and city are found as competitors."""
         target = self._make_entity(
-            "e1", "Target Cafe", "cafe", "Tokyo",
+            "e1",
+            "Target Cafe",
+            "cafe",
+            "Tokyo",
             vibe_dna={"minimalist": 0.8, "cozy": 0.5},
         )
         competitor = self._make_entity(
-            "e2", "Rival Cafe", "cafe", "Tokyo",
+            "e2",
+            "Rival Cafe",
+            "cafe",
+            "Tokyo",
             vibe_dna={"minimalist": 0.7, "cozy": 0.6},
         )
         unrelated = self._make_entity(
-            "e3", "Shoe Store", "retail", "Paris",
+            "e3",
+            "Shoe Store",
+            "retail",
+            "Paris",
             vibe_dna={"edgy": 0.9},
         )
         all_entities = [target, competitor, unrelated]
@@ -339,10 +345,7 @@ class TestCompetitiveIntelligence:
 
     def test_market_segments_grouped(self):
         """Entities are grouped by category + city into market segments."""
-        entities = [
-            self._make_entity(f"e{i}", f"Cafe {i}", "cafe", "Tokyo")
-            for i in range(5)
-        ]
+        entities = [self._make_entity(f"e{i}", f"Cafe {i}", "cafe", "Tokyo") for i in range(5)]
 
         segments = self.engine.identify_market_segments(entities, min_segment_size=3)
 
@@ -354,7 +357,10 @@ class TestCompetitiveIntelligence:
     def test_market_position_score_range(self):
         """Market position score is between 0 and 100."""
         target = self._make_entity(
-            "e1", "Target", "cafe", "Tokyo",
+            "e1",
+            "Target",
+            "cafe",
+            "Tokyo",
             vibe_dna={"minimalist": 0.8},
             rating=4.0,
         )
@@ -377,7 +383,10 @@ class TestCompetitiveIntelligence:
     def test_swot_has_all_sections(self):
         """SWOT analysis dict has strengths, weaknesses, opportunities, threats keys."""
         target = self._make_entity(
-            "e1", "Target", "cafe", "Tokyo",
+            "e1",
+            "Target",
+            "cafe",
+            "Tokyo",
             vibe_dna={"minimalist": 0.9, "cozy": 0.2},
             tags=["specialty-coffee"],
         )
@@ -417,7 +426,6 @@ class TestCompetitiveIntelligence:
 
 # We need CompetitorProfile for the tests above
 from app.ml.competitive_intelligence import CompetitorProfile
-
 
 # =========================================================================
 # TestGraphExpansion

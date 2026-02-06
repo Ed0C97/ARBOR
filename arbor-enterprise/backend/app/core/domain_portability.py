@@ -303,9 +303,7 @@ class DomainRegistry:
         """
         if domain_id not in self._domains:
             available = ", ".join(sorted(self._domains.keys())) or "(none)"
-            raise KeyError(
-                f"Domain '{domain_id}' not found. Available domains: {available}"
-            )
+            raise KeyError(f"Domain '{domain_id}' not found. Available domains: {available}")
         return self._domains[domain_id]
 
     def list_domains(self) -> list[DomainConfig]:
@@ -314,9 +312,7 @@ class DomainRegistry:
         Returns:
             A list of all DomainConfig objects, sorted by domain_id.
         """
-        return [
-            self._domains[k] for k in sorted(self._domains.keys())
-        ]
+        return [self._domains[k] for k in sorted(self._domains.keys())]
 
     def get_active_domain(self) -> DomainConfig:
         """Return the currently active domain configuration.
@@ -328,9 +324,7 @@ class DomainRegistry:
             RuntimeError: If no active domain has been set.
         """
         if self._active_domain_id is None:
-            raise RuntimeError(
-                "No active domain set. Call set_active_domain() first."
-            )
+            raise RuntimeError("No active domain set. Call set_active_domain() first.")
         return self.get_domain(self._active_domain_id)
 
     def set_active_domain(self, domain_id: str) -> None:
@@ -346,9 +340,7 @@ class DomainRegistry:
         self.get_domain(domain_id)
         previous = self._active_domain_id
         self._active_domain_id = domain_id
-        logger.info(
-            f"Active domain changed: '{previous}' -> '{domain_id}'"
-        )
+        logger.info(f"Active domain changed: '{previous}' -> '{domain_id}'")
 
 
 # Singleton instance
@@ -387,9 +379,7 @@ class DomainAdapter:
         prompt = adapter.get_scoring_prompt(fashion_config)
     """
 
-    def adapt_entity(
-        self, raw_data: dict[str, Any], domain: DomainConfig
-    ) -> dict[str, Any]:
+    def adapt_entity(self, raw_data: dict[str, Any], domain: DomainConfig) -> dict[str, Any]:
         """Map raw data to the domain's entity schema.
 
         Extracts fields defined in the domain schema from ``raw_data``,
@@ -404,9 +394,7 @@ class DomainAdapter:
             schema, with values coerced to declared types.
         """
         schema = domain.entity_schema
-        all_fields = set(
-            schema.get("required", []) + schema.get("optional", [])
-        )
+        all_fields = set(schema.get("required", []) + schema.get("optional", []))
         field_types = schema.get("field_types", {})
 
         adapted: dict[str, Any] = {}
@@ -420,9 +408,7 @@ class DomainAdapter:
 
             # Coerce to declared type if specified
             expected_type = field_types.get(field_name)
-            adapted[field_name] = self._coerce_value(
-                value, expected_type, field_name
-            )
+            adapted[field_name] = self._coerce_value(value, expected_type, field_name)
 
         return adapted
 
@@ -482,8 +468,7 @@ class DomainAdapter:
         """
         if not domain.scoring_prompt_template:
             logger.warning(
-                f"Domain '{domain.domain_id}' has no scoring prompt; "
-                "using generic fallback"
+                f"Domain '{domain.domain_id}' has no scoring prompt; " "using generic fallback"
             )
             return self._generic_scoring_prompt(domain)
         return domain.scoring_prompt_template
@@ -499,8 +484,7 @@ class DomainAdapter:
         """
         if not domain.discovery_persona:
             logger.warning(
-                f"Domain '{domain.domain_id}' has no discovery persona; "
-                "using generic fallback"
+                f"Domain '{domain.domain_id}' has no discovery persona; " "using generic fallback"
             )
             return (
                 f"You are The Curator -- an expert advisor for the "
@@ -552,8 +536,7 @@ class DomainAdapter:
             cat = entity_data["category"]
             if cat and cat not in domain.categories:
                 errors.append(
-                    f"Invalid category '{cat}'. "
-                    f"Valid categories: {domain.categories}"
+                    f"Invalid category '{cat}'. " f"Valid categories: {domain.categories}"
                 )
 
         is_valid = len(errors) == 0
@@ -567,9 +550,7 @@ class DomainAdapter:
     # --- Private helpers ---------------------------------------------------
 
     @staticmethod
-    def _coerce_value(
-        value: Any, expected_type: str | None, field_name: str
-    ) -> Any:
+    def _coerce_value(value: Any, expected_type: str | None, field_name: str) -> Any:
         """Attempt to coerce a value to the expected type.
 
         Returns the original value if coercion fails or no type is specified.
@@ -590,8 +571,7 @@ class DomainAdapter:
                 return bool(value)
         except (ValueError, TypeError):
             logger.debug(
-                f"Could not coerce field '{field_name}' value "
-                f"{value!r} to {expected_type}"
+                f"Could not coerce field '{field_name}' value " f"{value!r} to {expected_type}"
             )
         return value
 
@@ -613,9 +593,7 @@ class DomainAdapter:
     @staticmethod
     def _generic_scoring_prompt(domain: DomainConfig) -> str:
         """Build a minimal scoring prompt from the domain's dimensions."""
-        dims_block = "\n".join(
-            f"- {dim}: 0 = low, 100 = high" for dim in domain.vibe_dimensions
-        )
+        dims_block = "\n".join(f"- {dim}: 0 = low, 100 = high" for dim in domain.vibe_dimensions)
         return (
             f"You are a calibrated scoring engine for the {domain.name} domain.\n\n"
             f"Assign scores (0-100) for each dimension based on the provided fact sheet.\n\n"
@@ -661,15 +639,10 @@ class DomainExporter:
         registry = get_domain_registry()
         config = registry.get_domain(domain_id)
         exported = asdict(config)
-        logger.info(
-            f"Exported domain config '{domain_id}' "
-            f"({len(json.dumps(exported))} bytes)"
-        )
+        logger.info(f"Exported domain config '{domain_id}' " f"({len(json.dumps(exported))} bytes)")
         return exported
 
-    def import_domain_config(
-        self, config_dict: dict[str, Any]
-    ) -> DomainConfig:
+    def import_domain_config(self, config_dict: dict[str, Any]) -> DomainConfig:
         """Deserialize a dict into a DomainConfig instance.
 
         Performs basic validation to ensure required fields are present.
@@ -691,8 +664,7 @@ class DomainExporter:
         missing = required_keys - set(data.keys())
         if missing:
             raise ValueError(
-                f"Cannot import domain config: missing required keys "
-                f"{sorted(missing)}"
+                f"Cannot import domain config: missing required keys " f"{sorted(missing)}"
             )
 
         config = DomainConfig(
@@ -707,7 +679,5 @@ class DomainExporter:
             discovery_persona=data.get("discovery_persona", ""),
         )
 
-        logger.info(
-            f"Imported domain config '{config.domain_id}' ({config.name})"
-        )
+        logger.info(f"Imported domain config '{config.domain_id}' ({config.name})")
         return config

@@ -17,8 +17,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import admin, curator, discover, entities, graph, search
 from app.api.graphql_schema import create_graphql_app
+from app.api.v1 import admin, curator, discover, entities, graph, search
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ settings = get_settings()
 async def _init_postgres():
     """Initialize PostgreSQL tables."""
     from app.db.postgres.connection import create_arbor_tables
+
     await create_arbor_tables()
     logger.info("PostgreSQL: ARBOR tables ready")
 
@@ -35,6 +36,7 @@ async def _init_postgres():
 async def _init_qdrant():
     """Initialize Qdrant collections."""
     from app.db.qdrant.client import init_qdrant_collections
+
     await init_qdrant_collections()
     logger.info("Qdrant: Collections initialized")
 
@@ -42,6 +44,7 @@ async def _init_qdrant():
 async def _init_neo4j():
     """Initialize Neo4j schema."""
     from app.db.neo4j.driver import init_neo4j_schema
+
     await init_neo4j_schema()
     logger.info("Neo4j: Schema initialized")
 
@@ -49,6 +52,7 @@ async def _init_neo4j():
 async def _init_redis():
     """Initialize Redis connection."""
     from app.db.redis.client import get_redis_client
+
     client = await get_redis_client()
     if client:
         await client.ping()
@@ -122,9 +126,9 @@ async def lifespan(app: FastAPI):
 
     # Concurrent cleanup
     from app.db.neo4j.driver import close_neo4j_driver
-    from app.db.redis.client import close_redis_client
-    from app.db.qdrant.client import close_qdrant_client
     from app.db.postgres.connection import close_all_connections
+    from app.db.qdrant.client import close_qdrant_client
+    from app.db.redis.client import close_redis_client
     from app.llm.gateway import close_cohere_client
 
     shutdown_tasks = [
@@ -199,9 +203,13 @@ async def readiness():
     Returns 503 if a critical service is down.
     """
     from fastapi.responses import JSONResponse
-    from app.db.postgres.connection import check_magazine_connection, check_arbor_connection
-    from app.db.qdrant.client import check_qdrant_health
+
     from app.db.neo4j.driver import check_neo4j_health
+    from app.db.postgres.connection import (
+        check_arbor_connection,
+        check_magazine_connection,
+    )
+    from app.db.qdrant.client import check_qdrant_health
     from app.db.redis.client import check_redis_health
 
     checks = {}
@@ -337,10 +345,14 @@ async def websocket_updates(websocket: WebSocket):
                 msg = json.loads(data)
                 if "subscribe" in msg and isinstance(msg["subscribe"], list):
                     subscriptions = set(msg["subscribe"])
-                    await websocket.send_text(json.dumps({
-                        "event": "subscribed",
-                        "channels": list(subscriptions),
-                    }))
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "event": "subscribed",
+                                "channels": list(subscriptions),
+                            }
+                        )
+                    )
                 elif msg.get("type") == "ping":
                     await websocket.send_text(json.dumps({"type": "pong"}))
             except json.JSONDecodeError:

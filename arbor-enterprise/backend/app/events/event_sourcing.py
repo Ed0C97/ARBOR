@@ -559,9 +559,7 @@ class EntityAggregate(Aggregate):
             ValueError: If the entity is not active.
         """
         if self.status not in ("active", "pending"):
-            raise ValueError(
-                f"Cannot enrich entity {self._aggregate_id} with status {self.status}"
-            )
+            raise ValueError(f"Cannot enrich entity {self._aggregate_id} with status {self.status}")
 
         return self._record(
             event_type=self.ENTITY_ENRICHED,
@@ -615,9 +613,7 @@ class EntityAggregate(Aggregate):
             ValueError: If the entity is already deactivated.
         """
         if self.status == "deactivated":
-            raise ValueError(
-                f"Entity {self._aggregate_id} is already deactivated"
-            )
+            raise ValueError(f"Entity {self._aggregate_id} is already deactivated")
 
         return self._record(
             event_type=self.ENTITY_DEACTIVATED,
@@ -1000,9 +996,7 @@ class CommandBus:
             ValueError: If a handler is already registered for this command type.
         """
         if command_type in self._handlers:
-            raise ValueError(
-                f"Handler already registered for command type {command_type!r}"
-            )
+            raise ValueError(f"Handler already registered for command type {command_type!r}")
         self._handlers[command_type] = handler
 
         logger.debug("CommandBus: registered handler for %s", command_type)
@@ -1021,9 +1015,7 @@ class CommandBus:
         """
         handler = self._handlers.get(command.command_type)
         if handler is None:
-            raise ValueError(
-                f"No handler registered for command type {command.command_type!r}"
-            )
+            raise ValueError(f"No handler registered for command type {command.command_type!r}")
 
         logger.info(
             "CommandBus: dispatching %s (id=%s, by=%s)",

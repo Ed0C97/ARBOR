@@ -18,14 +18,14 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.scalars import JSON
 from strawberry.types import Info
 
-from app.db.postgres.connection import magazine_session_factory, arbor_session_factory
+from app.db.postgres.connection import arbor_session_factory, magazine_session_factory
 from app.db.postgres.repository import (
-    UnifiedEntityRepository,
-    FeedbackRepository,
     EnrichmentRepository,
+    FeedbackRepository,
+    UnifiedEntityRepository,
 )
-from app.llm.gateway import get_llm_gateway
 from app.db.qdrant.hybrid_search import HybridSearch
+from app.llm.gateway import get_llm_gateway
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +182,11 @@ class Query:
     ) -> list[EntityType]:
         logger.info(
             "GraphQL entities query: limit=%d offset=%d category=%s city=%s style=%s",
-            limit, offset, category, city, style,
+            limit,
+            offset,
+            category,
+            city,
+            style,
         )
         mag_session, arb_session = await _get_sessions()
         if mag_session is None:
@@ -190,7 +194,8 @@ class Query:
 
         try:
             async with mag_session as session:
-                async with arb_session as a_session if arb_session else session as a_session:
+                a_session_ctx = arb_session if arb_session else session
+                async with a_session_ctx as a_session:
                     repo = UnifiedEntityRepository(session, a_session)
                     entities, _total = await repo.list_all(
                         category=category,
@@ -217,7 +222,8 @@ class Query:
 
         try:
             async with mag_session as session:
-                async with arb_session as a_session if arb_session else session as a_session:
+                a_session_ctx = arb_session if arb_session else session
+                async with a_session_ctx as a_session:
                     repo = UnifiedEntityRepository(session, a_session)
                     entity = await repo.get_by_composite_id(id)
                     return _unified_to_graphql(entity) if entity else None
@@ -254,8 +260,14 @@ class Query:
                 top_names = [r.name for r in recommendations[:3]]
                 response_text = await gateway.complete(
                     messages=[
-                        {"role": "system", "content": "You are ARBOR, a curated discovery assistant for fashion brands and venues. Be concise."},
-                        {"role": "user", "content": f"Based on search results for '{query}', recommend: {', '.join(top_names)}. Write a 2-sentence recommendation."},
+                        {
+                            "role": "system",
+                            "content": "You are ARBOR, a curated discovery assistant for fashion brands and venues. Be concise.",
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Based on search results for '{query}', recommend: {', '.join(top_names)}. Write a 2-sentence recommendation.",
+                        },
                     ],
                     task_type="simple",
                     temperature=0.7,
@@ -264,7 +276,11 @@ class Query:
             else:
                 response_text = f"No results found for '{query}'. Try broadening your search."
 
-            confidence = max((r.get("score", 0) for r in vector_results), default=0.0) if vector_results else 0.0
+            confidence = (
+                max((r.get("score", 0) for r in vector_results), default=0.0)
+                if vector_results
+                else 0.0
+            )
 
             return DiscoveryResponse(
                 query=query,
@@ -293,7 +309,10 @@ class Query:
     ) -> list[SearchResult]:
         logger.info(
             "GraphQL search query: query=%r category=%s city=%s limit=%d",
-            query, category, city, limit,
+            query,
+            category,
+            city,
+            limit,
         )
         try:
             gateway = get_llm_gateway()
@@ -322,11 +341,13 @@ class Query:
                     reasons.append(f"tags: {', '.join(r['tags'][:3])}")
                 match_reason = "; ".join(reasons) if reasons else "Matched by RRF hybrid search"
 
-                search_results.append(SearchResult(
-                    entity=entity,
-                    score=round(score, 4),
-                    match_reason=match_reason,
-                ))
+                search_results.append(
+                    SearchResult(
+                        entity=entity,
+                        score=round(score, 4),
+                        match_reason=match_reason,
+                    )
+                )
             return search_results
         except Exception as exc:
             logger.exception("GraphQL search resolver error: %s", exc)
@@ -357,13 +378,18 @@ class Query:
                     node_id = str(record.get("id", record.get("name", "")))
                     if node_id and node_id not in seen_ids:
                         seen_ids.add(node_id)
-                        nodes.append(GraphNode(
-                            id=node_id,
-                            name=record.get("name", node_id),
-                            labels=record.get("labels", ["Entity"]),
-                            properties={k: v for k, v in record.items()
-                                        if k not in ("id", "name", "labels")},
-                        ))
+                        nodes.append(
+                            GraphNode(
+                                id=node_id,
+                                name=record.get("name", node_id),
+                                labels=record.get("labels", ["Entity"]),
+                                properties={
+                                    k: v
+                                    for k, v in record.items()
+                                    if k not in ("id", "name", "labels")
+                                },
+                            )
+                        )
 
             return KnowledgeGraph(nodes=nodes, edges=edges)
         except Exception as exc:
@@ -409,7 +435,9 @@ class Query:
 class Mutation:
     """Root mutation type for A.R.B.O.R. Enterprise GraphQL API."""
 
-    @strawberry.mutation(description="Record user feedback for an entity (click, save, dismiss, etc.).")
+    @strawberry.mutation(
+        description="Record user feedback for an entity (click, save, dismiss, etc.)."
+    )
     async def record_feedback(
         self,
         user_id: str,
@@ -421,7 +449,12 @@ class Mutation:
     ) -> bool:
         logger.info(
             "GraphQL record_feedback: user=%s entity=%s type=%s action=%s pos=%s query=%r",
-            user_id, entity_id, entity_type, action, position, query,
+            user_id,
+            entity_id,
+            entity_type,
+            action,
+            position,
+            query,
         )
         allowed_actions = {"click", "save", "dismiss", "share", "view", "purchase"}
         if action not in allowed_actions:
@@ -457,7 +490,8 @@ class Mutation:
     ) -> bool:
         logger.info(
             "GraphQL trigger_enrichment: entity_type=%s source_id=%s",
-            entity_type, source_id,
+            entity_type,
+            source_id,
         )
         if entity_type not in ("brand", "venue"):
             logger.warning("Invalid entity_type for enrichment: %s", entity_type)
@@ -506,6 +540,7 @@ class Subscription:
 
         try:
             from app.db.redis.client import RedisCache
+
             redis_cache = RedisCache()
             pubsub = redis_cache.client.pubsub()
             channel = f"entity_updates:{entity_type}" if entity_type else "entity_updates:*"
@@ -514,13 +549,15 @@ class Subscription:
             async for message in pubsub.listen():
                 if message["type"] in ("message", "pmessage"):
                     import json
+
                     data = json.loads(message["data"])
                     entity_id = data.get("entity_id", "")
                     # Fetch the updated entity from the database
                     mag_session, arb_session = await _get_sessions()
                     if mag_session:
                         async with mag_session as session:
-                            async with arb_session as a_session if arb_session else session as a_session:
+                            a_session_ctx = arb_session if arb_session else session
+                            async with a_session_ctx as a_session:
                                 repo = UnifiedEntityRepository(session, a_session)
                                 entity = await repo.get_by_composite_id(entity_id)
                                 if entity:
@@ -534,7 +571,8 @@ class Subscription:
                 if mag_session:
                     try:
                         async with mag_session as session:
-                            async with arb_session as a_session if arb_session else session as a_session:
+                            a_session_ctx = arb_session if arb_session else session
+                            async with a_session_ctx as a_session:
                                 repo = UnifiedEntityRepository(session, a_session)
                                 entities, _ = await repo.list_all(
                                     entity_type=entity_type,

@@ -7,32 +7,37 @@ Tests cover:
 - ExplainabilityEngine factor computation, summaries, and batch explanations
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Inline helpers to avoid importing app.config (which needs env vars)
 # ---------------------------------------------------------------------------
 
+
 def _make_user_profile(user_id="u_test", **kwargs):
     """Create a UserProfile without triggering app.config imports."""
     from app.ml.personalization import UserProfile
+
     return UserProfile(user_id=user_id, **kwargs)
 
 
 def _make_learner():
     from app.ml.personalization import PreferenceLearner
+
     return PreferenceLearner()
 
 
 def _make_engine():
     from app.ml.personalization import PersonalizationEngine
+
     return PersonalizationEngine()
 
 
 def _make_explainability_engine():
     from app.ml.explainability import ExplainabilityEngine
+
     return ExplainabilityEngine()
 
 
@@ -123,9 +128,9 @@ class TestPreferenceLearner:
         click_weight = profile_click.style_preferences.get("industrial", 0.0)
         convert_weight = profile_convert.style_preferences.get("industrial", 0.0)
 
-        assert convert_weight > click_weight, (
-            f"convert weight ({convert_weight}) should exceed click weight ({click_weight})"
-        )
+        assert (
+            convert_weight > click_weight
+        ), f"convert weight ({convert_weight}) should exceed click weight ({click_weight})"
 
     def test_dismiss_decreases_preferences(self):
         """A 'dismiss' action reduces existing preference weights."""
@@ -169,9 +174,9 @@ class TestPreferenceLearner:
         weight_pos0 = profile_pos0.style_preferences.get("modern", 0.0)
         weight_pos10 = profile_pos10.style_preferences.get("modern", 0.0)
 
-        assert weight_pos10 > weight_pos0, (
-            f"Position 10 weight ({weight_pos10}) should exceed position 0 weight ({weight_pos0})"
-        )
+        assert (
+            weight_pos10 > weight_pos0
+        ), f"Position 10 weight ({weight_pos10}) should exceed position 0 weight ({weight_pos0})"
 
     def test_decay_reduces_old_preferences(self):
         """Calling update applies decay to existing preference weights."""
@@ -302,9 +307,7 @@ class TestPersonalizationEngine:
 
         # The matching entity (A) should be boosted to the top despite lower
         # original score.
-        assert reranked[0]["id"] == "A", (
-            f"Expected 'A' first but got '{reranked[0]['id']}'"
-        )
+        assert reranked[0]["id"] == "A", f"Expected 'A' first but got '{reranked[0]['id']}'"
 
     def test_personalize_results_no_profile(self):
         """Without any recorded interactions the original order is preserved."""
@@ -435,9 +438,7 @@ class TestExplainabilityEngine:
 
         from app.ml.explainability import FACTOR_STYLE_MATCH
 
-        style_factors = [
-            f for f in explanation.factors if f.factor_type == FACTOR_STYLE_MATCH
-        ]
+        style_factors = [f for f in explanation.factors if f.factor_type == FACTOR_STYLE_MATCH]
         assert len(style_factors) >= 1
         # All query tokens appear in entity text, so weight should be high
         assert style_factors[0].weight > 0.5
@@ -491,9 +492,7 @@ class TestExplainabilityEngine:
 
         from app.ml.explainability import FACTOR_LOCATION
 
-        geo_factors = [
-            f for f in explanation.factors if f.factor_type == FACTOR_LOCATION
-        ]
+        geo_factors = [f for f in explanation.factors if f.factor_type == FACTOR_LOCATION]
         assert len(geo_factors) == 1
         assert geo_factors[0].weight > 0.0
         assert "Tokyo" in geo_factors[0].details["matched_locations"]
@@ -521,7 +520,9 @@ class TestExplainabilityEngine:
         assert len(explanation.summary) > 0
         # The summary should either start with "Recommended because" (when
         # factors are found) or mention the entity name in the fallback.
-        assert "Recommended because" in explanation.summary or "Sunset Lounge" in explanation.summary
+        assert (
+            "Recommended because" in explanation.summary or "Sunset Lounge" in explanation.summary
+        )
 
     def test_explain_batch_returns_all(self):
         """Batch explanation returns one explanation per entity."""

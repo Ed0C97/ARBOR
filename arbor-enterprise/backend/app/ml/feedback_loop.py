@@ -194,7 +194,9 @@ class FeedbackCollector:
                     for fb in batch:
                         await repo.create(
                             user_id=fb.user_id,
-                            entity_type=fb.entity_id.split("_")[0] if "_" in fb.entity_id else "brand",
+                            entity_type=(
+                                fb.entity_id.split("_")[0] if "_" in fb.entity_id else "brand"
+                            ),
                             source_id=fb.entity_id,
                             query=fb.query,
                             action=fb.action,
@@ -209,6 +211,7 @@ class FeedbackCollector:
         # Publish to Redis for real-time reranker updates
         try:
             import json
+
             from app.db.redis.client import get_redis_client
 
             client = await get_redis_client()

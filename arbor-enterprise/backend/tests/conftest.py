@@ -1,13 +1,14 @@
 """Pytest configuration and shared fixtures."""
 
 import os
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Async backend
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def anyio_backend():
@@ -17,6 +18,7 @@ def anyio_backend():
 # ---------------------------------------------------------------------------
 # Environment overrides for test isolation
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _test_env(monkeypatch):
@@ -38,6 +40,7 @@ def _test_env(monkeypatch):
 # ---------------------------------------------------------------------------
 # Mock database connections
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_postgres():
@@ -82,6 +85,7 @@ def mock_neo4j():
 # ---------------------------------------------------------------------------
 # Sample data fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def sample_entity():

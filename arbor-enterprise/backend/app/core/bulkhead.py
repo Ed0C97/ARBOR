@@ -296,9 +296,7 @@ class BulkheadRegistry:
             return self._bulkheads[name]
         except KeyError:
             available = ", ".join(sorted(self._bulkheads.keys()))
-            raise KeyError(
-                f"No bulkhead named {name!r}. Available: {available}"
-            ) from None
+            raise KeyError(f"No bulkhead named {name!r}. Available: {available}") from None
 
     def all_metrics(self) -> dict[str, BulkheadMetrics]:
         """Return metrics for every registered bulkhead."""
@@ -339,11 +337,11 @@ async def get_bulkhead_registry() -> BulkheadRegistry:
 #   7-9 = high / critical
 
 _DEFAULT_SHEDDING_POLICY: dict[str, Any] = {
-    "error_rate_threshold": 0.10,          # 10 % errors -> shed low-priority
-    "latency_multiplier_threshold": 2.0,   # 2x target -> shed medium-priority
-    "queue_depth_threshold": 100,          # Absolute queue depth -> shed non-critical
-    "target_latency_ms": 500.0,            # Baseline target latency
-    "health_window_seconds": 30.0,         # Sliding window for health calculation
+    "error_rate_threshold": 0.10,  # 10 % errors -> shed low-priority
+    "latency_multiplier_threshold": 2.0,  # 2x target -> shed medium-priority
+    "queue_depth_threshold": 100,  # Absolute queue depth -> shed non-critical
+    "target_latency_ms": 500.0,  # Baseline target latency
+    "health_window_seconds": 30.0,  # Sliding window for health calculation
 }
 
 
@@ -376,9 +374,7 @@ class LoadShedder:
     # Observation ingestion
     # ------------------------------------------------------------------
 
-    def record_request(
-        self, latency_ms: float, is_success: bool, priority: int = 0
-    ) -> None:
+    def record_request(self, latency_ms: float, is_success: bool, priority: int = 0) -> None:
         """Record the outcome of a completed request."""
         now = time.monotonic()
         self._observations.append((now, latency_ms, is_success, priority))
@@ -413,10 +409,7 @@ class LoadShedder:
             return True
 
         # Level 2: Latency blowup -> shed medium-priority (priority < 7).
-        if (
-            self._avg_latency_ms > target_latency * latency_mult
-            and priority < 7
-        ):
+        if self._avg_latency_ms > target_latency * latency_mult and priority < 7:
             self._shedding_active = True
             logger.info(
                 "LoadShedder: shedding priority=%d (avg_latency=%.0fms > %.0fms)",
@@ -527,9 +520,7 @@ class LoadShedder:
         target = self._policy["target_latency_ms"]
         latency_ratio = self._avg_latency_ms / max(target, 1.0)
         latency_penalty = min(latency_ratio - 1.0, 1.0) * 30 if latency_ratio > 1.0 else 0.0
-        queue_ratio = self._request_queue_depth / max(
-            self._policy["queue_depth_threshold"], 1
-        )
+        queue_ratio = self._request_queue_depth / max(self._policy["queue_depth_threshold"], 1)
         queue_penalty = min(queue_ratio, 1.0) * 30
 
         score = 100.0 - error_penalty - latency_penalty - queue_penalty
@@ -556,8 +547,8 @@ class AdaptiveConcurrencyLimiter:
 
     # Vegas alpha/beta thresholds (in number of "queued" requests inferred
     # from latency delta).
-    _ALPHA = 3   # Below alpha queued -> increase limit
-    _BETA = 6    # Above beta queued -> decrease limit
+    _ALPHA = 3  # Below alpha queued -> increase limit
+    _BETA = 6  # Above beta queued -> decrease limit
 
     def __init__(
         self,

@@ -192,11 +192,7 @@ class GradientAggregator:
         aggregated: dict[str, list[float]] = {}
         for key in all_keys:
             # Determine the minimum dimension for this parameter across updates
-            vectors = [
-                u.gradient_updates[key]
-                for u in updates
-                if key in u.gradient_updates
-            ]
+            vectors = [u.gradient_updates[key] for u in updates if key in u.gradient_updates]
             if not vectors:
                 continue
 
@@ -274,11 +270,7 @@ class GradientAggregator:
 
         aggregated: dict[str, list[float]] = {}
         for key in all_keys:
-            vectors = [
-                u.gradient_updates[key]
-                for u in updates
-                if key in u.gradient_updates
-            ]
+            vectors = [u.gradient_updates[key] for u in updates if key in u.gradient_updates]
             if not vectors:
                 continue
 
@@ -533,9 +525,7 @@ class FederatedLearningCoordinator:
         """
         return self._models.get(model_id)
 
-    def get_model_for_tenant(
-        self, model_id: str, tenant_id: str
-    ) -> dict[str, list[float]]:
+    def get_model_for_tenant(self, model_id: str, tenant_id: str) -> dict[str, list[float]]:
         """Return global weights for a specific tenant.
 
         In a production system this would layer tenant-specific fine-tuning
@@ -582,9 +572,7 @@ class FederatedLearningCoordinator:
                     "version": model.version,
                     "contributing_tenants": len(model.contributing_tenants),
                     "last_aggregated_at": (
-                        model.last_aggregated_at.isoformat()
-                        if model.last_aggregated_at
-                        else None
+                        model.last_aggregated_at.isoformat() if model.last_aggregated_at else None
                     ),
                 }
             )

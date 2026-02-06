@@ -1,7 +1,8 @@
 """Unit tests for Celery background workers."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # We must patch get_settings before importing the module so that it does not
 # try to connect to a real broker at import time.
@@ -13,15 +14,15 @@ _mock_settings = MagicMock(
 with patch("app.workers.background_jobs.get_settings", return_value=_mock_settings):
     with patch("app.workers.background_jobs.settings", _mock_settings):
         from app.workers.background_jobs import (
-            celery_app,
-            refresh_stale_embeddings,
-            warmup_popular_queries,
-            check_index_health,
-            cleanup_old_data,
-            _refresh_stale_embeddings_async,
-            _warmup_popular_queries_async,
             _check_index_health_async,
             _cleanup_old_data_async,
+            _refresh_stale_embeddings_async,
+            _warmup_popular_queries_async,
+            celery_app,
+            check_index_health,
+            cleanup_old_data,
+            refresh_stale_embeddings,
+            warmup_popular_queries,
         )
 
 
@@ -216,9 +217,7 @@ class TestCheckIndexHealthAsync:
     @patch("app.workers.background_jobs.get_async_qdrant_client")
     async def test_health_check_handles_error(self, mock_get_client):
         mock_client = AsyncMock()
-        mock_client.get_collection = AsyncMock(
-            side_effect=Exception("Connection refused")
-        )
+        mock_client.get_collection = AsyncMock(side_effect=Exception("Connection refused"))
         mock_get_client.return_value = mock_client
 
         result = await _check_index_health_async()

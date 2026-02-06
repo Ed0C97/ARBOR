@@ -113,7 +113,7 @@ class BloomFilter:
         (Kirsch-Mitzenmacker optimisation).
         """
         raw = item.encode("utf-8")
-        h1 = int(hashlib.md5(raw).hexdigest(), 16)
+        h1 = int(hashlib.md5(raw, usedforsecurity=False).hexdigest(), 16)
         h2 = int(hashlib.sha256(raw).hexdigest(), 16)
 
         return [(h1 + i * h2) % self._size for i in range(self._hash_count)]
@@ -327,6 +327,7 @@ class L2RedisCache(CacheTier):
         if self._redis is None:
             try:
                 from app.db.redis.client import RedisCache
+
                 self._redis = RedisCache()
             except Exception as exc:
                 logger.warning("L2 Redis unavailable: %s", exc)
@@ -444,6 +445,7 @@ class L3SemanticCache(CacheTier):
         """Lazy-import to avoid circular dependencies."""
         try:
             from app.db.qdrant.client import get_async_qdrant_client
+
             return await get_async_qdrant_client()
         except Exception as exc:
             logger.warning("L3 Qdrant unavailable: %s", exc)
@@ -481,7 +483,7 @@ class L3SemanticCache(CacheTier):
         similarity_threshold = threshold or self._threshold
 
         try:
-            from qdrant_client.models import Filter, FieldCondition, MatchValue
+            from qdrant_client.models import FieldCondition, Filter, MatchValue
 
             results = await client.search(
                 collection_name=self.COLLECTION,
@@ -551,6 +553,7 @@ class L3SemanticCache(CacheTier):
 
         try:
             import uuid as _uuid
+
             from qdrant_client.models import PointStruct
 
             point_id = str(_uuid.uuid4())
@@ -586,7 +589,7 @@ class L3SemanticCache(CacheTier):
             return
 
         try:
-            from qdrant_client.models import Filter, FieldCondition, MatchValue
+            from qdrant_client.models import FieldCondition, Filter, MatchValue
 
             await client.delete(
                 collection_name=self.COLLECTION,
@@ -672,9 +675,7 @@ class CacheCoherencyBus:
                       May be sync or async.
         """
         self._listeners.append(callback)
-        logger.debug(
-            "CacheCoherencyBus: listener registered (total=%d)", len(self._listeners)
-        )
+        logger.debug("CacheCoherencyBus: listener registered (total=%d)", len(self._listeners))
 
     async def publish_invalidation(self, key: str, reason: str = "manual") -> None:
         """Broadcast an invalidation event to all registered listeners.
@@ -699,9 +700,7 @@ class CacheCoherencyBus:
                 if asyncio.iscoroutine(result) or asyncio.isfuture(result):
                     await result
             except Exception as exc:
-                logger.warning(
-                    "CacheCoherencyBus: listener error for key=%s: %s", key, exc
-                )
+                logger.warning("CacheCoherencyBus: listener error for key=%s: %s", key, exc)
 
     @property
     def listener_count(self) -> int:
@@ -925,11 +924,7 @@ class MultiTierCache:
         try:
             qdrant = await self._l3._get_qdrant_client()
             if qdrant is not None:
-                from qdrant_client.models import (
-                    Filter,
-                    FieldCondition,
-                    MatchText,
-                )
+                from qdrant_client.models import FieldCondition, Filter, MatchText
 
                 await qdrant.delete(
                     collection_name=L3SemanticCache.COLLECTION,
@@ -946,9 +941,7 @@ class MultiTierCache:
             logger.warning("L3 pattern invalidation failed: %s", exc)
 
         # Broadcast
-        await self._bus.publish_invalidation(
-            pattern, reason="pattern_invalidation"
-        )
+        await self._bus.publish_invalidation(pattern, reason="pattern_invalidation")
         logger.info("Pattern invalidation complete: pattern=%s", pattern)
 
     def stats(self) -> dict[str, Any]:

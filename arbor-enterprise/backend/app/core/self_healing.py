@@ -324,32 +324,83 @@ class RemediationEngine:
         """Pre-register remediation playbooks for known failure types."""
         self._playbooks["database_slow"] = [
             {"action_type": "circuit_open", "target": "database", "parameters": {"timeout": 30}},
-            {"action_type": "cache_clear", "target": "database_query_cache", "parameters": {"scope": "stale"}},
-            {"action_type": "retry_backoff", "target": "database", "parameters": {"initial_wait": 1.0, "max_wait": 10.0, "max_attempts": 3}},
+            {
+                "action_type": "cache_clear",
+                "target": "database_query_cache",
+                "parameters": {"scope": "stale"},
+            },
+            {
+                "action_type": "retry_backoff",
+                "target": "database",
+                "parameters": {"initial_wait": 1.0, "max_wait": 10.0, "max_attempts": 3},
+            },
         ]
 
         self._playbooks["llm_unavailable"] = [
             {"action_type": "circuit_open", "target": "llm", "parameters": {"timeout": 60}},
-            {"action_type": "reroute", "target": "llm_fallback", "parameters": {"fallback_provider": "cache_or_degraded"}},
-            {"action_type": "cache_clear", "target": "llm_response_cache", "parameters": {"scope": "expired"}},
+            {
+                "action_type": "reroute",
+                "target": "llm_fallback",
+                "parameters": {"fallback_provider": "cache_or_degraded"},
+            },
+            {
+                "action_type": "cache_clear",
+                "target": "llm_response_cache",
+                "parameters": {"scope": "expired"},
+            },
         ]
 
         self._playbooks["vector_db_degraded"] = [
             {"action_type": "circuit_open", "target": "qdrant", "parameters": {"timeout": 30}},
-            {"action_type": "cache_clear", "target": "vector_search_cache", "parameters": {"scope": "all"}},
-            {"action_type": "retry_backoff", "target": "qdrant", "parameters": {"initial_wait": 0.5, "max_wait": 5.0, "max_attempts": 3}},
+            {
+                "action_type": "cache_clear",
+                "target": "vector_search_cache",
+                "parameters": {"scope": "all"},
+            },
+            {
+                "action_type": "retry_backoff",
+                "target": "qdrant",
+                "parameters": {"initial_wait": 0.5, "max_wait": 5.0, "max_attempts": 3},
+            },
         ]
 
         self._playbooks["memory_pressure"] = [
-            {"action_type": "cache_clear", "target": "all_caches", "parameters": {"scope": "lru_evict", "evict_percent": 50}},
-            {"action_type": "circuit_open", "target": "non_critical_services", "parameters": {"timeout": 120}},
-            {"action_type": "scale_up", "target": "application", "parameters": {"strategy": "vertical", "increment": "256Mi"}},
+            {
+                "action_type": "cache_clear",
+                "target": "all_caches",
+                "parameters": {"scope": "lru_evict", "evict_percent": 50},
+            },
+            {
+                "action_type": "circuit_open",
+                "target": "non_critical_services",
+                "parameters": {"timeout": 120},
+            },
+            {
+                "action_type": "scale_up",
+                "target": "application",
+                "parameters": {"strategy": "vertical", "increment": "256Mi"},
+            },
         ]
 
         self._playbooks["cascade_failure"] = [
-            {"action_type": "circuit_open", "target": "all_external_services", "parameters": {"timeout": 120}},
-            {"action_type": "scale_up", "target": "application", "parameters": {"strategy": "horizontal", "replicas_add": 2}},
-            {"action_type": "reroute", "target": "gradual_restore", "parameters": {"restore_order": ["redis", "database", "qdrant", "llm"], "step_delay_seconds": 15}},
+            {
+                "action_type": "circuit_open",
+                "target": "all_external_services",
+                "parameters": {"timeout": 120},
+            },
+            {
+                "action_type": "scale_up",
+                "target": "application",
+                "parameters": {"strategy": "horizontal", "replicas_add": 2},
+            },
+            {
+                "action_type": "reroute",
+                "target": "gradual_restore",
+                "parameters": {
+                    "restore_order": ["redis", "database", "qdrant", "llm"],
+                    "step_delay_seconds": 15,
+                },
+            },
         ]
 
     def get_playbook(self, signature: FailureSignature) -> list[RemediationAction]:
@@ -422,8 +473,7 @@ class RemediationEngine:
 
             action.success = True
             logger.info(
-                f"Self-healing remediation: {action.action_type} on "
-                f"'{action.target}' succeeded"
+                f"Self-healing remediation: {action.action_type} on " f"'{action.target}' succeeded"
             )
         except Exception as e:
             action.success = False
@@ -462,7 +512,9 @@ class RemediationEngine:
             "cache_clear": f"Cleared cache '{action.target}' (scope={action.parameters.get('scope', 'all')})",
             "retry_backoff": f"Configured retry backoff for '{action.target}' (max_attempts={action.parameters.get('max_attempts', 3)})",
         }
-        detail = detail_map.get(action.action_type, f"Executed {action.action_type} on '{action.target}'")
+        detail = detail_map.get(
+            action.action_type, f"Executed {action.action_type} on '{action.target}'"
+        )
         logger.debug(f"Self-healing remediation detail: {detail}")
 
 
@@ -784,7 +836,12 @@ class SelfHealingOrchestrator:
         Returns:
             Severity string: "low", "medium", "high", or "critical".
         """
-        critical_indicators = {"multiple_circuits_open", "oom_risk", "cascade_failure", "error_rate_spike"}
+        critical_indicators = {
+            "multiple_circuits_open",
+            "oom_risk",
+            "cascade_failure",
+            "error_rate_spike",
+        }
         high_indicators = {"circuit_open_llm", "connection_pool_exhausted", "high_memory"}
 
         symptom_set = set(symptoms)
@@ -827,7 +884,9 @@ class VaccinationEngine:
         test_spec: dict[str, Any] = {
             "test_id": f"vac_{uuid.uuid4().hex[:8]}",
             "incident_id": incident.incident_id,
-            "failure_type": incident.failure_signature.failure_type if incident.failure_signature else "unknown",
+            "failure_type": (
+                incident.failure_signature.failure_type if incident.failure_signature else "unknown"
+            ),
             "symptoms_to_inject": list(incident.symptoms_observed),
             "expected_actions": [
                 {

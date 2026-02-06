@@ -2,7 +2,7 @@
 
 import uuid
 
-from app.db.postgres.models import Entity, AbstractEntity, Curator
+from app.db.postgres.models import AbstractEntity, Curator, Entity
 
 
 class TestEntityModel:

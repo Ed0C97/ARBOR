@@ -214,9 +214,7 @@ class ExplainabilityEngine:
             factors.append(geo_factor)
 
         # 5. Personalization boost
-        personalization_factor = self._compute_personalization_factor(
-            user_profile, entity_data
-        )
+        personalization_factor = self._compute_personalization_factor(user_profile, entity_data)
         if personalization_factor is not None:
             factors.append(personalization_factor)
 
@@ -447,11 +445,7 @@ class ExplainabilityEngine:
                 entity_dim_score = float(entity_vibe.get(dimension, 0.0))
                 alignment_scores.append(entity_dim_score * intent_weight)
 
-            weight = (
-                sum(alignment_scores) / len(alignment_scores)
-                if alignment_scores
-                else 0.0
-            )
+            weight = sum(alignment_scores) / len(alignment_scores) if alignment_scores else 0.0
         else:
             # List-based vibe_dna: build query vector in same order and
             # compute cosine similarity
@@ -471,9 +465,7 @@ class ExplainabilityEngine:
 
         weight = max(0.0, min(1.0, weight))
 
-        description = (
-            f"Entity vibe aligns with query intent: {', '.join(matched_vibes)}"
-        )
+        description = f"Entity vibe aligns with query intent: {', '.join(matched_vibes)}"
 
         return ExplanationFactor(
             factor_type=FACTOR_VIBE_SIMILARITY,
@@ -524,14 +516,10 @@ class ExplainabilityEngine:
 
         if is_match:
             weight = 0.9
-            description = (
-                f"Entity category '{category}' matches the query"
-            )
+            description = f"Entity category '{category}' matches the query"
         else:
             weight = 0.0
-            description = (
-                f"Entity category '{category}' does not appear in the query"
-            )
+            description = f"Entity category '{category}' does not appear in the query"
 
         return ExplanationFactor(
             factor_type=FACTOR_CATEGORY_MATCH,
@@ -576,19 +564,14 @@ class ExplainabilityEngine:
 
         if matched_locations:
             weight = min(1.0, 0.85 + 0.05 * (len(matched_locations) - 1))
-            description = (
-                f"Located in {', '.join(matched_locations)}, mentioned in the query"
-            )
+            description = f"Located in {', '.join(matched_locations)}, mentioned in the query"
         else:
             weight = 0.0
             location_parts = [
-                loc for loc in (city, neighborhood, country)
-                if loc and isinstance(loc, str)
+                loc for loc in (city, neighborhood, country) if loc and isinstance(loc, str)
             ]
             location_str = ", ".join(location_parts) if location_parts else "unknown"
-            description = (
-                f"Entity location ({location_str}) not mentioned in the query"
-            )
+            description = f"Entity location ({location_str}) not mentioned in the query"
 
         return ExplanationFactor(
             factor_type=FACTOR_LOCATION,
@@ -630,9 +613,7 @@ class ExplainabilityEngine:
             return None
 
         style_prefs: dict[str, float] = user_profile.get("style_preferences", {})
-        category_affinities: dict[str, float] = user_profile.get(
-            "category_affinities", {}
-        )
+        category_affinities: dict[str, float] = user_profile.get("category_affinities", {})
         city_prefs: dict[str, float] = user_profile.get("city_preferences", {})
 
         # Style overlap
@@ -673,13 +654,9 @@ class ExplainabilityEngine:
                 f"matches your preference for {', '.join(matched_styles)} style"
             )
         if category_score > 0.0:
-            description_parts.append(
-                f"you frequently explore {entity_category} entities"
-            )
+            description_parts.append(f"you frequently explore {entity_category} entities")
         if city_score > 0.0:
-            description_parts.append(
-                f"you have shown interest in {entity_city}"
-            )
+            description_parts.append(f"you have shown interest in {entity_city}")
 
         description = (
             "Personalised: " + "; ".join(description_parts)
@@ -746,13 +723,11 @@ class ExplainabilityEngine:
 
         if connected_sample:
             description = (
-                f"Connected to {', '.join(connected_sample)} "
-                f"via {', '.join(unique_types)}"
+                f"Connected to {', '.join(connected_sample)} " f"via {', '.join(unique_types)}"
             )
         else:
             description = (
-                f"Has {len(rel_types)} graph connection(s) "
-                f"({', '.join(unique_types)})"
+                f"Has {len(rel_types)} graph connection(s) " f"({', '.join(unique_types)})"
             )
 
         return ExplanationFactor(
@@ -906,10 +881,7 @@ class ExplainabilityEngine:
         if factor.factor_type == FACTOR_PERSONALIZATION:
             matched_styles = details.get("matched_styles", [])
             if matched_styles:
-                return (
-                    f"it matches your preference for "
-                    f"{', '.join(matched_styles[:2])} style"
-                )
+                return f"it matches your preference for " f"{', '.join(matched_styles[:2])} style"
             return "it aligns with your past preferences"
 
         if factor.factor_type == FACTOR_GRAPH_CONNECTION:

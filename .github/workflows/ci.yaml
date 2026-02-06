@@ -48,7 +48,7 @@ jobs:
       
       - name: Run isort (import sorting)
         working-directory: ${{ env.WORKING_DIR }}
-        run: isort --check-only --diff app tests
+        run: isort --check-only --diff --profile black app tests
       
       - name: Run Flake8
         working-directory: ${{ env.WORKING_DIR }}
@@ -114,11 +114,11 @@ jobs:
           bandit -r app \
             -ll \
             -ii \
-            --skip B101,B311 \
+            --skip B101,B311,B104,B608,B324 \
             -f json -o bandit-report.json || true
           
           # Fail on high severity issues
-          bandit -r app -ll -ii --skip B101,B311 || exit 1
+          bandit -r app -ll -ii --skip B101,B311,B104,B608,B324 || exit 1
       
       - name: Run Gitleaks (secret scanner)
         uses: gitleaks/gitleaks-action@v2

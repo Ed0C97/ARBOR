@@ -88,9 +88,18 @@ class Guardrails:
 
     # Topics that should be rejected
     OFF_TOPIC_KEYWORDS = [
-        "hack", "exploit", "password", "credit card",
-        "social security", "illegal", "weapon", "drug",
-        "bomb", "terrorist", "murder", "suicide",
+        "hack",
+        "exploit",
+        "password",
+        "credit card",
+        "social security",
+        "illegal",
+        "weapon",
+        "drug",
+        "bomb",
+        "terrorist",
+        "murder",
+        "suicide",
     ]
 
     # Hallucination detection thresholds
@@ -104,9 +113,7 @@ class Guardrails:
         """
         self._llm = None  # Lazy init to avoid circular import
         self.strict_mode = strict_mode
-        self._compiled_patterns = [
-            re.compile(p, re.IGNORECASE) for p in self.BLOCKED_PATTERNS
-        ]
+        self._compiled_patterns = [re.compile(p, re.IGNORECASE) for p in self.BLOCKED_PATTERNS]
 
         # Stats for monitoring
         self._stats = {
@@ -211,9 +218,7 @@ class Guardrails:
         self._stats["output_checks"] += 1
 
         # Calculate hallucination risk score
-        hallucination_score = await self._calculate_hallucination_score(
-            response, context_entities
-        )
+        hallucination_score = await self._calculate_hallucination_score(response, context_entities)
 
         if hallucination_score > self.HALLUCINATION_THRESHOLD:
             self._stats["output_blocks"] += 1

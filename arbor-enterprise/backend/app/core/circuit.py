@@ -34,8 +34,8 @@ T = TypeVar("T")
 class CircuitState(Enum):
     """Circuit breaker states."""
 
-    CLOSED = "closed"      # Normal operation
-    OPEN = "open"          # Failing fast
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Failing fast
     HALF_OPEN = "half_open"  # Testing recovery
 
 
@@ -142,9 +142,7 @@ class CircuitBreaker:
         old_state = self._state
         self._state = new_state
         self._stats.state_changes.append((time.time(), new_state.value))
-        logger.info(
-            f"Circuit breaker [{self.name}]: {old_state.value} -> {new_state.value}"
-        )
+        logger.info(f"Circuit breaker [{self.name}]: {old_state.value} -> {new_state.value}")
 
     def _on_success(self) -> None:
         """Handle successful call."""
@@ -198,7 +196,7 @@ class CircuitBreaker:
         raise CircuitBreakerError(
             self.name,
             f"Circuit is OPEN. Service unavailable. "
-            f"Retry in {self.reset_timeout - (time.time() - (self._last_failure_time or 0)):.0f}s"
+            f"Retry in {self.reset_timeout - (time.time() - (self._last_failure_time or 0)):.0f}s",
         )
 
     async def __aenter__(self):

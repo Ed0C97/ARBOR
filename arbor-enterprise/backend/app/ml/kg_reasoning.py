@@ -105,9 +105,7 @@ class GraphRule:
     consequent: str
     confidence: float
     support_count: int
-    discovered_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ---------------------------------------------------------------------------
@@ -207,19 +205,13 @@ class LinkPredictor:
         predictions: list[InferredRelationship] = []
 
         # Strategy 1: TransE-inspired transitive closure
-        predictions.extend(
-            self._transitive_closure(entity_id, entity_data, all_entities)
-        )
+        predictions.extend(self._transitive_closure(entity_id, entity_data, all_entities))
 
         # Strategy 2: shared vibe_dna + style => SIMILAR_TO
-        predictions.extend(
-            self._vibe_style_pattern(entity_id, entity_data, all_entities)
-        )
+        predictions.extend(self._vibe_style_pattern(entity_id, entity_data, all_entities))
 
         # Strategy 3: same city + same category => COMPETES_WITH
-        predictions.extend(
-            self._colocation_pattern(entity_id, entity_data, all_entities)
-        )
+        predictions.extend(self._colocation_pattern(entity_id, entity_data, all_entities))
 
         # Deduplicate: keep highest confidence per (target_id, rel_type)
         best: dict[tuple[str, str], InferredRelationship] = {}
@@ -229,14 +221,11 @@ class LinkPredictor:
             if existing is None or pred.confidence > existing.confidence:
                 best[key] = pred
 
-        deduplicated = sorted(
-            best.values(), key=lambda r: r.confidence, reverse=True
-        )
+        deduplicated = sorted(best.values(), key=lambda r: r.confidence, reverse=True)
 
         result = deduplicated[:top_k]
         logger.info(
-            "LinkPredictor: %d raw predictions -> %d deduplicated -> "
-            "top %d for entity %s",
+            "LinkPredictor: %d raw predictions -> %d deduplicated -> " "top %d for entity %s",
             len(predictions),
             len(deduplicated),
             len(result),
@@ -276,9 +265,7 @@ class LinkPredictor:
                 continue
 
             rel_type = rel.get("type", rel.get("rel_type", ""))
-            intermediate_id = str(
-                rel.get("target_id", rel.get("target", ""))
-            )
+            intermediate_id = str(rel.get("target_id", rel.get("target", "")))
 
             if not rel_type or not intermediate_id:
                 continue
@@ -298,12 +285,8 @@ class LinkPredictor:
                 if not isinstance(inter_rel, dict):
                     continue
 
-                inter_rel_type = inter_rel.get(
-                    "type", inter_rel.get("rel_type", "")
-                )
-                target_id = str(
-                    inter_rel.get("target_id", inter_rel.get("target", ""))
-                )
+                inter_rel_type = inter_rel.get("type", inter_rel.get("rel_type", ""))
+                target_id = str(inter_rel.get("target_id", inter_rel.get("target", "")))
 
                 if not target_id or target_id == entity_id:
                     continue
@@ -594,9 +577,7 @@ class RuleInductor:
 
         # Count pattern occurrences
         # pattern key: (frozenset(antecedent_strings), consequent_string)
-        pattern_support: Counter[
-            tuple[tuple[str, ...], str]
-        ] = Counter()
+        pattern_support: Counter[tuple[tuple[str, ...], str]] = Counter()
         pattern_total: Counter[tuple[str, ...]] = Counter()
 
         for entity_a, entity_b in entity_pairs:
@@ -650,9 +631,7 @@ class RuleInductor:
             for consequent_rel in ("SIMILAR_TO", "COMPETES_WITH"):
                 if consequent_rel in pair_rels:
                     consequent_str = f"A -{consequent_rel}-> B"
-                    pattern_support[
-                        (antecedent_key, consequent_str)
-                    ] += 1
+                    pattern_support[(antecedent_key, consequent_str)] += 1
 
         # Filter by min_support and min_confidence
         rules: list[GraphRule] = []
@@ -725,16 +704,13 @@ class RuleInductor:
 
         # Determine required antecedent checks
         needs_shared_style = (
-            "A -HAS_STYLE-> S" in rule.antecedent
-            and "B -HAS_STYLE-> S" in rule.antecedent
+            "A -HAS_STYLE-> S" in rule.antecedent and "B -HAS_STYLE-> S" in rule.antecedent
         )
         needs_shared_city = (
-            "A -IS_IN-> City" in rule.antecedent
-            and "B -IS_IN-> City" in rule.antecedent
+            "A -IS_IN-> City" in rule.antecedent and "B -IS_IN-> City" in rule.antecedent
         )
         needs_shared_category = (
-            "A -HAS_CATEGORY-> C" in rule.antecedent
-            and "B -HAS_CATEGORY-> C" in rule.antecedent
+            "A -HAS_CATEGORY-> C" in rule.antecedent and "B -HAS_CATEGORY-> C" in rule.antecedent
         )
 
         # Check all pairs
@@ -773,12 +749,8 @@ class RuleInductor:
                         continue
 
                 if needs_shared_category:
-                    a_cat = str(
-                        entity_a.get("category", "")
-                    ).strip().lower()
-                    b_cat = str(
-                        entity_b.get("category", "")
-                    ).strip().lower()
+                    a_cat = str(entity_a.get("category", "")).strip().lower()
+                    b_cat = str(entity_b.get("category", "")).strip().lower()
                     if not a_cat or a_cat != b_cat:
                         continue
 
@@ -786,8 +758,7 @@ class RuleInductor:
                 evidence_parts = [
                     f"Rule {rule.rule_id}: {' AND '.join(rule.antecedent)} "
                     f"=> {rule.consequent}",
-                    f"Rule confidence: {rule.confidence:.4f} "
-                    f"(support={rule.support_count})",
+                    f"Rule confidence: {rule.confidence:.4f} " f"(support={rule.support_count})",
                 ]
 
                 inferred.append(
@@ -807,8 +778,7 @@ class RuleInductor:
                 )
 
         logger.info(
-            "RuleInductor.apply_rule(%s): %d inferred relationships "
-            "from %d entities",
+            "RuleInductor.apply_rule(%s): %d inferred relationships " "from %d entities",
             rule.rule_id,
             len(inferred),
             len(entities),
@@ -919,10 +889,7 @@ class TemporalReasoner:
             indices = list(range(n))
             mean_x = sum(indices) / n
             mean_y = sum(connection_counts) / n
-            numerator = sum(
-                (x - mean_x) * (y - mean_y)
-                for x, y in zip(indices, connection_counts)
-            )
+            numerator = sum((x - mean_x) * (y - mean_y) for x, y in zip(indices, connection_counts))
             denominator = sum((x - mean_x) ** 2 for x in indices)
             if denominator > 0:
                 connection_slope = numerator / denominator
@@ -958,8 +925,7 @@ class TemporalReasoner:
         }
 
         logger.debug(
-            "TemporalReasoner.detect_trends: %d snapshots -> trend=%s "
-            "(slope=%.4f, drift=%.4f)",
+            "TemporalReasoner.detect_trends: %d snapshots -> trend=%s " "(slope=%.4f, drift=%.4f)",
             len(entity_timeline),
             trend,
             connection_slope,
@@ -1031,22 +997,16 @@ class TemporalReasoner:
         if len(vibe_history) >= 2:
             n_dims = len(vibe_history[0])
             for dim in range(n_dims):
-                values = [
-                    v[dim] for v in vibe_history if dim < len(v)
-                ]
+                values = [v[dim] for v in vibe_history if dim < len(v)]
                 if len(values) >= 2:
                     slope = self._linear_slope(values)
                     last_val = values[-1]
                     predicted = last_val + slope * horizon_steps
                     # Clamp to [0, 1] for normalised vibe dimensions
-                    predicted_vibe.append(
-                        round(max(0.0, min(1.0, predicted)), 4)
-                    )
+                    predicted_vibe.append(round(max(0.0, min(1.0, predicted)), 4))
                 else:
                     predicted_vibe.append(
-                        round(vibe_history[-1][dim], 4)
-                        if dim < len(vibe_history[-1])
-                        else 0.0
+                        round(vibe_history[-1][dim], 4) if dim < len(vibe_history[-1]) else 0.0
                     )
         elif current_vibe and isinstance(current_vibe, list):
             predicted_vibe = [round(v, 4) for v in current_vibe]
@@ -1068,8 +1028,7 @@ class TemporalReasoner:
         }
 
         logger.debug(
-            "TemporalReasoner.predict_future_state(%s): %d vibe snapshots, "
-            "confidence=%.4f",
+            "TemporalReasoner.predict_future_state(%s): %d vibe snapshots, " "confidence=%.4f",
             entity_id,
             len(vibe_history),
             confidence,
@@ -1101,10 +1060,7 @@ class TemporalReasoner:
         mean_x = sum(indices) / n
         mean_y = sum(values) / n
 
-        numerator = sum(
-            (x - mean_x) * (y - mean_y)
-            for x, y in zip(indices, values)
-        )
+        numerator = sum((x - mean_x) * (y - mean_y) for x, y in zip(indices, values))
         denominator = sum((x - mean_x) ** 2 for x in indices)
 
         if denominator == 0:
@@ -1163,18 +1119,19 @@ class CounterfactualReasoner:
 
         # Current connectivity: count edges involving entity_id
         current_edges = [
-            r for r in relationships
+            r
+            for r in relationships
             if isinstance(r, dict)
             and (
-                str(r.get("source_id", "")) == entity_id
-                or str(r.get("target_id", "")) == entity_id
+                str(r.get("source_id", "")) == entity_id or str(r.get("target_id", "")) == entity_id
             )
         ]
         connectivity_before = len(current_edges)
 
         # After removal: exclude the specific edge
         remaining_edges = [
-            r for r in current_edges
+            r
+            for r in current_edges
             if not (
                 str(r.get("source_id", "")) == entity_id
                 and str(r.get("target_id", "")) == target_id
@@ -1187,7 +1144,8 @@ class CounterfactualReasoner:
         # Paths: entity_id -> target_id -> X  (these are now unreachable
         # via this edge)
         target_onward = [
-            r for r in relationships
+            r
+            for r in relationships
             if isinstance(r, dict)
             and str(r.get("source_id", "")) == target_id
             and str(r.get("target_id", "")) != entity_id
@@ -1210,16 +1168,11 @@ class CounterfactualReasoner:
 
         # Scale by proportion of connections lost
         if connectivity_before > 0:
-            connectivity_ratio = (
-                (connectivity_before - connectivity_after)
-                / connectivity_before
-            )
+            connectivity_ratio = (connectivity_before - connectivity_after) / connectivity_before
         else:
             connectivity_ratio = 0.0
 
-        recommendation_impact = round(
-            edge_weight * connectivity_ratio * -1.0, 4
-        )
+        recommendation_impact = round(edge_weight * connectivity_ratio * -1.0, 4)
 
         # Severity classification
         if abs(recommendation_impact) > 0.5:
@@ -1292,11 +1245,11 @@ class CounterfactualReasoner:
 
         # Current connectivity
         current_edges = [
-            r for r in relationships
+            r
+            for r in relationships
             if isinstance(r, dict)
             and (
-                str(r.get("source_id", "")) == entity_id
-                or str(r.get("target_id", "")) == entity_id
+                str(r.get("source_id", "")) == entity_id or str(r.get("target_id", "")) == entity_id
             )
         ]
         connectivity_before = len(current_edges)
@@ -1313,7 +1266,8 @@ class CounterfactualReasoner:
 
         # New two-hop paths unlocked via the target
         target_connections = [
-            r for r in relationships
+            r
+            for r in relationships
             if isinstance(r, dict)
             and str(r.get("source_id", "")) == target_id
             and str(r.get("target_id", "")) != entity_id
@@ -1322,13 +1276,10 @@ class CounterfactualReasoner:
         existing_neighbours = {
             str(r.get("target_id", ""))
             for r in current_edges
-            if isinstance(r, dict)
-            and str(r.get("source_id", "")) == entity_id
+            if isinstance(r, dict) and str(r.get("source_id", "")) == entity_id
         }
         new_paths = sum(
-            1
-            for r in target_connections
-            if str(r.get("target_id", "")) not in existing_neighbours
+            1 for r in target_connections if str(r.get("target_id", "")) not in existing_neighbours
         )
 
         # Recommendation impact heuristic
@@ -1438,9 +1389,7 @@ class AbductiveReasoner:
         if isinstance(raw_styles, list):
             entity_styles = {str(s).lower() for s in raw_styles}
         entity_city = str(entity_data.get("city", "")).strip().lower()
-        entity_category = str(
-            entity_data.get("category", "")
-        ).strip().lower()
+        entity_category = str(entity_data.get("category", "")).strip().lower()
 
         # Explanation 1: shared style with previously liked entities
         for hist_entity in user_history:
@@ -1463,15 +1412,12 @@ class AbductiveReasoner:
             city_prefs = user_profile.get("city_preferences", {})
             if city_prefs.get(entity_city, 0.0) > 0.0:
                 explanations.append(
-                    f"Because {entity_name} is in user's preferred city "
-                    f"({entity_city})"
+                    f"Because {entity_name} is in user's preferred city " f"({entity_city})"
                 )
 
             # Also check history for city matches
             for hist_entity in user_history:
-                hist_city = str(
-                    hist_entity.get("city", "")
-                ).strip().lower()
+                hist_city = str(hist_entity.get("city", "")).strip().lower()
                 if hist_city == entity_city:
                     explanations.append(
                         f"Because {entity_name} is in {entity_city}, "
@@ -1508,16 +1454,14 @@ class AbductiveReasoner:
 
         # Explanation 5: graph connection to a previously liked entity
         entity_rels = [
-            r for r in relationships
+            r
+            for r in relationships
             if isinstance(r, dict)
             and (
-                str(r.get("source_id", "")) == entity_id
-                or str(r.get("target_id", "")) == entity_id
+                str(r.get("source_id", "")) == entity_id or str(r.get("target_id", "")) == entity_id
             )
         ]
-        hist_ids = {
-            str(h.get("id", "")) for h in user_history if h.get("id")
-        }
+        hist_ids = {str(h.get("id", "")) for h in user_history if h.get("id")}
         for rel in entity_rels:
             src = str(rel.get("source_id", ""))
             tgt = str(rel.get("target_id", ""))
@@ -1525,9 +1469,7 @@ class AbductiveReasoner:
             connected_id = tgt if src == entity_id else src
 
             if connected_id in hist_ids:
-                connected_name = entities.get(
-                    connected_id, {}
-                ).get("name", connected_id)
+                connected_name = entities.get(connected_id, {}).get("name", connected_id)
                 explanations.append(
                     f"Because {entity_name} is connected to "
                     f"{connected_name} (via {rel_type}), which user "
@@ -1556,8 +1498,7 @@ class AbductiveReasoner:
                 unique_explanations.append(exp)
 
         logger.debug(
-            "AbductiveReasoner.explain_observation(entity=%s): "
-            "%d explanations generated",
+            "AbductiveReasoner.explain_observation(entity=%s): " "%d explanations generated",
             entity_id,
             len(unique_explanations),
         )
@@ -1592,9 +1533,7 @@ class KGReasoningEngine:
         self.abductive_reasoner = AbductiveReasoner()
 
         # Caches for inferred state
-        self._inferred_relationships: dict[
-            str, list[InferredRelationship]
-        ] = defaultdict(list)
+        self._inferred_relationships: dict[str, list[InferredRelationship]] = defaultdict(list)
         self._discovered_rules: list[GraphRule] = []
 
         logger.info("KGReasoningEngine initialised")
@@ -1611,9 +1550,7 @@ class KGReasoningEngine:
         all_entities: Optional[list[dict[str, Any]]] = None,
         graph_state: Optional[dict[str, Any]] = None,
         entity_timeline: Optional[list[dict[str, Any]]] = None,
-        entity_pairs: Optional[
-            list[tuple[dict[str, Any], dict[str, Any]]]
-        ] = None,
+        entity_pairs: Optional[list[tuple[dict[str, Any], dict[str, Any]]]] = None,
         relationships: Optional[list[dict[str, Any]]] = None,
         observation: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
@@ -1681,16 +1618,12 @@ class KGReasoningEngine:
             rule_inferred: list[InferredRelationship] = []
 
             if entity_pairs and relationships:
-                discovered_rules = self.rule_inductor.induce_rules(
-                    entity_pairs, relationships
-                )
+                discovered_rules = self.rule_inductor.induce_rules(entity_pairs, relationships)
                 self._discovered_rules.extend(discovered_rules)
 
                 # Apply each discovered rule to all entities
                 for rule in discovered_rules:
-                    rule_inferred.extend(
-                        self.rule_inductor.apply_rule(rule, all_entities)
-                    )
+                    rule_inferred.extend(self.rule_inductor.apply_rule(rule, all_entities))
 
                 # Cache inferred from rules
                 for inf in rule_inferred:
@@ -1728,8 +1661,7 @@ class KGReasoningEngine:
             entity_rels = [
                 r
                 for r in graph_state.get("relationships", [])
-                if isinstance(r, dict)
-                and str(r.get("source_id", "")) == entity_id
+                if isinstance(r, dict) and str(r.get("source_id", "")) == entity_id
             ]
 
             counterfactual_results: list[dict[str, Any]] = []
@@ -1750,9 +1682,7 @@ class KGReasoningEngine:
         # --- Abductive reasoning ---
         if ReasoningType.ABDUCTIVE in reasoning_types:
             if observation:
-                explanations = self.abductive_reasoner.explain_observation(
-                    observation, graph_state
-                )
+                explanations = self.abductive_reasoner.explain_observation(observation, graph_state)
             else:
                 # Build a default observation from context
                 explanations = self.abductive_reasoner.explain_observation(
@@ -1770,10 +1700,7 @@ class KGReasoningEngine:
             }
 
         # --- Summary ---
-        total_inferred = sum(
-            len(rels)
-            for rels in self._inferred_relationships.values()
-        )
+        total_inferred = sum(len(rels) for rels in self._inferred_relationships.values())
         results["summary"] = {
             "entity_id": entity_id,
             "reasoning_types_executed": [rt.value for rt in reasoning_types],

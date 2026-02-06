@@ -7,49 +7,48 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.observability.metrics import (
-    arbor_discover_requests_total,
-    arbor_search_requests_total,
-    arbor_llm_latency_seconds,
-    arbor_embedding_latency_seconds,
-    arbor_rerank_latency_seconds,
     arbor_active_curators,
-    arbor_entities_total,
+    arbor_active_users,
+    arbor_build_info,
+    arbor_cache_hits_total,
     arbor_circuit_breaker_state,
     arbor_db_pool_connections,
-    arbor_rate_limit_hits_total,
+    arbor_discover_requests_total,
+    arbor_embedding_latency_seconds,
+    arbor_entities_total,
     arbor_guardrail_blocks_total,
-    arbor_build_info,
-    arbor_query_latency_seconds,
-    arbor_cache_hits_total,
+    arbor_llm_latency_seconds,
     arbor_llm_tokens_used,
-    arbor_active_users,
-    record_cache_hit,
-    record_cache_miss,
-    record_llm_tokens,
-    track_latency,
-    track_llm_latency,
-    record_discover_request,
-    record_search_request,
-    record_embedding_latency,
-    record_rerank_latency,
-    set_circuit_breaker_state,
-    update_db_pool_metrics,
-    record_rate_limit,
-    record_guardrail_block,
-    set_build_info,
+    arbor_query_latency_seconds,
+    arbor_rate_limit_hits_total,
+    arbor_rerank_latency_seconds,
+    arbor_search_requests_total,
     get_metrics,
     get_metrics_content_type,
+    record_cache_hit,
+    record_cache_miss,
+    record_discover_request,
+    record_embedding_latency,
+    record_guardrail_block,
+    record_llm_tokens,
+    record_rate_limit,
+    record_rerank_latency,
+    record_search_request,
+    set_build_info,
+    set_circuit_breaker_state,
+    track_latency,
+    track_llm_latency,
+    update_db_pool_metrics,
 )
 from app.observability.slo import (
-    SLOType,
+    BurnRateCalculator,
+    ErrorBudget,
     SLODefinition,
     SLOMetric,
-    ErrorBudget,
-    BurnRateCalculator,
     SLOMonitor,
+    SLOType,
     get_slo_monitor,
 )
-
 
 # ==========================================================================
 # Metrics Registration Tests
@@ -486,6 +485,7 @@ class TestGetSLOMonitor:
     def test_returns_slo_monitor_instance(self):
         # Reset singleton for test isolation
         import app.observability.slo as slo_module
+
         slo_module._slo_monitor_instance = None
 
         monitor = get_slo_monitor()
@@ -493,6 +493,7 @@ class TestGetSLOMonitor:
 
     def test_returns_same_instance(self):
         import app.observability.slo as slo_module
+
         slo_module._slo_monitor_instance = None
 
         m1 = get_slo_monitor()
@@ -517,6 +518,7 @@ class TestSetupTelemetry:
         self, mock_resource, mock_tp_cls, mock_exporter, mock_processor, mock_trace
     ):
         import app.observability.telemetry as tel_module
+
         tel_module._tracer_provider = None  # Reset singleton
 
         mock_resource.create.return_value = MagicMock()
@@ -524,6 +526,7 @@ class TestSetupTelemetry:
         mock_tp_cls.return_value = mock_tp
 
         from app.observability.telemetry import setup_telemetry
+
         provider = setup_telemetry()
 
         mock_tp_cls.assert_called_once()
@@ -543,10 +546,12 @@ class TestSetupTelemetry:
         self, mock_resource, mock_tp_cls, mock_exporter, mock_processor, mock_trace
     ):
         import app.observability.telemetry as tel_module
+
         existing = MagicMock()
         tel_module._tracer_provider = existing
 
         from app.observability.telemetry import setup_telemetry
+
         provider = setup_telemetry()
 
         assert provider is existing
@@ -561,10 +566,16 @@ class TestSetupTelemetry:
     @patch("app.observability.telemetry.TracerProvider")
     @patch("app.observability.telemetry.Resource")
     def test_setup_instruments_fastapi_app(
-        self, mock_resource, mock_tp_cls, mock_exporter, mock_processor,
-        mock_trace, mock_fastapi_inst
+        self,
+        mock_resource,
+        mock_tp_cls,
+        mock_exporter,
+        mock_processor,
+        mock_trace,
+        mock_fastapi_inst,
     ):
         import app.observability.telemetry as tel_module
+
         tel_module._tracer_provider = None
 
         mock_resource.create.return_value = MagicMock()
@@ -574,6 +585,7 @@ class TestSetupTelemetry:
         mock_app = MagicMock()
 
         from app.observability.telemetry import setup_telemetry
+
         setup_telemetry(app=mock_app)
 
         mock_fastapi_inst.instrument_app.assert_called_once()
@@ -589,6 +601,7 @@ class TestGetTracer:
     @patch("app.observability.telemetry.trace")
     def test_get_tracer_returns_tracer(self, mock_trace):
         import app.observability.telemetry as tel_module
+
         tel_module._tracer_provider = None
 
         mock_provider = MagicMock()
@@ -596,17 +609,20 @@ class TestGetTracer:
         mock_provider.get_tracer.return_value = MagicMock()
 
         from app.observability.telemetry import get_tracer
+
         tracer = get_tracer("test_module")
 
         mock_provider.get_tracer.assert_called_once()
 
     def test_get_tracer_uses_existing_provider(self):
         import app.observability.telemetry as tel_module
+
         mock_provider = MagicMock()
         tel_module._tracer_provider = mock_provider
         mock_provider.get_tracer.return_value = MagicMock()
 
         from app.observability.telemetry import get_tracer
+
         tracer = get_tracer("my_module")
 
         mock_provider.get_tracer.assert_called_once()
@@ -618,10 +634,12 @@ class TestShutdownTelemetry:
 
     async def test_shutdown_calls_provider_shutdown(self):
         import app.observability.telemetry as tel_module
+
         mock_provider = MagicMock()
         tel_module._tracer_provider = mock_provider
 
         from app.observability.telemetry import shutdown_telemetry
+
         await shutdown_telemetry()
 
         mock_provider.shutdown.assert_called_once()
@@ -629,8 +647,10 @@ class TestShutdownTelemetry:
 
     async def test_shutdown_noop_when_no_provider(self):
         import app.observability.telemetry as tel_module
+
         tel_module._tracer_provider = None
 
         from app.observability.telemetry import shutdown_telemetry
+
         await shutdown_telemetry()  # Should not raise
         assert tel_module._tracer_provider is None

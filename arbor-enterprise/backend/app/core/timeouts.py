@@ -168,12 +168,14 @@ class TimeoutBudget:
             elapsed = asyncio.get_event_loop().time() - operation_start
             self.remaining -= elapsed
 
-            self.operations.append({
-                "name": name,
-                "elapsed": elapsed,
-                "timeout": timeout_seconds,
-                "success": True,
-            })
+            self.operations.append(
+                {
+                    "name": name,
+                    "elapsed": elapsed,
+                    "timeout": timeout_seconds,
+                    "success": True,
+                }
+            )
 
             return result
 
@@ -181,12 +183,14 @@ class TimeoutBudget:
             elapsed = asyncio.get_event_loop().time() - operation_start
             self.remaining -= elapsed
 
-            self.operations.append({
-                "name": name,
-                "elapsed": elapsed,
-                "timeout": timeout_seconds,
-                "success": False,
-            })
+            self.operations.append(
+                {
+                    "name": name,
+                    "elapsed": elapsed,
+                    "timeout": timeout_seconds,
+                    "success": False,
+                }
+            )
 
             raise NodeTimeoutError(name, timeout_seconds)
 
