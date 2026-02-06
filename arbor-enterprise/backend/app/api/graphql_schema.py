@@ -16,6 +16,7 @@ import strawberry
 from strawberry.fastapi import GraphQLRouter
 from strawberry.scalars import JSON
 
+from app.config import get_settings
 from app.db.postgres.connection import arbor_session_factory, magazine_session_factory
 from app.db.postgres.repository import (
     EnrichmentRepository,
@@ -491,8 +492,8 @@ class Mutation:
             entity_type,
             source_id,
         )
-        if entity_type not in ("brand", "venue"):
-            logger.warning("Invalid entity_type for enrichment: %s", entity_type)
+        if entity_type not in get_settings().get_entity_types():
+            logger.warning("Invalid entity_type for enrichment: %s (valid: %s)", entity_type, get_settings().get_entity_types())
             return False
 
         if arbor_session_factory is None:

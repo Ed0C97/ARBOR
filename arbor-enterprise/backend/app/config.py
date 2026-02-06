@@ -1,8 +1,12 @@
 """A.R.B.O.R. Enterprise - Application Configuration.
 
 Dual-database architecture:
-- DATABASE_URL         → magazine_h182 on Render (READ-ONLY: brands, venues)
+- SOURCE_DATABASE_URL  → Client's database (READ-ONLY: any tables)
 - ARBOR_DATABASE_URL   → arbor_db (READ-WRITE: enrichments, gold standard, etc.)
+
+SCHEMA-AGNOSTIC DESIGN:
+The system reads table schemas from SOURCE_SCHEMA_CONFIG (JSON in ENV).
+This allows ARBOR to work with ANY database/tables/columns without code changes.
 
 LLM stack:
 - Google Gemini gemini-3-pro-preview  → Text + Vision (primary)
@@ -15,14 +19,171 @@ In production, use GCP Secret Manager via app.core.secrets_manager.
 Never hardcode credentials in this file.
 """
 
+import json
 import logging
 import os
+from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# SCHEMA-AGNOSTIC CONFIGURATION
+# =============================================================================
+
+
+@dataclass
+class EntityTypeConfig:
+    """Configuration for a single entity type (table) in the source database.
+
+    This defines how ARBOR maps a source table to its internal UnifiedEntity format.
+
+    Example JSON in SOURCE_SCHEMA_CONFIG:
+    {
+        "entity_type": "product",
+        "table_name": "products",
+        "id_column": "id",
+        "required_mappings": {"name": "product_name"},
+        "optional_mappings": {"category": "cat_id", "city": null},
+        "text_fields_for_embedding": ["product_name", "description"]
+    }
+    """
+
+    entity_type: str  # Internal name: "product", "store", etc.
+    table_name: str  # Actual table name in source DB
+    id_column: str = "id"  # Primary key column
+
+    # Maps ARBOR field → source column name (or None if not available)
+    required_mappings: dict = field(default_factory=lambda: {"name": "name"})
+    optional_mappings: dict = field(default_factory=dict)
+
+    # Columns to concatenate for embedding generation
+    text_fields_for_embedding: list = field(default_factory=lambda: ["name", "description"])
+
+    # Filter for active/published records (optional)
+    active_filter_column: str | None = None
+    active_filter_value: str | bool | None = True
+
+    @property
+    def all_mappings(self) -> dict:
+        """Return combined required + optional mappings."""
+        return {**self.required_mappings, **self.optional_mappings}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "EntityTypeConfig":
+        """Create from dictionary (parsed from JSON)."""
+        return cls(
+            entity_type=data["entity_type"],
+            table_name=data["table_name"],
+            id_column=data.get("id_column", "id"),
+            required_mappings=data.get("required_mappings", {"name": "name"}),
+            optional_mappings=data.get("optional_mappings", {}),
+            text_fields_for_embedding=data.get("text_fields_for_embedding", ["name"]),
+            active_filter_column=data.get("active_filter_column"),
+            active_filter_value=data.get("active_filter_value", True),
+        )
+
+
+def parse_schema_config(config_str: str | None, config_file: str | None = None) -> list[EntityTypeConfig]:
+    """Parse SOURCE_SCHEMA_CONFIG from ENV or file.
+
+    Args:
+        config_str: JSON string from SOURCE_SCHEMA_CONFIG env var
+        config_file: Path to JSON file from SOURCE_SCHEMA_CONFIG_FILE env var
+
+    Returns:
+        List of EntityTypeConfig objects
+
+    Example ENV:
+        SOURCE_SCHEMA_CONFIG='[{"entity_type":"product","table_name":"products",...}]'
+    """
+    # Try file first
+    if config_file:
+        path = Path(config_file)
+        if path.exists():
+            with open(path) as f:
+                data = json.load(f)
+                return [EntityTypeConfig.from_dict(item) for item in data]
+        else:
+            logger.warning(f"Schema config file not found: {config_file}")
+
+    # Fall back to inline JSON
+    if config_str:
+        try:
+            data = json.loads(config_str)
+            return [EntityTypeConfig.from_dict(item) for item in data]
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse SOURCE_SCHEMA_CONFIG: {e}")
+
+    # Default: backwards-compatible brands/venues schema
+    logger.info("No SOURCE_SCHEMA_CONFIG found, using default brands/venues schema")
+    return [
+        EntityTypeConfig(
+            entity_type="brand",
+            table_name="brands",
+            id_column="id",
+            required_mappings={"name": "name", "slug": "slug", "category": "category"},
+            optional_mappings={
+                "city": "city",
+                "region": "region",
+                "country": "country",
+                "address": "address",
+                "latitude": "latitude",
+                "longitude": "longitude",
+                "website": "website",
+                "instagram": "instagram",
+                "email": "email",
+                "phone": "phone",
+                "description": "description",
+                "specialty": "specialty",
+                "notes": "notes",
+                "gender": "gender",
+                "style": "style",
+                "rating": "rating",
+                "is_featured": "is_featured",
+                "is_active": "is_active",
+                "priority": "priority",
+            },
+            text_fields_for_embedding=["name", "description", "specialty", "notes"],
+            active_filter_column="is_active",
+            active_filter_value=True,
+        ),
+        EntityTypeConfig(
+            entity_type="venue",
+            table_name="venues",
+            id_column="id",
+            required_mappings={"name": "name", "slug": "slug", "category": "category"},
+            optional_mappings={
+                "city": "city",
+                "region": "region",
+                "country": "country",
+                "address": "address",
+                "latitude": "latitude",
+                "longitude": "longitude",
+                "website": "website",
+                "instagram": "instagram",
+                "email": "email",
+                "phone": "phone",
+                "description": "description",
+                "notes": "notes",
+                "gender": "gender",
+                "style": "style",
+                "rating": "rating",
+                "price_range": "price_range",
+                "is_featured": "is_featured",
+                "is_active": "is_active",
+                "priority": "priority",
+            },
+            text_fields_for_embedding=["name", "description", "notes"],
+            active_filter_column="is_active",
+            active_filter_value=True,
+        ),
+    ]
 
 
 class Settings(BaseSettings):
@@ -48,11 +209,16 @@ class Settings(BaseSettings):
     backend_port: int = 8000
 
     # -----------------------------------------------------------------------
-    # DATABASE 1: magazine_h182 — READ-ONLY (brands, venues)
+    # SOURCE DATABASE — READ-ONLY (client's data)
     # SECURITY: Load from environment - no hardcoded credentials
     # -----------------------------------------------------------------------
-    database_url: str = ""  # REQUIRED - no default
+    source_database_url: str = ""  # REQUIRED - client's database URL
+    database_url: str = ""  # DEPRECATED: alias for source_database_url
     database_ssl: bool = True
+
+    # Schema configuration (JSON or file path)
+    source_schema_config: str = ""  # JSON array of entity type configs
+    source_schema_config_file: str = ""  # Path to JSON config file
 
     # -----------------------------------------------------------------------
     # DATABASE 2: arbor_db — READ-WRITE (enrichments, gold standard, feedback)
@@ -204,6 +370,36 @@ class Settings(BaseSettings):
         "env_file_encoding": "utf-8",
         "extra": "ignore",
     }
+
+    # Cached entity type configs (set after initialization)
+    _entity_type_configs: list["EntityTypeConfig"] | None = None
+
+    def get_entity_type_configs(self) -> list["EntityTypeConfig"]:
+        """Get parsed entity type configurations.
+
+        Returns cached configs or parses from ENV on first call.
+        """
+        if self._entity_type_configs is None:
+            self._entity_type_configs = parse_schema_config(
+                self.source_schema_config or None,
+                self.source_schema_config_file or None,
+            )
+        return self._entity_type_configs
+
+    def get_entity_types(self) -> list[str]:
+        """Get list of configured entity type names."""
+        return [config.entity_type for config in self.get_entity_type_configs()]
+
+    def get_entity_config(self, entity_type: str) -> "EntityTypeConfig | None":
+        """Get configuration for a specific entity type."""
+        for config in self.get_entity_type_configs():
+            if config.entity_type == entity_type:
+                return config
+        return None
+
+    def get_effective_source_db_url(self) -> str:
+        """Get the effective source database URL (supports legacy database_url)."""
+        return self.source_database_url or self.database_url
 
     @field_validator("app_secret_key", "database_url", "arbor_database_url")
     @classmethod
