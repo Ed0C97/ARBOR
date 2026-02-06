@@ -55,7 +55,7 @@ class EntityIngestionWorkflow:
             retry_policy=retry,
         )
 
-        vision_result, vibe_result = await vision_task, await vibe_task
+        _vision_result, vibe_result = await vision_task, await vibe_task  # noqa: F841
 
         # Step 3: Generate embedding
         embedding_text = (

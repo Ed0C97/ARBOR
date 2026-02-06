@@ -157,7 +157,7 @@ class GoldStandardManager:
 
         # If not enough same-category, fill with others
         if len(entities) < max_examples:
-            remaining = max_examples - len(entities)
+            _remaining = max_examples - len(entities)  # noqa: F841
             all_gs = await self.repo.list_all(limit=50)
             existing_ids = {e.entity_id for e in entities}
             for gs in all_gs:

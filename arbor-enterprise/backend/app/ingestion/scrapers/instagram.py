@@ -13,7 +13,6 @@ import re
 
 import httpx
 
-from app.config import get_settings
 from app.ingestion.scrapers.base import BaseScraper, RawEntity
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,6 @@ class InstagramScraper(BaseScraper):
     """
 
     def __init__(self, access_token: str | None = None):
-        settings = get_settings()
         self.access_token = access_token
         self.timeout = 15.0
 

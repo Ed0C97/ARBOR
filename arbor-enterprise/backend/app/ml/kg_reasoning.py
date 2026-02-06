@@ -1114,7 +1114,7 @@ class CounterfactualReasoner:
               recommendation score.
             - ``severity`` -- ``"high"``, ``"medium"``, or ``"low"``.
         """
-        entities = graph_state.get("entities", {})
+        _entities = graph_state.get("entities", {})  # noqa: F841
         relationships = graph_state.get("relationships", [])
 
         # Current connectivity: count edges involving entity_id
@@ -1240,7 +1240,7 @@ class CounterfactualReasoner:
               recommendation score.
             - ``redundancy`` -- ``True`` if a similar edge already exists.
         """
-        entities = graph_state.get("entities", {})
+        _entities = graph_state.get("entities", {})  # noqa: F841
         relationships = graph_state.get("relationships", [])
 
         # Current connectivity

@@ -326,7 +326,7 @@ async def cleanup_qdrant_cache(collection: str = "semantic_cache") -> int:
         # Delete entries older than 7 days
         cutoff = time.time() - (7 * 24 * 60 * 60)
 
-        result = await client.delete(
+        _result = await client.delete(  # noqa: F841
             collection_name=collection,
             points_selector=Filter(
                 must=[

@@ -94,7 +94,7 @@ class RAGEvaluator:
         """Get prompts for LLM-based evaluation."""
         return {
             "faithfulness": """Given the following context and answer, evaluate if the answer is faithful to the context.
-            
+
 Context:
 {context}
 

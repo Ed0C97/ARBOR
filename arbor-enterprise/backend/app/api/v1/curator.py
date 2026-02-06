@@ -421,13 +421,10 @@ async def trigger_batch_enrichment(
 
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
-    entities_to_enrich = []
-
     # Find unenriched brands (Need check against Arbor DB for exclusion)
     # This logic is tricky: "not in arbor_enrichments".
     # Since they are different DBs, we can't do a direct SQL subquery join unless fdw used.
     # We must fetch IDs from Arbor first, then query Magazine.
-
     # 1. Get existing enriched IDs from Arbor
     existing_enrichments_result = await arbor_session.execute(
         select(ArborEnrichment.entity_type, ArborEnrichment.source_id)

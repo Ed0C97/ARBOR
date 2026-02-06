@@ -230,7 +230,7 @@ DEFAULT_PROMPTS = {
         name="discovery_system",
         version="1.0.0",
         template="""You are ARBOR, an AI assistant for discovering {category} experiences.
-        
+
 Your task is to analyze the user's query and provide personalized recommendations.
 
 User Query: {user_query}

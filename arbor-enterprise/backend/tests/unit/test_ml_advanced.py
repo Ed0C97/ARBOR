@@ -15,6 +15,7 @@ import pytest
 # ---------------------------------------------------------------------------
 from app.ml.competitive_intelligence import (
     CompetitiveIntelligenceEngine,
+    CompetitorProfile,
     _vibe_similarity,
 )
 
@@ -423,9 +424,6 @@ class TestCompetitiveIntelligence:
         similarity = _vibe_similarity(dna, dna)
         assert similarity == pytest.approx(1.0)
 
-
-# We need CompetitorProfile for the tests above
-from app.ml.competitive_intelligence import CompetitorProfile
 
 # =========================================================================
 # TestGraphExpansion

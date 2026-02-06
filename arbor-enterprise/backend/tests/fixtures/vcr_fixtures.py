@@ -22,7 +22,7 @@ import pytest
 
 # Try to import VCR, but don't fail if not installed
 try:
-    import vcr
+    import vcr  # noqa: F401
     from vcr import VCR
 
     HAS_VCR = True

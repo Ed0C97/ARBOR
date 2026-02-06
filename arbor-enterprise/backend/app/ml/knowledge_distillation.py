@@ -701,7 +701,6 @@ class EscalationRouter:
 
         # Quick complexity heuristic
         query = str(input_data.get("query", ""))
-        category = str(input_data.get("category", ""))
 
         is_complex = (
             len(query) > 200
