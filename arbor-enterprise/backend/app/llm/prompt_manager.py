@@ -97,7 +97,7 @@ class PromptRegistry:
 
         for yaml_file in prompts_dir.glob("*.yaml"):
             try:
-                with open(yaml_file, "r", encoding="utf-8") as f:
+                with open(yaml_file, encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
                 if not data or "prompts" not in data:

@@ -27,9 +27,9 @@ import logging
 import math
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -105,7 +105,7 @@ class GraphRule:
     consequent: str
     confidence: float
     support_count: int
-    discovered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -1546,13 +1546,13 @@ class KGReasoningEngine:
         self,
         entity_id: str,
         entity_data: dict[str, Any],
-        reasoning_types: Optional[list[ReasoningType]] = None,
-        all_entities: Optional[list[dict[str, Any]]] = None,
-        graph_state: Optional[dict[str, Any]] = None,
-        entity_timeline: Optional[list[dict[str, Any]]] = None,
-        entity_pairs: Optional[list[tuple[dict[str, Any], dict[str, Any]]]] = None,
-        relationships: Optional[list[dict[str, Any]]] = None,
-        observation: Optional[dict[str, Any]] = None,
+        reasoning_types: list[ReasoningType] | None = None,
+        all_entities: list[dict[str, Any]] | None = None,
+        graph_state: dict[str, Any] | None = None,
+        entity_timeline: list[dict[str, Any]] | None = None,
+        entity_pairs: list[tuple[dict[str, Any], dict[str, Any]]] | None = None,
+        relationships: list[dict[str, Any]] | None = None,
+        observation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Run one or more reasoning modes for the given entity.
 
@@ -1756,7 +1756,7 @@ class KGReasoningEngine:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_engine: Optional[KGReasoningEngine] = None
+_engine: KGReasoningEngine | None = None
 
 
 def get_kg_reasoning_engine() -> KGReasoningEngine:

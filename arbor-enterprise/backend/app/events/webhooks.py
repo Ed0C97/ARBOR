@@ -8,13 +8,11 @@ with configurable retry logic and exponential backoff.
 import asyncio
 import hashlib
 import hmac
-import json
 import logging
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 import httpx
@@ -55,14 +53,14 @@ class WebhookSubscription:
     secret: str
 
     is_active: bool = True
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     max_retries: int = 3
     retry_delay_seconds: int = 30
 
     failure_count: int = 0
-    last_failure_at: Optional[datetime] = None
-    last_success_at: Optional[datetime] = None
+    last_failure_at: datetime | None = None
+    last_success_at: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +73,7 @@ class WebhookPayload(BaseModel):
 
     event_type: WebhookEvent
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
     )
     subscription_id: str
     data: dict[str, Any] = Field(default_factory=dict)
@@ -147,7 +145,7 @@ class WebhookDelivery:
             "X-Webhook-Subscription-Id": subscription.id,
         }
 
-        last_exc: Optional[Exception] = None
+        last_exc: Exception | None = None
 
         async with httpx.AsyncClient(timeout=self.TIMEOUT_SECONDS) as client:
             for attempt in range(1, subscription.max_retries + 1):
@@ -159,7 +157,7 @@ class WebhookDelivery:
                     )
                     response.raise_for_status()
 
-                    subscription.last_success_at = datetime.now(timezone.utc)
+                    subscription.last_success_at = datetime.now(UTC)
                     subscription.failure_count = 0
                     logger.info(
                         "Webhook delivered: subscription=%s event=%s url=%s "
@@ -175,7 +173,7 @@ class WebhookDelivery:
                 except (httpx.HTTPStatusError, httpx.RequestError) as exc:
                     last_exc = exc
                     subscription.failure_count += 1
-                    subscription.last_failure_at = datetime.now(timezone.utc)
+                    subscription.last_failure_at = datetime.now(UTC)
 
                     logger.warning(
                         "Webhook delivery failed: subscription=%s event=%s "
@@ -349,7 +347,7 @@ class WebhookManager:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_webhook_manager: Optional[WebhookManager] = None
+_webhook_manager: WebhookManager | None = None
 
 
 def get_webhook_manager() -> WebhookManager:

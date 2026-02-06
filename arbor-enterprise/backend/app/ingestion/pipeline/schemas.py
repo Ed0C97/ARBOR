@@ -7,7 +7,7 @@ used throughout the pipeline stages.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -68,7 +68,7 @@ class SourceData:
     images: list[str] = field(default_factory=list)
     structured_data: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
-    collected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    collected_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -238,7 +238,7 @@ class ScoredVibeDNA:
     calibrated: bool = False
     calibration_reference_ids: list[str] = field(default_factory=list)
 
-    scored_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    scored_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_vibe_dna_dict(self) -> dict:
         """Convert to the vibe_dna JSONB format stored in ArborEnrichment."""
@@ -296,7 +296,7 @@ class GoldStandardEntity:
     curator_notes: str = ""
     # Who curated it
     curated_by: str = ""
-    curated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    curated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_few_shot_example(self, fact_sheet_text: str) -> str:
         """Format as a few-shot example for the scoring LLM."""
@@ -354,7 +354,7 @@ class ReviewQueueItem:
 class DriftReport:
     """Report on scoring drift compared to the gold standard."""
 
-    computed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    computed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     gold_standard_count: int = 0
     avg_mae: float = 0.0  # Mean Absolute Error vs gold standard
     per_dimension_mae: dict[str, float] = field(default_factory=dict)

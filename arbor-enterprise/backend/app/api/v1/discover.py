@@ -10,7 +10,7 @@ import asyncio
 import json
 import logging
 import time
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse

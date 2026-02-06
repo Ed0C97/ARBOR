@@ -1,7 +1,5 @@
 """LangGraph orchestration - the agent swarm graph."""
 
-import logging
-
 from langgraph.graph import END, StateGraph
 from sqlalchemy.ext.asyncio import AsyncSession
 

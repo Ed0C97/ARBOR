@@ -9,7 +9,7 @@ pipeline for continuous improvement:
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,13 +17,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.postgres.models import (
     ArborEnrichment,
     ArborFeedback,
-    ArborGoldStandard,
     ArborReviewQueue,
-    Brand,
-    Venue,
 )
 from app.ingestion.pipeline.gold_standard import GoldStandardManager
-from app.ingestion.pipeline.schemas import DimensionName
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +73,7 @@ class ContinuousLearner:
             vibe_dna["dimensions"] = dims
             vibe_dna["tags"] = overridden_tags or vibe_dna.get("tags", [])
             vibe_dna["curator_reviewed"] = True
-            vibe_dna["curator_override_at"] = datetime.now(timezone.utc).isoformat()
+            vibe_dna["curator_override_at"] = datetime.now(UTC).isoformat()
             vibe_dna["curator"] = reviewer
             vibe_dna["needs_review"] = False
 
@@ -97,7 +93,7 @@ class ContinuousLearner:
             .values(
                 status="approved",
                 reviewer=reviewer,
-                reviewed_at=datetime.now(timezone.utc),
+                reviewed_at=datetime.now(UTC),
                 reviewer_notes=reviewer_notes,
                 overridden_scores=overridden_scores,
                 overridden_tags=overridden_tags,
@@ -133,7 +129,7 @@ class ContinuousLearner:
         - Entities consistently dismissed (low reward) despite high scores
         - Entities getting high engagement despite low scores
         """
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=since_hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=since_hours)
 
         # Get entities with significant feedback
         result = await self.session.execute(

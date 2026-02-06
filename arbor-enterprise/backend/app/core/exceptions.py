@@ -1,7 +1,5 @@
 """Custom exceptions for A.R.B.O.R."""
 
-from fastapi import HTTPException
-
 
 class ArborException(Exception):
     """Base exception for A.R.B.O.R."""

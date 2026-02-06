@@ -17,7 +17,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
@@ -80,8 +80,8 @@ class BaseConsumerWithDLQ(ABC):
     def __init__(self, bootstrap_servers: str | None = None) -> None:
         self._bootstrap_servers = bootstrap_servers or settings.kafka_bootstrap_servers
         self._dlq_topic = settings.kafka_dlq_topic
-        self._consumer: Optional[AIOKafkaConsumer] = None
-        self._dlq_producer: Optional[AIOKafkaProducer] = None
+        self._consumer: AIOKafkaConsumer | None = None
+        self._dlq_producer: AIOKafkaProducer | None = None
         self._running: bool = False
 
         # Metrics
@@ -315,8 +315,8 @@ class DLQProcessor:
     def __init__(self, bootstrap_servers: str | None = None) -> None:
         self._bootstrap_servers = bootstrap_servers or settings.kafka_bootstrap_servers
         self._dlq_topic = settings.kafka_dlq_topic
-        self._consumer: Optional[AIOKafkaConsumer] = None
-        self._producer: Optional[AIOKafkaProducer] = None
+        self._consumer: AIOKafkaConsumer | None = None
+        self._producer: AIOKafkaProducer | None = None
 
     async def start(self) -> None:
         """Initialize consumer and producer."""

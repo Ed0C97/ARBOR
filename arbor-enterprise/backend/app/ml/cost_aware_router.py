@@ -34,15 +34,13 @@ Usage::
 """
 
 import logging
-import math
 import random
 import re
 import time
-import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -1298,7 +1296,7 @@ class MoERouter:
 # Singleton
 # ═══════════════════════════════════════════════════════════════════════════
 
-_moe_router: Optional[MoERouter] = None
+_moe_router: MoERouter | None = None
 
 
 def get_moe_router() -> MoERouter:

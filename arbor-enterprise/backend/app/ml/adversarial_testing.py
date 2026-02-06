@@ -16,11 +16,11 @@ Usage::
 
 import logging
 import re
-import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -105,9 +105,9 @@ class TestResult:
     attack_type: AttackType
     passed: bool
     actual_output: str
-    vulnerability_found: Optional[str] = None
+    vulnerability_found: str | None = None
     confidence: float = 1.0
-    tested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    tested_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -134,9 +134,7 @@ class AdversarialSuite:
     # Public API
     # ------------------------------------------------------------------
 
-    def get_suite(
-        self, attack_types: Optional[list[AttackType]] = None
-    ) -> list[AdversarialTestCase]:
+    def get_suite(self, attack_types: list[AttackType] | None = None) -> list[AdversarialTestCase]:
         """Return test cases, optionally filtered by attack type.
 
         Args:
@@ -505,7 +503,7 @@ class AdversarialTestRunner:
         self,
         suite: AdversarialSuite,
         response_fn: Callable[[str], Any],
-        attack_types: Optional[list[AttackType]] = None,
+        attack_types: list[AttackType] | None = None,
     ) -> list[TestResult]:
         """Execute every test case in the suite through *response_fn*.
 
@@ -612,7 +610,7 @@ class AdversarialTestRunner:
             A dict mapping test IDs to their pass/fail status and metadata.
         """
         baseline: dict[str, Any] = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "total_tests": len(self._results),
             "tests": {},
         }
@@ -752,7 +750,7 @@ class AdversarialTestRunner:
         self,
         test_case: AdversarialTestCase,
         output: str,
-    ) -> tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """Determine whether the output matches the expected behaviour.
 
         Args:
@@ -848,7 +846,7 @@ class AdversarialTestRunner:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_runner: Optional[AdversarialTestRunner] = None
+_runner: AdversarialTestRunner | None = None
 
 
 def get_adversarial_runner() -> AdversarialTestRunner:

@@ -13,7 +13,6 @@ import json
 import logging
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -21,9 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.connection import get_arbor_db, get_db
 from app.db.postgres.repository import (
-    BrandRepository,
     UnifiedEntityRepository,
-    VenueRepository,
 )
 
 logger = logging.getLogger(__name__)

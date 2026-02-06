@@ -30,16 +30,13 @@ Usage::
     print(result["exit_stage"], result["total_latency_ms"])
 """
 
-import asyncio
 import logging
-import math
-import random
 import time
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from dataclasses import dataclass
+from typing import Any
 
 from app.config import get_settings
 
@@ -140,7 +137,7 @@ class ConfidenceEstimator:
 
     def __init__(
         self,
-        thresholds: Optional[dict[str, float]] = None,
+        thresholds: dict[str, float] | None = None,
     ) -> None:
         """
         Args:
@@ -287,7 +284,7 @@ class StreamingInferenceEngine:
 
     def __init__(
         self,
-        stages: Optional[list[InferenceStage]] = None,
+        stages: list[InferenceStage] | None = None,
         confidence_threshold: float = 0.8,
     ) -> None:
         """
@@ -778,7 +775,7 @@ class StreamingInferenceEngine:
 # Singleton
 # ---------------------------------------------------------------------------
 
-_engine_instance: Optional[StreamingInferenceEngine] = None
+_engine_instance: StreamingInferenceEngine | None = None
 
 
 def get_streaming_engine() -> StreamingInferenceEngine:

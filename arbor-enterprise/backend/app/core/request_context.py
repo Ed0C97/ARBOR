@@ -27,9 +27,10 @@ import json
 import logging
 import time
 import uuid
+from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request

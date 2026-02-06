@@ -102,7 +102,6 @@ async def run_fact_analyzers(collected_data: dict) -> dict:
 
     from app.ingestion.pipeline.context_analyzer import ContextAnalyzer
     from app.ingestion.pipeline.price_analyzer import PriceAnalyzer
-    from app.ingestion.pipeline.schemas import SourceType
     from app.ingestion.pipeline.text_fact_analyzer import TextFactAnalyzer
     from app.ingestion.pipeline.vision_fact_analyzer import VisionFactAnalyzer
 

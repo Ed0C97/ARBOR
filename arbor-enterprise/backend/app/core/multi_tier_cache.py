@@ -30,9 +30,10 @@ import math
 import time
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime
+from typing import Any
 
 from app.config import get_settings
 
@@ -483,7 +484,6 @@ class L3SemanticCache(CacheTier):
         similarity_threshold = threshold or self._threshold
 
         try:
-            from qdrant_client.models import FieldCondition, Filter, MatchValue
 
             results = await client.search(
                 collection_name=self.COLLECTION,
@@ -563,7 +563,7 @@ class L3SemanticCache(CacheTier):
                 "response": value,
                 "cached_at": time.time(),
                 "ttl": ttl,
-                "created_utc": datetime.now(timezone.utc).isoformat(),
+                "created_utc": datetime.now(UTC).isoformat(),
             }
 
             await client.upsert(

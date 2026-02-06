@@ -12,7 +12,6 @@ import logging
 import statistics
 
 from app.ingestion.pipeline.schemas import (
-    DimensionName,
     DimensionScore,
     FactSheet,
     ReviewQueueItem,

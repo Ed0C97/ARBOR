@@ -20,11 +20,11 @@ Usage::
 """
 
 import logging
-import math
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.config import get_settings
 
@@ -60,7 +60,7 @@ class PreferencePair:
     preference: str  # "a", "b", "tie"
     confidence: float = 1.0
     annotator_id: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self) -> None:
         if self.preference not in ("a", "b", "tie"):
@@ -759,7 +759,7 @@ class RLHFOptimizer:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_optimizer: Optional[RLHFOptimizer] = None
+_optimizer: RLHFOptimizer | None = None
 
 
 def get_rlhf_optimizer() -> RLHFOptimizer:

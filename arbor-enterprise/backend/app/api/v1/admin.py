@@ -7,7 +7,6 @@ TIER 5 - Point 21: Prometheus Metrics Endpoint
 import asyncio
 import logging
 import time
-from dataclasses import asdict
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Response

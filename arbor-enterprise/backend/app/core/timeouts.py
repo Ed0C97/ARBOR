@@ -14,8 +14,9 @@ Budget:
 
 import asyncio
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from app.config import get_settings
 
@@ -55,7 +56,7 @@ async def with_timeout(
     """
     try:
         return await asyncio.wait_for(coro, timeout=timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.error(f"Node '{node_name}' timed out after {timeout}s")
         raise NodeTimeoutError(node_name, timeout)
 
@@ -86,7 +87,7 @@ def timeout(seconds: float, node_name: str | None = None) -> Callable:
                     func(*args, **kwargs),
                     timeout=seconds,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Node '{name}' timed out after {seconds}s")
                 raise NodeTimeoutError(name, seconds)
 
@@ -179,7 +180,7 @@ class TimeoutBudget:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed = asyncio.get_event_loop().time() - operation_start
             self.remaining -= elapsed
 
@@ -237,7 +238,7 @@ def create_graceful_timeout_handler(
                         func(*args, **kwargs),
                         timeout=seconds,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     log_func = getattr(logger, log_level)
                     log_func(
                         f"Node '{node_name}' timed out after {seconds}s, "

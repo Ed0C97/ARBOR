@@ -5,7 +5,7 @@ from search logs and feedback, storing results for the admin dashboard.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 @activity.defn
 async def compute_search_analytics(since_hours: int = 24) -> dict:
     """Aggregate search query analytics from feedback and search logs."""
-    from sqlalchemy import func, select, text
+    from sqlalchemy import func, select
 
     from app.db.postgres.connection import async_session_factory
     from app.db.postgres.models import ArborFeedback
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=since_hours)
+    cutoff = datetime.now(UTC) - timedelta(hours=since_hours)
 
     async with async_session_factory() as session:
         # Total searches (feedback entries as proxy)
@@ -116,7 +116,7 @@ async def compute_search_analytics(since_hours: int = 24) -> dict:
             "avg_reward": round(float(avg_reward), 4),
             "top_entities": top_entities,
             "top_queries": top_queries,
-            "computed_at": datetime.now(timezone.utc).isoformat(),
+            "computed_at": datetime.now(UTC).isoformat(),
         }
 
 
@@ -165,7 +165,7 @@ async def compute_entity_stats() -> dict:
             "synced_entities": synced_count,
             "enrichment_coverage": round(enrichment_coverage, 4),
             "enriched_by_type": by_type,
-            "computed_at": datetime.now(timezone.utc).isoformat(),
+            "computed_at": datetime.now(UTC).isoformat(),
         }
 
 

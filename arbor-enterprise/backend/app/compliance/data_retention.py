@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import and_, delete, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

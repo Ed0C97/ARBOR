@@ -25,7 +25,7 @@ import logging
 import math
 import re
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -161,8 +161,8 @@ class ExplainabilityEngine:
         self,
         entity_data: dict[str, Any],
         query: str,
-        user_profile: Optional[dict[str, Any]] = None,
-        search_scores: Optional[dict[str, float]] = None,
+        user_profile: dict[str, Any] | None = None,
+        search_scores: dict[str, float] | None = None,
         rank: int = 1,
     ) -> RecommendationExplanation:
         """Generate a full explanation for why *entity_data* was recommended.
@@ -271,8 +271,8 @@ class ExplainabilityEngine:
         self,
         entities: list[dict[str, Any]],
         query: str,
-        user_profile: Optional[dict[str, Any]] = None,
-        search_scores: Optional[list[dict[str, float]]] = None,
+        user_profile: dict[str, Any] | None = None,
+        search_scores: list[dict[str, float]] | None = None,
     ) -> list[RecommendationExplanation]:
         """Generate explanations for all entities in a search response.
 
@@ -587,9 +587,9 @@ class ExplainabilityEngine:
 
     def _compute_personalization_factor(
         self,
-        user_profile: Optional[dict[str, Any]],
+        user_profile: dict[str, Any] | None,
         entity_data: dict[str, Any],
-    ) -> Optional[ExplanationFactor]:
+    ) -> ExplanationFactor | None:
         """Compute personalization contribution if a user profile exists.
 
         Checks style preference overlap, category affinity, and city
@@ -681,7 +681,7 @@ class ExplainabilityEngine:
     def _compute_graph_connections(
         self,
         entity_data: dict[str, Any],
-    ) -> Optional[ExplanationFactor]:
+    ) -> ExplanationFactor | None:
         """Assess whether graph relationships contributed to the recommendation.
 
         Checks the entity's ``relationships`` field for connections that
@@ -744,7 +744,7 @@ class ExplainabilityEngine:
     def _compute_popularity(
         self,
         entity_data: dict[str, Any],
-    ) -> Optional[ExplanationFactor]:
+    ) -> ExplanationFactor | None:
         """Generate a popularity factor if the entity has a popularity score.
 
         Args:
@@ -976,7 +976,7 @@ class ExplainabilityEngine:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_engine: Optional[ExplainabilityEngine] = None
+_engine: ExplainabilityEngine | None = None
 
 
 def get_explainability_engine() -> ExplainabilityEngine:

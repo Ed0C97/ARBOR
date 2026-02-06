@@ -10,13 +10,12 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import delete, func, literal, literal_column, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.models import (
     ArborEnrichment,
     ArborFeedback,
-    ArborUser,
     Brand,
     Venue,
 )

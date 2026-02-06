@@ -1,7 +1,6 @@
 """OpenTelemetry setup for distributed tracing across A.R.B.O.R. Enterprise."""
 
 import logging
-from typing import Optional
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -15,7 +14,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-_tracer_provider: Optional[TracerProvider] = None
+_tracer_provider: TracerProvider | None = None
 
 
 def setup_telemetry(app=None) -> TracerProvider:

@@ -3,9 +3,7 @@
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
-from uuid import UUID
+from datetime import UTC, datetime
 
 from app.config import get_settings
 
@@ -27,7 +25,7 @@ class UserFeedback:
     entity_id: str
     action: str  # "click", "save", "convert", "dismiss"
     position: int
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     time_to_action_ms: float = 0.0
     session_id: str = ""
     reward: float = 0.0
@@ -251,7 +249,7 @@ class FeedbackCollector:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_collector: Optional[FeedbackCollector] = None
+_collector: FeedbackCollector | None = None
 
 
 def get_feedback_collector() -> FeedbackCollector:

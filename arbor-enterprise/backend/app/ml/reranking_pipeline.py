@@ -36,7 +36,7 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -1391,7 +1391,7 @@ class RerankingPipeline:
 # Singleton
 # ═══════════════════════════════════════════════════════════════════════════
 
-_pipeline: Optional[RerankingPipeline] = None
+_pipeline: RerankingPipeline | None = None
 
 
 def get_reranking_pipeline() -> RerankingPipeline:

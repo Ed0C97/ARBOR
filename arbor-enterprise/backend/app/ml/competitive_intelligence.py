@@ -20,8 +20,8 @@ import logging
 import math
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.config import get_settings
 
@@ -163,7 +163,7 @@ class CompetitiveAnalysis:
     overlap_areas: list[str] = field(default_factory=list)
     opportunities: list[str] = field(default_factory=list)
     threats: list[str] = field(default_factory=list)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -290,7 +290,7 @@ class CompetitiveIntelligenceEngine:
             overlap_areas=overlap_areas,
             opportunities=opportunities,
             threats=swot.get("threats", []),
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         logger.info(
@@ -738,7 +738,7 @@ class CompetitiveIntelligenceEngine:
         Returns:
             One of ``"growing"``, ``"stable"``, ``"declining"``.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         recent_count = 0
         dated_count = 0
 
@@ -853,7 +853,7 @@ class CompetitiveIntelligenceEngine:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_engine: Optional[CompetitiveIntelligenceEngine] = None
+_engine: CompetitiveIntelligenceEngine | None = None
 
 
 def get_competitive_engine() -> CompetitiveIntelligenceEngine:

@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from aiokafka import AIOKafkaConsumer
 
@@ -30,7 +30,7 @@ class NotificationConsumer:
 
     def __init__(self, bootstrap_servers: str | None = None) -> None:
         self._bootstrap_servers = bootstrap_servers or settings.kafka_bootstrap_servers
-        self._consumer: Optional[AIOKafkaConsumer] = None
+        self._consumer: AIOKafkaConsumer | None = None
         self._running: bool = False
 
     # ------------------------------------------------------------------

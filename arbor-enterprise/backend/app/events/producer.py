@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 
 from aiokafka import AIOKafkaProducer
 
@@ -31,7 +30,7 @@ class EventBus:
 
     def __init__(self, bootstrap_servers: str | None = None) -> None:
         self._bootstrap_servers = bootstrap_servers or settings.kafka_bootstrap_servers
-        self._producer: Optional[AIOKafkaProducer] = None
+        self._producer: AIOKafkaProducer | None = None
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -125,7 +124,7 @@ class EventBus:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_event_bus: Optional[EventBus] = None
+_event_bus: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:

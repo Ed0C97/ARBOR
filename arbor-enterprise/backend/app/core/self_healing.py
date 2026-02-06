@@ -29,7 +29,7 @@ import time
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -80,8 +80,8 @@ class FailureSignature:
     signature_id: str
     failure_type: str
     symptoms: list[str]
-    first_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    first_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
     occurrence_count: int = 0
     remediation_playbook: str | None = None
     auto_remediated_count: int = 0
@@ -136,7 +136,7 @@ class IncidentRecord:
     root_cause: str | None = None
     remediations_attempted: list[RemediationAction] = field(default_factory=list)
     status: str = "detecting"  # "detecting", "diagnosing", "remediating", "resolved", "escalated"
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     resolved_at: datetime | None = None
 
 
@@ -229,7 +229,7 @@ class AnomalyCorrelator:
                 best_match = signature
 
         if best_match is not None:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             best_match.last_seen = now
             best_match.occurrence_count += 1
             logger.info(
@@ -282,7 +282,7 @@ class AnomalyCorrelator:
             failure_type=incident.root_cause,
             symptoms=list(incident.symptoms_observed),
             first_seen=incident.started_at,
-            last_seen=datetime.now(timezone.utc),
+            last_seen=datetime.now(UTC),
             occurrence_count=1,
             remediation_playbook=None,  # Manual remediation until a playbook is defined
         )
@@ -455,7 +455,7 @@ class RemediationEngine:
             The same action with executed_at, success, and duration_ms populated.
         """
         start = time.monotonic()
-        action.executed_at = datetime.now(timezone.utc)
+        action.executed_at = datetime.now(UTC)
 
         logger.info(
             f"Self-healing remediation: Executing {action.action_type} "
@@ -603,7 +603,7 @@ class SelfHealingOrchestrator:
 
                 if all_succeeded:
                     incident.status = "resolved"
-                    incident.resolved_at = datetime.now(timezone.utc)
+                    incident.resolved_at = datetime.now(UTC)
                     signature.auto_remediated_count += 1
                     logger.info(
                         f"Self-healing: Incident {incident.incident_id} RESOLVED "
@@ -898,7 +898,7 @@ class VaccinationEngine:
             ],
             "expected_outcome": incident.status,
             "severity": incident.severity,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
 
         self._vaccination_suite.append(test_spec)

@@ -19,7 +19,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

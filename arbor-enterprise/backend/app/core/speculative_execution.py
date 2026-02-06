@@ -605,7 +605,7 @@ class SpeculativeExecutor:
         try:
             # Wait for either a winner or timeout
             await asyncio.wait_for(winner_event.wait(), timeout=self.timeout_seconds)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(
                 "SpeculativeExecutor: timeout (%.1fs) reached with %d/%d strategies complete",
                 self.timeout_seconds,
@@ -701,7 +701,7 @@ class SpeculativeExecutor:
                         len(result.results),
                     )
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.info(
                         "SpeculativeExecutor: preferred=%s timed out (%.1fs), "
                         "falling back to speculative",

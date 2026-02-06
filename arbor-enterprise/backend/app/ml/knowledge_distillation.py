@@ -32,12 +32,11 @@ Usage::
 
 import copy
 import logging
-import math
 import random
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app.config import get_settings
@@ -94,7 +93,7 @@ class DistillationExample:
     teacher_confidence: float = 0.0
     student_output: dict | None = None
     student_score: float | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     # -- Serialisation -----------------------------------------------------
 
@@ -119,7 +118,7 @@ class DistillationExample:
             created_at=(
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
-                else datetime.now(timezone.utc)
+                else datetime.now(UTC)
             ),
         )
 
@@ -416,7 +415,7 @@ class DistillationPipeline:
         model: dict[str, Any] = {
             "model_type": self.student_config.model_type,
             "model_name": self.student_config.model_name,
-            "trained_at": datetime.now(timezone.utc).isoformat(),
+            "trained_at": datetime.now(UTC).isoformat(),
             "training_size": len(training_set),
         }
 
@@ -734,7 +733,7 @@ class EscalationRouter:
         self._routing_log.append(
             {
                 "id": uuid.uuid4().hex[:12],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "decision": decision,
                 "reason": reason,
                 "category": input_data.get("category", "unknown"),
@@ -755,7 +754,7 @@ class EscalationRouter:
         """
         self._outcome_log.append(
             {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "route": route,
                 "quality": quality,
             }

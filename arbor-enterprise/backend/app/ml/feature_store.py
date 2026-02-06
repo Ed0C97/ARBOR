@@ -42,10 +42,10 @@ Usage::
 import copy
 import logging
 import math
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.config import get_settings
 
@@ -98,10 +98,10 @@ class FeatureDefinition:
     description: str = ""
     source: str = "computed"
     version: int = 1
-    compute_fn: Optional[Callable[..., Any]] = None
+    compute_fn: Callable[..., Any] | None = None
     dependencies: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     owner: str = "arbor-ml"
 
 
@@ -119,7 +119,7 @@ class FeatureVector:
 
     entity_id: str
     features: dict[str, Any] = field(default_factory=dict)
-    computed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    computed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     feature_version: dict[str, int] = field(default_factory=dict)
 
 
@@ -348,7 +348,7 @@ class FeatureStore:
         else:
             logger.debug("Feature '%s' registered (v%d)", definition.name, definition.version)
 
-        definition.updated_at = datetime.now(timezone.utc)
+        definition.updated_at = datetime.now(UTC)
         self._definitions[definition.name] = definition
 
     def get_feature_definition(self, name: str) -> FeatureDefinition:
@@ -445,7 +445,7 @@ class FeatureStore:
                 features[name] = None
                 versions[name] = defn.version
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         vector = FeatureVector(
             entity_id=entity_id,
             features=features,
@@ -649,7 +649,7 @@ class FeatureStore:
         if vector is None:
             return {"entity_id": entity_id, "stored": False}
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         age = (now - vector.computed_at).total_seconds()
 
         return {
@@ -704,10 +704,10 @@ class ModelVersion:
     description: str = ""
     metrics: dict[str, Any] = field(default_factory=dict)
     parameters: dict[str, Any] = field(default_factory=dict)
-    artifact_path: Optional[str] = None
+    artifact_path: str | None = None
     status: str = "staging"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    promoted_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    promoted_at: datetime | None = None
     created_by: str = "arbor-ml"
     feature_requirements: list[str] = field(default_factory=list)
 
@@ -764,7 +764,7 @@ class ModelRegistry:
         self._models[model_id] = {
             "model_type": model_type,
             "description": description,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "versions": [],
         }
         logger.info("Registered model '%s' (type=%s)", model_id, model_type)
@@ -869,7 +869,7 @@ class ModelRegistry:
             current_prod = self.get_production_model(model_id)
             if current_prod is not None and current_prod.version != version:
                 current_prod.status = "archived"
-                current_prod.promoted_at = datetime.now(timezone.utc)
+                current_prod.promoted_at = datetime.now(UTC)
                 logger.info(
                     "Archived previous production version %d of model '%s'",
                     current_prod.version,
@@ -880,10 +880,10 @@ class ModelRegistry:
             current_canary = self.get_canary_model(model_id)
             if current_canary is not None and current_canary.version != version:
                 current_canary.status = "archived"
-                current_canary.promoted_at = datetime.now(timezone.utc)
+                current_canary.promoted_at = datetime.now(UTC)
 
         mv.status = to_status
-        mv.promoted_at = datetime.now(timezone.utc)
+        mv.promoted_at = datetime.now(UTC)
 
         logger.info(
             "Promoted model '%s' v%d to '%s'",
@@ -929,11 +929,11 @@ class ModelRegistry:
         # Archive the current production version
         if current_prod is not None:
             current_prod.status = "archived"
-            current_prod.promoted_at = datetime.now(timezone.utc)
+            current_prod.promoted_at = datetime.now(UTC)
 
         # Restore the previous version
         previous.status = "production"
-        previous.promoted_at = datetime.now(timezone.utc)
+        previous.promoted_at = datetime.now(UTC)
 
         logger.info(
             "Rolled back model '%s': v%d -> v%d",
@@ -1114,8 +1114,8 @@ class ModelRegistry:
 # Singleton accessors
 # ============================================================================
 
-_feature_store: Optional[FeatureStore] = None
-_model_registry: Optional[ModelRegistry] = None
+_feature_store: FeatureStore | None = None
+_model_registry: ModelRegistry | None = None
 
 
 def get_feature_store() -> FeatureStore:

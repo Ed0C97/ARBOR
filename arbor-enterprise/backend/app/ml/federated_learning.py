@@ -31,9 +31,8 @@ import logging
 import math
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 from app.config import get_settings
 
@@ -63,7 +62,7 @@ class ModelUpdate:
     round_number: int
     gradient_updates: dict[str, list[float]]
     sample_count: int
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict = field(default_factory=dict)
 
 
@@ -85,7 +84,7 @@ class FederatedModel:
     model_type: str
     global_weights: dict[str, list[float]]
     version: int = 0
-    last_aggregated_at: Optional[datetime] = None
+    last_aggregated_at: datetime | None = None
     contributing_tenants: list[str] = field(default_factory=list)
     performance_metrics: dict = field(default_factory=dict)
 
@@ -135,7 +134,7 @@ class GradientAggregator:
         self,
         updates: list[ModelUpdate],
         strategy: AggregationStrategy,
-        global_weights: Optional[dict[str, list[float]]] = None,
+        global_weights: dict[str, list[float]] | None = None,
     ) -> dict[str, list[float]]:
         """Aggregate *updates* using the specified *strategy*.
 
@@ -376,7 +375,7 @@ class FederatedLearningCoordinator:
         tenant_id: str,
         gradient_updates: dict[str, list[float]],
         sample_count: int,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> bool:
         """Submit a gradient update from a tenant for a registered model.
 
@@ -436,7 +435,7 @@ class FederatedLearningCoordinator:
         model_id: str,
         strategy: AggregationStrategy = AggregationStrategy.FED_AVG,
         min_updates: int = 2,
-    ) -> Optional[FederatedModel]:
+    ) -> FederatedModel | None:
         """Run a single aggregation round for the specified model.
 
         Collects all pending updates, aggregates them using *strategy*, and
@@ -495,7 +494,7 @@ class FederatedLearningCoordinator:
 
         # Update bookkeeping
         model.version += 1
-        model.last_aggregated_at = datetime.now(timezone.utc)
+        model.last_aggregated_at = datetime.now(UTC)
 
         self._round_counter[model_id] = self._round_counter.get(model_id, 0) + 1
         self._pending_updates[model_id] = []
@@ -514,7 +513,7 @@ class FederatedLearningCoordinator:
     # Query helpers
     # ------------------------------------------------------------------
 
-    def get_model(self, model_id: str) -> Optional[FederatedModel]:
+    def get_model(self, model_id: str) -> FederatedModel | None:
         """Return the federated model with the given *model_id*, or ``None``.
 
         Args:
@@ -697,7 +696,7 @@ class DifferentialPrivacy:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_coordinator: Optional[FederatedLearningCoordinator] = None
+_coordinator: FederatedLearningCoordinator | None = None
 
 
 def get_federated_coordinator() -> FederatedLearningCoordinator:

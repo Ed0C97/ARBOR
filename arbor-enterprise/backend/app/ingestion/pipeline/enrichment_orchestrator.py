@@ -10,7 +10,7 @@ This is the main entry point for enriching an entity. It:
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

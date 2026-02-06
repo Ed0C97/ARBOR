@@ -5,7 +5,7 @@ Fallback: local CrossEncoder if Cohere is unavailable
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -174,7 +174,7 @@ class HybridReranker:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_reranker: Optional[HybridReranker] = None
+_reranker: HybridReranker | None = None
 
 
 def get_reranker() -> HybridReranker:

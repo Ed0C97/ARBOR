@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @activity.defn
 async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
     """Fetch enrichments that have been updated but not yet synced to Qdrant/Neo4j."""
-    from sqlalchemy import or_, select
+    from sqlalchemy import select
 
     from app.db.postgres.connection import (
         arbor_session_factory,

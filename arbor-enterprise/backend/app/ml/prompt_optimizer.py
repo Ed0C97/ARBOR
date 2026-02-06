@@ -25,9 +25,9 @@ import logging
 import random
 import re
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from datetime import UTC, datetime
 
 from app.config import get_settings
 
@@ -87,7 +87,7 @@ class PromptVariant:
     version: int = 1
     score: float = 0.0
     eval_count: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = False
 
 
@@ -110,7 +110,7 @@ class EvaluationResult:
     score: float
     sample_count: int
     details: dict = field(default_factory=dict)
-    evaluated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    evaluated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ---------------------------------------------------------------------------
@@ -372,7 +372,7 @@ class _FewShotExample:
     input_data: dict
     output_data: dict
     score: float
-    added_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    added_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class FewShotSelector:
@@ -654,7 +654,7 @@ class PromptOptimizer:
         signature_name: str,
         template: str,
         instruction: str,
-        few_shot_examples: Optional[list[dict]] = None,
+        few_shot_examples: list[dict] | None = None,
     ) -> PromptVariant:
         """Create and register a new variant for *signature_name*.
 
@@ -705,7 +705,7 @@ class PromptOptimizer:
         )
         return variant
 
-    def get_best_variant(self, signature_name: str) -> Optional[PromptVariant]:
+    def get_best_variant(self, signature_name: str) -> PromptVariant | None:
         """Return the highest-scoring active variant for *signature_name*.
 
         Only variants with at least one evaluation are considered.  If no
@@ -731,7 +731,7 @@ class PromptOptimizer:
         active = [v for v in candidates if v.is_active]
         return active[0] if active else candidates[0]
 
-    def get_active_variant(self, signature_name: str) -> Optional[PromptVariant]:
+    def get_active_variant(self, signature_name: str) -> PromptVariant | None:
         """Return the currently deployed (active) variant for *signature_name*.
 
         Args:
@@ -1062,7 +1062,7 @@ class PromptOptimizer:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_optimizer: Optional[PromptOptimizer] = None
+_optimizer: PromptOptimizer | None = None
 
 
 def get_prompt_optimizer() -> PromptOptimizer:

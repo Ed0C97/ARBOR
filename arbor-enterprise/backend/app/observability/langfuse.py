@@ -2,7 +2,8 @@
 
 import functools
 import logging
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from langfuse import Langfuse
 from langfuse.decorators import langfuse_context, observe
@@ -12,7 +13,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-_langfuse_client: Optional[Langfuse] = None
+_langfuse_client: Langfuse | None = None
 
 
 def get_langfuse_client() -> Langfuse:

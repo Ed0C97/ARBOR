@@ -21,13 +21,9 @@ import logging
 import math
 import threading
 import time
-from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Optional
-
-from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +75,7 @@ class SLODefinition:
     slo_type: SLOType
     target: float
     window_seconds: int = 86_400
-    endpoint: Optional[str] = None
+    endpoint: str | None = None
     tier: str = "medium"
 
 
@@ -132,7 +128,7 @@ class ErrorBudget:
     remaining: float
     burn_rate: float
     is_exhausted: bool
-    projected_exhaustion_time: Optional[datetime] = None
+    projected_exhaustion_time: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +192,7 @@ class BurnRateCalculator:
         remaining: float,
         burn_rate: float,
         window_remaining_seconds: float,
-    ) -> Optional[datetime]:
+    ) -> datetime | None:
         """Project when the error budget will be fully consumed.
 
         Args:
@@ -237,7 +233,7 @@ class BurnRateCalculator:
             # Budget will NOT be exhausted within the window.
             return None
 
-        return datetime.now(timezone.utc) + timedelta(seconds=seconds_to_exhaust)
+        return datetime.now(UTC) + timedelta(seconds=seconds_to_exhaust)
 
     @staticmethod
     def classify_severity(burn_rate: float) -> str:
@@ -278,7 +274,7 @@ class SLOMonitor:
         self._records: list[_RequestRecord] = []
         self._calculator = BurnRateCalculator()
         self._start_time = time.monotonic()
-        self._start_utc = datetime.now(timezone.utc)
+        self._start_utc = datetime.now(UTC)
 
         # Register built-in SLOs
         self._register_default_slos()
@@ -461,7 +457,7 @@ class SLOMonitor:
 
     def should_allow_deployment(
         self,
-        slo_ids: Optional[list[str]] = None,
+        slo_ids: list[str] | None = None,
     ) -> bool:
         """Determine whether a deployment should proceed.
 
@@ -560,7 +556,7 @@ class SLOMonitor:
         total = len(definitions)
 
         return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "window_seconds": 86_400,
             "slos": slo_details,
             "alerts": alerts,
@@ -613,7 +609,7 @@ class SLOMonitor:
         bucket: _EndpointBucket,
     ) -> SLOMetric:
         """Compute an SLOMetric from a definition and aggregated bucket."""
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
 
         if bucket.total == 0:
             # No data: treat SLO as met (no violations observed).
@@ -686,7 +682,7 @@ class SLOMonitor:
     ) -> ErrorBudget:
         """Compute an ErrorBudget from a definition and aggregated bucket."""
         now_mono = time.monotonic()
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
 
         elapsed_seconds = min(
             now_mono - self._start_time,
@@ -772,7 +768,7 @@ class SLOMonitor:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_slo_monitor_instance: Optional[SLOMonitor] = None
+_slo_monitor_instance: SLOMonitor | None = None
 _slo_monitor_lock = threading.Lock()
 
 

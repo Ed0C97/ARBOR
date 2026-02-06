@@ -8,7 +8,8 @@ Exposes business-relevant metrics for monitoring system health and usage.
 import functools
 import logging
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -101,7 +102,7 @@ arbor_rate_limit_hits_total = Counter(
 arbor_guardrail_blocks_total = Counter(
     name="arbor_guardrail_blocks_total",
     documentation="Content blocked by guardrails",
-    labelnames=["type", "reason"],  # type: input, output
+    labelnames=["type", "reason"],  # labels: input, output
 )
 
 # Service info

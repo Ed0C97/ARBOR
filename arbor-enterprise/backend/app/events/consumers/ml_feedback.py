@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 
 from aiokafka import AIOKafkaConsumer
 
@@ -29,7 +28,7 @@ class MLFeedbackConsumer:
 
     def __init__(self, bootstrap_servers: str | None = None) -> None:
         self._bootstrap_servers = bootstrap_servers or settings.kafka_bootstrap_servers
-        self._consumer: Optional[AIOKafkaConsumer] = None
+        self._consumer: AIOKafkaConsumer | None = None
         self._running: bool = False
 
         # Buffered training pairs: list of (query, entity_id, reward)

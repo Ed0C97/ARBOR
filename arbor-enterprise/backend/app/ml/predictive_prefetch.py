@@ -38,8 +38,8 @@ import logging
 import re
 import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from app.config import get_settings
 
@@ -593,7 +593,7 @@ class PrefetchCache:
             ttl,
         )
 
-    def get(self, prefetch_key: str) -> Optional[PrefetchResult]:
+    def get(self, prefetch_key: str) -> PrefetchResult | None:
         """Retrieve a cached result by exact *prefetch_key*.
 
         Returns ``None`` if the key is absent or the entry has expired
@@ -626,7 +626,7 @@ class PrefetchCache:
         )
         return entry
 
-    def get_by_query(self, query: str) -> Optional[PrefetchResult]:
+    def get_by_query(self, query: str) -> PrefetchResult | None:
         """Retrieve a cached result by fuzzy-matching against *query*.
 
         The lookup normalises both the incoming query and stored queries to
@@ -759,7 +759,7 @@ class PrefetchOrchestrator:
         intent: str,
         results: list[dict[str, Any]],
         session_id: str = "",
-        clicked_entity_ids: Optional[list[str]] = None,
+        clicked_entity_ids: list[str] | None = None,
     ) -> list[PrefetchCandidate]:
         """Handle a completed query by recording the event and prefetching.
 
@@ -824,7 +824,7 @@ class PrefetchOrchestrator:
 
         return launched
 
-    async def check_prefetch(self, query: str) -> Optional[list[dict]]:
+    async def check_prefetch(self, query: str) -> list[dict] | None:
         """Check whether pre-computed results exist for *query*.
 
         Performs an exact key lookup first, then falls back to a fuzzy
@@ -943,7 +943,7 @@ class PrefetchOrchestrator:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_orchestrator: Optional[PrefetchOrchestrator] = None
+_orchestrator: PrefetchOrchestrator | None = None
 
 
 def get_prefetch_orchestrator() -> PrefetchOrchestrator:

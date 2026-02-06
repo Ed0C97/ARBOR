@@ -11,12 +11,10 @@ knowledge graph, and the LLM agent pipeline.
 
 import asyncio
 import logging
-from typing import Optional
 
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from strawberry.scalars import JSON
-from strawberry.types import Info
 
 from app.db.postgres.connection import arbor_session_factory, magazine_session_factory
 from app.db.postgres.repository import (
@@ -42,16 +40,16 @@ class EntityType:
     id: str
     name: str
     slug: str
-    category: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
-    style: Optional[str] = None
-    description: Optional[str] = None
+    category: str | None = None
+    city: str | None = None
+    country: str | None = None
+    style: str | None = None
+    description: str | None = None
     is_featured: bool = False
     is_active: bool = True
     entity_type: str = "brand"  # "brand" | "venue"
-    vibe_dna: Optional[JSON] = None
-    tags: Optional[list[str]] = None
+    vibe_dna: JSON | None = None
+    tags: list[str] | None = None
 
 
 @strawberry.type
@@ -81,7 +79,7 @@ class GraphNode:
     id: str
     name: str
     labels: list[str]
-    properties: Optional[JSON] = None
+    properties: JSON | None = None
 
 
 @strawberry.type
@@ -91,7 +89,7 @@ class GraphEdge:
     source: str
     target: str
     rel_type: str
-    properties: Optional[JSON] = None
+    properties: JSON | None = None
 
 
 @strawberry.type
@@ -107,7 +105,7 @@ class PaginatedEntities:
     """Cursor-paginated entity list."""
 
     items: list[EntityType]
-    cursor: Optional[str] = None
+    cursor: str | None = None
     has_more: bool = False
     total: int = 0
 
@@ -176,9 +174,9 @@ class Query:
         self,
         limit: int = 20,
         offset: int = 0,
-        category: Optional[str] = None,
-        city: Optional[str] = None,
-        style: Optional[str] = None,
+        category: str | None = None,
+        city: str | None = None,
+        style: str | None = None,
     ) -> list[EntityType]:
         logger.info(
             "GraphQL entities query: limit=%d offset=%d category=%s city=%s style=%s",
@@ -213,8 +211,8 @@ class Query:
     async def entity(
         self,
         id: str,
-        entity_type: Optional[str] = None,
-    ) -> Optional[EntityType]:
+        entity_type: str | None = None,
+    ) -> EntityType | None:
         logger.info("GraphQL entity query: id=%s entity_type=%s", id, entity_type)
         mag_session, arb_session = await _get_sessions()
         if mag_session is None:
@@ -303,8 +301,8 @@ class Query:
     async def search(
         self,
         query: str,
-        category: Optional[str] = None,
-        city: Optional[str] = None,
+        category: str | None = None,
+        city: str | None = None,
         limit: int = 10,
     ) -> list[SearchResult]:
         logger.info(
@@ -444,8 +442,8 @@ class Mutation:
         entity_id: str,
         entity_type: str,
         action: str,
-        position: Optional[int] = None,
-        query: Optional[str] = None,
+        position: int | None = None,
+        query: str | None = None,
     ) -> bool:
         logger.info(
             "GraphQL record_feedback: user=%s entity=%s type=%s action=%s pos=%s query=%r",
@@ -533,7 +531,7 @@ class Subscription:
     @strawberry.subscription(description="Subscribe to entity update events.")
     async def entity_updated(
         self,
-        entity_type: Optional[str] = None,
+        entity_type: str | None = None,
     ) -> EntityType:  # type: ignore[override]
         """Yield entity updates as they occur via Redis Pub/Sub."""
         logger.info("GraphQL subscription entity_updated: entity_type=%s", entity_type)

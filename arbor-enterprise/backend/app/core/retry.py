@@ -8,13 +8,13 @@ Integrates with circuit breakers for comprehensive resilience.
 
 import asyncio
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import TypeVar
 
 import httpx
 from tenacity import (
     AsyncRetrying,
-    RetryError,
     before_sleep_log,
     retry_if_exception_type,
     stop_after_attempt,

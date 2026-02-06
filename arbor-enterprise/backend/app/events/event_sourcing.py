@@ -28,9 +28,10 @@ import copy
 import logging
 import threading
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from app.config import get_settings
@@ -99,7 +100,7 @@ class DomainEvent:
             aggregate_type=aggregate_type,
             event_type=event_type,
             version=version,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             payload=payload or {},
             metadata=metadata or {},
             causation_id=causation_id,
@@ -276,7 +277,7 @@ class EventStore:
             self._snapshots[aggregate_id] = {
                 "state": copy.deepcopy(state),
                 "version": version,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             }
 
         logger.debug(
@@ -940,7 +941,7 @@ class Command:
     command_type: str = ""
     payload: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
-    issued_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    issued_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     issued_by: str = ""
 
 

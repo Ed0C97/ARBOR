@@ -29,9 +29,8 @@ import math
 import random
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.config import get_settings
 
@@ -330,14 +329,14 @@ class SyntheticEntityGenerator:
     standard metadata (city, rating, price tier).
     """
 
-    def __init__(self, seed: Optional[int] = None) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
         logger.info("SyntheticEntityGenerator initialised (seed=%s)", seed)
 
     def generate_entity(
         self,
-        category: Optional[str] = None,
-        city: Optional[str] = None,
+        category: str | None = None,
+        city: str | None = None,
     ) -> dict[str, Any]:
         """Generate a single synthetic entity.
 
@@ -371,7 +370,7 @@ class SyntheticEntityGenerator:
             "rating": round(self._rng.uniform(3.5, 5.0), 1),
             "price_tier": self._rng.choice(["$", "$$", "$$$", "$$$$"]),
             "is_verified": self._rng.random() < 0.7,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "synthetic": True,
         }
 
@@ -381,7 +380,7 @@ class SyntheticEntityGenerator:
     def generate_batch(
         self,
         count: int,
-        distribution: Optional[dict[str, int]] = None,
+        distribution: dict[str, int] | None = None,
     ) -> list[dict[str, Any]]:
         """Generate a batch of synthetic entities.
 
@@ -490,13 +489,13 @@ class SyntheticUserGenerator:
     category preferences, vibe affinities, and price sensitivity.
     """
 
-    def __init__(self, seed: Optional[int] = None) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
         logger.info("SyntheticUserGenerator initialised (seed=%s)", seed)
 
     def generate_user(
         self,
-        segment: Optional[str] = None,
+        segment: str | None = None,
     ) -> dict[str, Any]:
         """Generate a single synthetic user profile.
 
@@ -536,7 +535,7 @@ class SyntheticUserGenerator:
             "interaction_count": self._rng.randint(5, 200),
             "account_age_days": self._rng.randint(7, 730),
             "city": self._rng.choice(CITIES),
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "synthetic": True,
         }
 
@@ -569,7 +568,7 @@ class SyntheticInteractionGenerator:
     affinity, the more likely the user is to click, save, and convert.
     """
 
-    def __init__(self, seed: Optional[int] = None) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
         logger.info("SyntheticInteractionGenerator initialised (seed=%s)", seed)
 
@@ -617,7 +616,7 @@ class SyntheticInteractionGenerator:
                 "was_recommended": was_recommended,
                 "affinity_score": round(affinity, 4),
                 "session_id": f"syn_s_{uuid.uuid4().hex[:8]}",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "time_to_action_ms": round(self._rng.uniform(200, 15000), 1),
                 "synthetic": True,
             }
@@ -930,7 +929,7 @@ class DataValidator:
 # Singleton
 # ---------------------------------------------------------------------------
 
-_generator_instance: Optional[SyntheticEntityGenerator] = None
+_generator_instance: SyntheticEntityGenerator | None = None
 
 
 def get_synthetic_generator() -> SyntheticEntityGenerator:

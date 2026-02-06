@@ -8,7 +8,7 @@ and leaves scoring to the calibrated scoring engine in Layer 3.
 import json
 import logging
 
-from app.ingestion.pipeline.schemas import ExtractedFact, FactSheet, SourceType
+from app.ingestion.pipeline.schemas import ExtractedFact, SourceType
 from app.llm.gateway import get_llm_gateway
 
 logger = logging.getLogger(__name__)

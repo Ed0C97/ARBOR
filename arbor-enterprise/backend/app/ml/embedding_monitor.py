@@ -14,8 +14,7 @@ import random
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from app.config import get_settings
 
@@ -183,7 +182,7 @@ class CentroidDriftDetector:
                 len(embeddings),
             )
 
-    def check_drift(self) -> Optional[EmbeddingAlert]:
+    def check_drift(self) -> EmbeddingAlert | None:
         """Return an alert if centroid drift exceeds the threshold."""
         if self._baseline_centroid is None or self._current_centroid is None:
             return None
@@ -209,7 +208,7 @@ class CentroidDriftDetector:
                 f"Centroid drift detected: cosine distance {distance:.4f} "
                 f"exceeds threshold {self.drift_threshold:.4f}"
             ),
-            detected_at=datetime.now(timezone.utc),
+            detected_at=datetime.now(UTC),
         )
 
 
@@ -226,7 +225,7 @@ class AnisotropyDetector:
     CRITICAL_THRESHOLD: float = 0.9
     WARNING_THRESHOLD: float = 0.8
 
-    def check(self, embeddings: list[list[float]]) -> Optional[EmbeddingAlert]:
+    def check(self, embeddings: list[list[float]]) -> EmbeddingAlert | None:
         """Return an alert if the space is excessively anisotropic."""
         if len(embeddings) < 2:
             return None
@@ -250,7 +249,7 @@ class AnisotropyDetector:
                 f"Anisotropy detected: average pairwise similarity "
                 f"{avg_sim:.4f} indicates the embedding space is collapsing"
             ),
-            detected_at=datetime.now(timezone.utc),
+            detected_at=datetime.now(UTC),
         )
 
 
@@ -300,7 +299,7 @@ class DensityAnomalyDetector:
         self,
         embeddings: list[list[float]],
         labels: list[str] | None = None,
-    ) -> Optional[EmbeddingAlert]:
+    ) -> EmbeddingAlert | None:
         """Return an alert if density anomalies are found."""
         if len(embeddings) < self.k + 1:
             return None
@@ -335,7 +334,7 @@ class DensityAnomalyDetector:
                 f"{len(anomaly_indices)} embeddings have kNN distance > "
                 f"2 std deviations (threshold={threshold:.4f})"
             ),
-            detected_at=datetime.now(timezone.utc),
+            detected_at=datetime.now(UTC),
             entity_ids_affected=affected_ids,
         )
 
@@ -354,7 +353,7 @@ class QueryDocAlignmentDetector:
         self,
         query_embeddings: list[list[float]],
         doc_embeddings: list[list[float]],
-    ) -> Optional[EmbeddingAlert]:
+    ) -> EmbeddingAlert | None:
         """Return an alert if query/doc distributions are misaligned."""
         if not query_embeddings or not doc_embeddings:
             return None
@@ -380,7 +379,7 @@ class QueryDocAlignmentDetector:
                 f"Query-document alignment degrading: centroid distance "
                 f"{distance:.4f} exceeds threshold {self.DISTANCE_THRESHOLD:.4f}"
             ),
-            detected_at=datetime.now(timezone.utc),
+            detected_at=datetime.now(UTC),
         )
 
 
@@ -393,7 +392,7 @@ class DimensionCollapseDetector:
 
     VARIANCE_THRESHOLD: float = 0.01
 
-    def check(self, embeddings: list[list[float]]) -> Optional[EmbeddingAlert]:
+    def check(self, embeddings: list[list[float]]) -> EmbeddingAlert | None:
         """Return an alert listing collapsed dimensions, if any."""
         if not embeddings or len(embeddings) < 2:
             return None
@@ -431,7 +430,7 @@ class DimensionCollapseDetector:
                 f"(variance < {self.VARIANCE_THRESHOLD}): "
                 f"{collapsed_dims[:20]}{'...' if len(collapsed_dims) > 20 else ''}"
             ),
-            detected_at=datetime.now(timezone.utc),
+            detected_at=datetime.now(UTC),
         )
 
 
@@ -569,7 +568,7 @@ class EmbeddingSpaceMonitor:
         if not doc_list:
             return EmbeddingSnapshot(
                 snapshot_id=str(uuid.uuid4()),
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 centroid=[],
                 avg_pairwise_similarity=0.0,
                 avg_norm=0.0,
@@ -589,7 +588,7 @@ class EmbeddingSpaceMonitor:
 
         return EmbeddingSnapshot(
             snapshot_id=str(uuid.uuid4()),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             centroid=centroid,
             avg_pairwise_similarity=avg_sim,
             avg_norm=avg_norm,

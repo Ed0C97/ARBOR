@@ -34,12 +34,9 @@ Usage::
 
 import logging
 import math
-import random
-import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -243,7 +240,7 @@ class CausalGraph:
 
         return visited == len(self._variables)
 
-    def get_variable(self, name: str) -> Optional[CausalVariable]:
+    def get_variable(self, name: str) -> CausalVariable | None:
         """Retrieve a variable by name, or ``None`` if not present."""
         return self._variables.get(name)
 
@@ -732,7 +729,7 @@ class CausalInferenceEngine:
     """
 
     def __init__(self) -> None:
-        self._graph: Optional[CausalGraph] = None
+        self._graph: CausalGraph | None = None
         self._estimator = UpliftEstimator()
         self._explainer = CounterfactualExplainer()
         logger.info("CausalInferenceEngine initialised")
@@ -933,7 +930,7 @@ class CausalInferenceEngine:
 # Singleton
 # ---------------------------------------------------------------------------
 
-_engine_instance: Optional[CausalInferenceEngine] = None
+_engine_instance: CausalInferenceEngine | None = None
 
 
 def get_causal_engine() -> CausalInferenceEngine:

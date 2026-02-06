@@ -21,11 +21,11 @@ Usage:
 
 import asyncio
 import logging
-import math
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from typing import Any, Callable, Coroutine
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import Any
 
 from app.config import get_settings
 
@@ -162,7 +162,7 @@ class Bulkhead:
                     self._semaphore.acquire(),
                     timeout=self._config.timeout_seconds,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 async with self._lock:
                     self._queued_count -= 1
                     self._timeout_count += 1
@@ -189,7 +189,7 @@ class Bulkhead:
                     self._active_count -= 1
                     self._completed_count += 1
                     self._execution_times.append(elapsed_ms)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Re-raise; already handled counters above.
             raise
         except BulkheadRejectedException:

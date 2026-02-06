@@ -14,7 +14,6 @@ Runs on golden test set to measure quality over time.
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
 logger = logging.getLogger(__name__)
 

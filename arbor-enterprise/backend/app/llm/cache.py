@@ -259,7 +259,6 @@ class SemanticCache:
                 return 0
 
             # Search for entries mentioning this entity
-            from qdrant_client.models import FieldCondition, Filter, MatchText
 
             # Note: This requires a text index on the response field
             # For now, we'll skip this and let TTL handle staleness

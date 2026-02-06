@@ -11,7 +11,6 @@ Handles:
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Any
 
 from celery import Celery
 from celery.schedules import crontab
@@ -102,7 +101,6 @@ def refresh_stale_embeddings(self, max_age_hours: int = 24) -> dict:
 async def _refresh_stale_embeddings_async(max_age_hours: int) -> dict:
     """Async implementation of embedding refresh."""
     from sqlalchemy import select, update
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.db.postgres.connection import get_arbor_session
     from app.db.postgres.models import ArborEnrichment

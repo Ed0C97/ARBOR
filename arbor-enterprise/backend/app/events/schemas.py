@@ -1,6 +1,6 @@
 """Pydantic event schemas for the A.R.B.O.R. Enterprise event bus."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import UUID, uuid4
@@ -28,7 +28,7 @@ class BaseEvent(BaseModel):
 
     event_id: UUID = Field(default_factory=uuid4)
     event_type: EventType
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     source: str = "arbor-enterprise"
     version: str = "1.0"
     payload: dict[str, Any] = Field(default_factory=dict)

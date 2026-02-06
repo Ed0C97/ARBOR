@@ -21,7 +21,7 @@ Usage::
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -396,7 +396,7 @@ class PersonalizationEngine:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_engine: Optional[PersonalizationEngine] = None
+_engine: PersonalizationEngine | None = None
 
 
 def get_personalization_engine() -> PersonalizationEngine:

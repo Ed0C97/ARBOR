@@ -7,11 +7,11 @@ Provides endpoints for:
 - Monitoring feedback loop and drift detection
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.connection import get_arbor_db, get_db
@@ -200,7 +200,7 @@ async def decide_review(
     if body.action not in ("approve", "reject", "override"):
         raise HTTPException(status_code=400, detail="action must be approve, reject, or override")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if body.action == "approve":
         row.status = "approved"
@@ -418,7 +418,6 @@ async def trigger_batch_enrichment(
     For large batches, prefer the Temporal workflow approach.
     This endpoint processes entities sequentially.
     """
-    from sqlalchemy import and_
 
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
@@ -446,7 +445,7 @@ async def trigger_batch_enrichment(
 
     if body.entity_type is None or body.entity_type == "brand":
         res = await session.execute(
-            select(Brand).where(Brand.is_active == True).limit(body.max_entities * 2)
+            select(Brand).where(Brand.is_active).limit(body.max_entities * 2)
         )
         for b in res.scalars().all():
             if ("brand", b.id) not in existing_map:
@@ -457,7 +456,7 @@ async def trigger_batch_enrichment(
     remaining = body.max_entities - len(candidates)
     if remaining > 0 and (body.entity_type is None or body.entity_type == "venue"):
         res = await session.execute(
-            select(Venue).where(Venue.is_active == True).limit(remaining * 5)
+            select(Venue).where(Venue.is_active).limit(remaining * 5)
         )
         for v in res.scalars().all():
             if ("venue", v.id) not in existing_map:

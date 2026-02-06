@@ -15,10 +15,9 @@ lower-confidence candidates are queued for human review.
 
 import logging
 import math
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.config import get_settings
 
@@ -782,7 +781,7 @@ class AutoExpansionScheduler:
 # Singleton accessor
 # ---------------------------------------------------------------------------
 
-_scheduler: Optional[AutoExpansionScheduler] = None
+_scheduler: AutoExpansionScheduler | None = None
 
 
 def get_auto_expansion_scheduler() -> AutoExpansionScheduler:
