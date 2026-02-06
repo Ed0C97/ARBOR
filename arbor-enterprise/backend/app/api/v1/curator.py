@@ -455,9 +455,7 @@ async def trigger_batch_enrichment(
 
     remaining = body.max_entities - len(candidates)
     if remaining > 0 and (body.entity_type is None or body.entity_type == "venue"):
-        res = await session.execute(
-            select(Venue).where(Venue.is_active).limit(remaining * 5)
-        )
+        res = await session.execute(select(Venue).where(Venue.is_active).limit(remaining * 5))
         for v in res.scalars().all():
             if ("venue", v.id) not in existing_map:
                 candidates.append(("venue", v))
