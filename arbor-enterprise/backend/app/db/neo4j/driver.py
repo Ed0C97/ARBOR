@@ -1,4 +1,9 @@
-"""Neo4j async driver management."""
+"""Neo4j async driver management.
+
+TIER D1: Connection pooling with configurable pool size.
+- max_connection_pool_size controls concurrent connections
+- connection_acquisition_timeout prevents hanging under load
+"""
 
 from neo4j import AsyncGraphDatabase
 
@@ -10,7 +15,11 @@ _driver = None
 
 
 def get_neo4j_driver():
-    """Return singleton Neo4j driver, or None if not configured."""
+    """Return singleton Neo4j driver, or None if not configured.
+
+    Uses connection pooling with max_connection_pool_size=50 and
+    a 30s acquisition timeout to prevent connection starvation.
+    """
     global _driver
     # Skip if Neo4j is not configured
     if not settings.neo4j_uri:
@@ -19,6 +28,9 @@ def get_neo4j_driver():
         _driver = AsyncGraphDatabase.driver(
             settings.neo4j_uri,
             auth=(settings.neo4j_user, settings.neo4j_password),
+            max_connection_pool_size=50,
+            connection_acquisition_timeout=30.0,
+            max_transaction_retry_time=15.0,
         )
     return _driver
 

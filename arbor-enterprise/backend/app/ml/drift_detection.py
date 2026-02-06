@@ -288,17 +288,55 @@ class DriftMonitor:
         self.alerts: list[DriftResult] = []
     
     async def check_all(self) -> list[DriftResult]:
-        """Run all drift checks."""
+        """Run all drift checks against current data.
+
+        Fetches recent embeddings from Qdrant and query logs from Redis,
+        then runs both embedding drift and query drift detection.
+        """
         results = []
-        
-        # This would fetch recent data from the database
-        # For now, return empty results
-        
+
+        try:
+            from app.db.qdrant.client import get_async_qdrant_client
+
+            qdrant = await get_async_qdrant_client()
+            if qdrant:
+                collection_info = await qdrant.get_collection("entities_vectors")
+                points_count = collection_info.points_count or 0
+
+                if points_count > 0:
+                    sample = await qdrant.scroll(
+                        collection_name="entities_vectors",
+                        limit=min(200, points_count),
+                        with_vectors=True,
+                    )
+
+                    if sample and sample[0]:
+                        vectors = [p.vector for p in sample[0] if p.vector]
+                        if vectors:
+                            embedding_result = self.embedding_detector.detect(vectors)
+                            results.append(embedding_result)
+        except Exception as exc:
+            logger.warning("Embedding drift check failed: %s", exc)
+
+        try:
+            import json
+            from app.db.redis.client import get_redis_client
+
+            client = await get_redis_client()
+            if client:
+                raw = await client.lrange("arbor:query_log", 0, 500)
+                if raw:
+                    queries = [json.loads(q) if isinstance(q, str) else q for q in raw]
+                    query_result = self.query_detector.detect(queries)
+                    results.append(query_result)
+        except Exception as exc:
+            logger.warning("Query drift check failed: %s", exc)
+
         self.last_check = datetime.utcnow()
-        
+
         # Filter for significant drift
         self.alerts = [r for r in results if r.severity != DriftSeverity.NONE]
-        
+
         return results
     
     def get_status(self) -> dict[str, Any]:

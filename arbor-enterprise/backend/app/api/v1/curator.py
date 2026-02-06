@@ -129,7 +129,56 @@ async def list_review_queue(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """List items in the curator review queue."""
-    # ... (body unchanged)
+    stmt = select(ArborReviewQueue)
+
+    if status:
+        stmt = stmt.where(ArborReviewQueue.status == status)
+
+    # Sorting
+    if sort_by == "created_at":
+        stmt = stmt.order_by(ArborReviewQueue.created_at.desc())
+    else:
+        stmt = stmt.order_by(ArborReviewQueue.priority.desc())
+
+    # Total count (with same filter)
+    count_stmt = select(func.count()).select_from(ArborReviewQueue)
+    if status:
+        count_stmt = count_stmt.where(ArborReviewQueue.status == status)
+    total = (await session.execute(count_stmt)).scalar_one()
+
+    # Pending count
+    pending = (await session.execute(
+        select(func.count()).select_from(ArborReviewQueue)
+        .where(ArborReviewQueue.status == "needs_review")
+    )).scalar_one()
+
+    # Paginated results
+    stmt = stmt.offset(offset).limit(limit)
+    result = await session.execute(stmt)
+    rows = result.scalars().all()
+
+    items = [
+        ReviewQueueItemResponse(
+            id=str(row.id),
+            entity_id=f"{row.entity_type}_{row.source_id}",
+            entity_type=row.entity_type,
+            source_id=row.source_id,
+            reasons=row.reasons,
+            priority=row.priority,
+            scored_vibe_snapshot=row.scored_vibe_snapshot,
+            fact_sheet_snapshot=row.fact_sheet_snapshot,
+            status=row.status,
+            reviewer=row.reviewer,
+            reviewed_at=row.reviewed_at.isoformat() if row.reviewed_at else None,
+            reviewer_notes=row.reviewer_notes,
+            overridden_scores=row.overridden_scores,
+            created_at=row.created_at.isoformat() if row.created_at else None,
+        )
+        for row in rows
+    ]
+
+    return ReviewQueueListResponse(items=items, total=total, pending=pending)
+
 
 @router.post("/review-queue/{item_id}/decide")
 async def decide_review(
@@ -138,7 +187,61 @@ async def decide_review(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """Approve, reject, or override an enrichment in the review queue."""
-    # ... (body unchanged)
+    row = await session.get(ArborReviewQueue, item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Review queue item not found")
+
+    if body.action not in ("approve", "reject", "override"):
+        raise HTTPException(status_code=400, detail="action must be approve, reject, or override")
+
+    now = datetime.now(timezone.utc)
+
+    if body.action == "approve":
+        row.status = "approved"
+    elif body.action == "reject":
+        row.status = "rejected"
+    elif body.action == "override":
+        row.status = "overridden"
+        if body.overridden_scores:
+            row.overridden_scores = body.overridden_scores
+        if body.overridden_tags:
+            row.overridden_tags = body.overridden_tags
+
+    row.reviewer = body.reviewer
+    row.reviewer_notes = body.reviewer_notes
+    row.reviewed_at = now
+
+    # If approved/overridden and promote_to_gold requested, upsert gold standard
+    if body.promote_to_gold and body.action in ("approve", "override"):
+        scores = body.overridden_scores or (
+            row.scored_vibe_snapshot.get("dimensions", {}) if row.scored_vibe_snapshot else {}
+        )
+        existing_gold = (await session.execute(
+            select(ArborGoldStandard)
+            .where(ArborGoldStandard.entity_type == row.entity_type)
+            .where(ArborGoldStandard.source_id == row.source_id)
+        )).scalar_one_or_none()
+
+        if existing_gold:
+            existing_gold.ground_truth_scores = scores
+            existing_gold.curator_notes = body.reviewer_notes
+            existing_gold.curated_by = body.reviewer
+        else:
+            gold = ArborGoldStandard(
+                entity_type=row.entity_type,
+                source_id=row.source_id,
+                ground_truth_scores=scores,
+                ground_truth_tags=body.overridden_tags or [],
+                curator_notes=body.reviewer_notes,
+                curated_by=body.reviewer,
+            )
+            session.add(gold)
+
+    await session.commit()
+    await session.refresh(row)
+
+    return {"status": row.status, "item_id": str(row.id), "reviewed_at": now.isoformat()}
+
 
 @router.get("/gold-standard", response_model=GoldStandardListResponse)
 async def list_gold_standard(
@@ -147,7 +250,34 @@ async def list_gold_standard(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """List all gold standard reference entities."""
-    # ... (body unchanged)
+    total = (await session.execute(
+        select(func.count()).select_from(ArborGoldStandard)
+    )).scalar_one()
+
+    result = await session.execute(
+        select(ArborGoldStandard)
+        .order_by(ArborGoldStandard.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    rows = result.scalars().all()
+
+    items = [
+        GoldStandardResponse(
+            entity_id=f"{row.entity_type}_{row.source_id}",
+            entity_type=row.entity_type,
+            source_id=row.source_id,
+            ground_truth_scores=row.ground_truth_scores,
+            ground_truth_tags=row.ground_truth_tags,
+            curator_notes=row.curator_notes,
+            curated_by=row.curated_by,
+            created_at=row.created_at.isoformat() if row.created_at else None,
+        )
+        for row in rows
+    ]
+
+    return GoldStandardListResponse(items=items, total=total)
+
 
 @router.post("/gold-standard", response_model=GoldStandardResponse)
 async def add_gold_standard(
@@ -155,7 +285,45 @@ async def add_gold_standard(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """Add or update a gold standard reference entity."""
-    # ... (body unchanged)
+    # Upsert: check if already exists
+    existing = (await session.execute(
+        select(ArborGoldStandard)
+        .where(ArborGoldStandard.entity_type == body.entity_type)
+        .where(ArborGoldStandard.source_id == body.source_id)
+    )).scalar_one_or_none()
+
+    if existing:
+        existing.ground_truth_scores = body.scores
+        existing.ground_truth_tags = body.tags
+        existing.curator_notes = body.curator_notes
+        existing.curated_by = body.curated_by
+        await session.commit()
+        await session.refresh(existing)
+        row = existing
+    else:
+        row = ArborGoldStandard(
+            entity_type=body.entity_type,
+            source_id=body.source_id,
+            ground_truth_scores=body.scores,
+            ground_truth_tags=body.tags,
+            curator_notes=body.curator_notes,
+            curated_by=body.curated_by,
+        )
+        session.add(row)
+        await session.commit()
+        await session.refresh(row)
+
+    return GoldStandardResponse(
+        entity_id=f"{row.entity_type}_{row.source_id}",
+        entity_type=row.entity_type,
+        source_id=row.source_id,
+        ground_truth_scores=row.ground_truth_scores,
+        ground_truth_tags=row.ground_truth_tags,
+        curator_notes=row.curator_notes,
+        curated_by=row.curated_by,
+        created_at=row.created_at.isoformat() if row.created_at else None,
+    )
+
 
 @router.delete("/gold-standard/{entity_id}")
 async def remove_gold_standard(
@@ -163,7 +331,27 @@ async def remove_gold_standard(
     session: AsyncSession = Depends(get_arbor_db),
 ):
     """Remove an entity from the gold standard set."""
-    # ... (body unchanged)
+    parts = entity_id.split("_", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="entity_id must be 'type_sourceId' (e.g., brand_123)")
+
+    entity_type, source_id_str = parts
+    try:
+        source_id = int(source_id_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="source_id must be an integer")
+
+    result = await session.execute(
+        delete(ArborGoldStandard)
+        .where(ArborGoldStandard.entity_type == entity_type)
+        .where(ArborGoldStandard.source_id == source_id)
+    )
+    await session.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Gold standard entry not found")
+
+    return {"deleted": entity_id}
 
 @router.post("/enrich/single")
 async def trigger_single_enrichment(

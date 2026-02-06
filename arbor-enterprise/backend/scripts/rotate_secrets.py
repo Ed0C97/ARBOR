@@ -219,33 +219,96 @@ class SecretsRotator:
         return secrets.token_urlsafe(32)
     
     async def _get_current_version(self, config: SecretConfig) -> str | None:
-        """Get current version of a secret (placeholder)."""
-        # In production, fetch from GCP Secret Manager or K8s
-        return None
-    
+        """Get current version of a secret from GCP Secret Manager.
+
+        Falls back to env-var lookup in non-production environments.
+        """
+        from app.config import get_settings
+
+        settings = get_settings()
+        project_id = settings.gcp_project_id
+
+        if project_id and config.gcp_secret_id:
+            try:
+                from google.cloud import secretmanager
+
+                client = secretmanager.SecretManagerServiceClient()
+                name = f"projects/{project_id}/secrets/{config.gcp_secret_id}/versions/latest"
+                response = client.access_secret_version(request={"name": name})
+                return response.name.rsplit("/", 1)[-1]
+            except Exception as exc:
+                logger.warning("GCP get_current_version failed for %s: %s", config.name, exc)
+
+        # Fallback: check env var
+        import os
+
+        value = os.getenv(config.env_var_name)
+        return "env" if value else None
+
     async def _add_secret_version(
         self, config: SecretConfig, value: str
     ) -> str:
-        """Add new version to secret store."""
-        # In production: use GCP Secret Manager or Vault
-        # from google.cloud import secretmanager
-        # client = secretmanager.SecretManagerServiceClient()
-        # parent = client.secret_path(project_id, config.gcp_secret_id)
-        # version = client.add_secret_version(parent=parent, payload={"data": value.encode()})
-        
+        """Add a new secret version to GCP Secret Manager.
+
+        Falls back to local logging in non-production environments.
+        """
+        from app.config import get_settings
+
+        settings = get_settings()
+        project_id = settings.gcp_project_id
+
+        if project_id and config.gcp_secret_id:
+            try:
+                from google.cloud import secretmanager
+
+                client = secretmanager.SecretManagerServiceClient()
+                parent = client.secret_path(project_id, config.gcp_secret_id)
+                response = client.add_secret_version(
+                    request={
+                        "parent": parent,
+                        "payload": {"data": value.encode("utf-8")},
+                    }
+                )
+                version = response.name.rsplit("/", 1)[-1]
+                logger.info("Added GCP secret version: %s/%s", config.gcp_secret_id, version)
+                return version
+            except Exception as exc:
+                logger.warning("GCP add_secret_version failed for %s: %s", config.name, exc)
+
+        # Fallback: generate a version label locally
         version = f"v{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
-        logger.info(f"Added secret version: {version}")
+        logger.info("Added local secret version: %s", version)
         return version
-    
+
     async def _update_k8s_secret(self, secret_name: str, value: str) -> None:
-        """Update Kubernetes secret."""
-        # In production: use kubernetes client
-        # from kubernetes import client, config
-        # config.load_incluster_config()
-        # v1 = client.CoreV1Api()
-        # v1.patch_namespaced_secret(name=secret_name, namespace="arbor", body=...)
-        
-        logger.info(f"Would update K8s secret: {secret_name}")
+        """Update a Kubernetes secret in the arbor namespace.
+
+        Uses the in-cluster config when running inside K8s, or falls back
+        to kubeconfig when running locally.
+        """
+        try:
+            from kubernetes import client as k8s_client, config as k8s_config
+            import base64
+
+            try:
+                k8s_config.load_incluster_config()
+            except k8s_config.ConfigException:
+                k8s_config.load_kube_config()
+
+            v1 = k8s_client.CoreV1Api()
+            encoded = base64.b64encode(value.encode("utf-8")).decode("utf-8")
+            body = {"data": {secret_name: encoded}}
+
+            v1.patch_namespaced_secret(
+                name="arbor-secrets",
+                namespace="arbor",
+                body=body,
+            )
+            logger.info("Updated K8s secret: %s", secret_name)
+        except ImportError:
+            logger.info("kubernetes package not installed, skipping K8s update for: %s", secret_name)
+        except Exception as exc:
+            logger.warning("K8s secret update failed for %s: %s", secret_name, exc)
     
     async def _verify_health(self) -> bool:
         """Verify application health after rotation."""
@@ -262,16 +325,49 @@ class SecretsRotator:
             return False
     
     async def _rollback(self, config: SecretConfig, old_version: str) -> None:
-        """Rollback to old secret version."""
+        """Rollback to old secret version by re-enabling it in GCP Secret Manager."""
         logger.warning(f"Rolling back {config.name} to {old_version}")
-        # In production: re-enable old version, disable new
-    
+
+        from app.config import get_settings
+
+        settings = get_settings()
+        project_id = settings.gcp_project_id
+
+        if project_id and config.gcp_secret_id and old_version:
+            try:
+                from google.cloud import secretmanager
+
+                client = secretmanager.SecretManagerServiceClient()
+                name = f"projects/{project_id}/secrets/{config.gcp_secret_id}/versions/{old_version}"
+                client.enable_secret_version(request={"name": name})
+                logger.info("Re-enabled old version: %s/%s", config.gcp_secret_id, old_version)
+            except Exception as exc:
+                logger.error("GCP rollback failed for %s: %s", config.name, exc)
+
+        if config.k8s_secret_name:
+            logger.info("K8s rollback would require redeployment for: %s", config.k8s_secret_name)
+
     async def _disable_old_version(
         self, config: SecretConfig, version: str
     ) -> None:
-        """Disable old secret version."""
+        """Disable old secret version in GCP Secret Manager."""
         logger.info(f"Disabling old version: {version}")
-        # In production: mark old version as disabled
+
+        from app.config import get_settings
+
+        settings = get_settings()
+        project_id = settings.gcp_project_id
+
+        if project_id and config.gcp_secret_id and version and version != "env":
+            try:
+                from google.cloud import secretmanager
+
+                client = secretmanager.SecretManagerServiceClient()
+                name = f"projects/{project_id}/secrets/{config.gcp_secret_id}/versions/{version}"
+                client.disable_secret_version(request={"name": name})
+                logger.info("Disabled old version: %s/%s", config.gcp_secret_id, version)
+            except Exception as exc:
+                logger.warning("GCP disable_old_version failed for %s: %s", config.name, exc)
     
     async def _log_rotation(self, result: RotationResult) -> None:
         """Log rotation to audit log."""

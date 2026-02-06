@@ -155,6 +155,10 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = "localhost:9092"
     kafka_dlq_topic: str = "arbor-dlq"  # TIER 3 - Point 13: Dead Letter Queue
 
+    # Celery (TIER 7 - Point 34: Background Jobs)
+    celery_broker_url: str = "redis://localhost:6379/1"
+    celery_result_backend: str = "redis://localhost:6379/2"
+
     # Temporal
     temporal_host: str = "localhost:7233"
 
@@ -195,7 +199,11 @@ class Settings(BaseSettings):
     timeout_synthesis_node: float = 15.0
     timeout_total_request: float = 25.0
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
+    model_config = {
+        "env_file": (".env", "../.env"),
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
     @field_validator("app_secret_key", "database_url", "arbor_database_url")
     @classmethod

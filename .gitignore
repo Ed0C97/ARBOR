@@ -43,6 +43,5 @@ out/
 *.log
 
 # Documentation and AI
-Docs/
 .claude/
 

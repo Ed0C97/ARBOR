@@ -9,14 +9,16 @@ TIER 2 - Point 9: Asyncio.gather Service Initialization
 """
 
 import asyncio
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import admin, curator, discover, entities, graph, search
+from app.api.graphql_schema import create_graphql_app
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -69,6 +71,18 @@ async def _compile_agent_graph(app: FastAPI):
     logger.info("LangGraph: Agent graph compiled")
 
 
+async def _warmup_cache():
+    """TIER D3: Initialize multi-tier cache singleton at startup.
+
+    Pre-creates the L1/L2/L3 cache layers and bloom filter so the first
+    request doesn't pay initialization overhead (~200ms).
+    """
+    from app.core.multi_tier_cache import get_multi_tier_cache
+
+    cache = await get_multi_tier_cache()
+    logger.info("Cache warmup: MultiTierCache initialized (%s)", cache.stats()["bloom_filter"])
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan - startup and shutdown.
@@ -94,6 +108,9 @@ async def lifespan(app: FastAPI):
         await _compile_agent_graph(app)
     except Exception as e:
         logger.warning(f"Agent graph compilation failed: {e}")
+
+    # TIER D3: Cache warmup — initialize multi-tier cache singleton
+    await _safe_init("CacheWarmup", _warmup_cache())
 
     elapsed = time.time() - start_time
     logger.info(f"A.R.B.O.R. Enterprise started in {elapsed:.2f}s")
@@ -161,6 +178,10 @@ app.include_router(search.router, prefix="/api/v1", tags=["Search"])
 app.include_router(graph.router, prefix="/api/v1", tags=["Graph"])
 app.include_router(admin.router, prefix="/api/v1", tags=["Admin"])
 app.include_router(curator.router, prefix="/api/v1", tags=["Curator"])
+
+# GraphQL (Strawberry) — mirrors REST endpoints with flexible queries
+graphql_app = create_graphql_app()
+app.include_router(graphql_app, prefix="/graphql", tags=["GraphQL"])
 
 
 @app.get("/health")
@@ -255,3 +276,79 @@ async def root():
         "version": settings.app_version,
         "docs": "/docs",
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TIER D4: WebSocket for real-time entity updates
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class ConnectionManager:
+    """Manages active WebSocket connections for real-time broadcasts."""
+
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info("WebSocket client connected (total=%d)", len(self.active_connections))
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+        logger.info("WebSocket client disconnected (total=%d)", len(self.active_connections))
+
+    async def broadcast(self, message: dict):
+        """Send a JSON message to all connected clients."""
+        payload = json.dumps(message)
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(payload)
+            except Exception:
+                disconnected.append(connection)
+        for conn in disconnected:
+            self.active_connections.remove(conn)
+
+
+ws_manager = ConnectionManager()
+
+
+@app.websocket("/ws/updates")
+async def websocket_updates(websocket: WebSocket):
+    """Real-time entity update stream via WebSocket.
+
+    TIER D4: Clients connect here to receive live notifications for
+    entity changes, curator decisions, and feedback events.
+
+    Messages are JSON with structure:
+        {"event": "entity_updated", "data": {...}, "timestamp": "..."}
+
+    Clients can also send subscription filters:
+        {"subscribe": ["entity_updated", "curator_decision"]}
+    """
+    await ws_manager.connect(websocket)
+    subscriptions: set[str] = set()
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                msg = json.loads(data)
+                if "subscribe" in msg and isinstance(msg["subscribe"], list):
+                    subscriptions = set(msg["subscribe"])
+                    await websocket.send_text(json.dumps({
+                        "event": "subscribed",
+                        "channels": list(subscriptions),
+                    }))
+                elif msg.get("type") == "ping":
+                    await websocket.send_text(json.dumps({"type": "pong"}))
+            except json.JSONDecodeError:
+                await websocket.send_text(json.dumps({"error": "invalid JSON"}))
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+
+
+def get_ws_manager() -> ConnectionManager:
+    """Return the global WebSocket connection manager for broadcasting."""
+    return ws_manager

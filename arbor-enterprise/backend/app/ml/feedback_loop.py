@@ -97,10 +97,11 @@ def compute_reward(
 
 
 class FeedbackCollector:
-    """Collects, buffers, and logs user feedback for ranking improvement.
+    """Collects, buffers, and persists user feedback for ranking improvement.
 
-    In production this would write to a feature store or training pipeline.
-    For now it maintains an in-memory buffer and logs aggregated statistics.
+    Feedback signals are buffered in memory and flushed to the
+    ``arbor_feedback`` table (via ``FeedbackRepository``) once the buffer
+    reaches capacity. Aggregate statistics are logged on each flush.
     """
 
     def __init__(self, buffer_size: int = 500) -> None:
@@ -155,12 +156,11 @@ class FeedbackCollector:
     # ------------------------------------------------------------------
 
     async def flush(self) -> None:
-        """Flush the buffer and log aggregate statistics.
+        """Flush the buffer, persist to the database, and log statistics.
 
-        In production, this method would:
-        - Write the batch to a feature store (e.g., Feast)
-        - Trigger an online learning update for the reranker
-        - Push training examples to a labelled dataset
+        Writes each feedback record to the ``arbor_feedback`` table via
+        ``FeedbackRepository``, then publishes the batch to Redis so the
+        reranker can pick up the latest signals.
         """
         if not self._buffer:
             return
@@ -171,7 +171,7 @@ class FeedbackCollector:
         # Aggregate stats
         total_reward = sum(fb.reward for fb in batch)
         avg_reward = total_reward / len(batch)
-        actions = {}
+        actions: dict[str, int] = {}
         for fb in batch:
             actions[fb.action] = actions.get(fb.action, 0) + 1
 
@@ -183,8 +183,44 @@ class FeedbackCollector:
             self._total_collected,
         )
 
-        # TODO: persist to feature store
-        # TODO: trigger online reranker update
+        # Persist to arbor_feedback table
+        try:
+            from app.db.postgres.connection import arbor_session_factory
+            from app.db.postgres.repository import FeedbackRepository
+
+            if arbor_session_factory:
+                async with arbor_session_factory() as session:
+                    repo = FeedbackRepository(session)
+                    for fb in batch:
+                        await repo.create(
+                            user_id=fb.user_id,
+                            entity_type=fb.entity_id.split("_")[0] if "_" in fb.entity_id else "brand",
+                            source_id=fb.entity_id,
+                            query=fb.query,
+                            action=fb.action,
+                            position=fb.position,
+                            reward=fb.reward,
+                        )
+                    await session.commit()
+                    logger.info("Persisted %d feedback records to arbor_feedback", len(batch))
+        except Exception as exc:
+            logger.warning("Failed to persist feedback batch: %s", exc)
+
+        # Publish to Redis for real-time reranker updates
+        try:
+            import json
+            from app.db.redis.client import get_redis_client
+
+            client = await get_redis_client()
+            if client:
+                summary = {
+                    "batch_size": len(batch),
+                    "avg_reward": round(avg_reward, 4),
+                    "actions": actions,
+                }
+                await client.publish("arbor:feedback_flush", json.dumps(summary))
+        except Exception as exc:
+            logger.warning("Redis feedback publish failed: %s", exc)
 
     # ------------------------------------------------------------------
     # Stats

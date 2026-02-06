@@ -16,9 +16,9 @@ settings = get_settings()
 class NotificationConsumer:
     """Kafka consumer that triggers notifications based on domain events.
 
-    Listens to entity and user events and dispatches notifications to the
-    appropriate channels (email, push, webhook). This is a placeholder
-    implementation; integrate a real notification service in production.
+    Listens to entity and user events and dispatches notifications via
+    Redis Pub/Sub (real-time dashboards) and the WebhookManager
+    (external integrations like Slack, email services, etc.).
     """
 
     TOPICS: list[str] = [
@@ -104,11 +104,15 @@ class NotificationConsumer:
             logger.debug("NotificationConsumer ignoring event type: %s", event_type)
 
     # ------------------------------------------------------------------
-    # Notification stubs
+    # Notification dispatch
     # ------------------------------------------------------------------
 
     async def _notify_entity_created(self, payload: dict[str, Any]) -> None:
-        """Placeholder: notify curators when a new entity is ingested."""
+        """Notify curators when a new entity is ingested.
+
+        Publishes to Redis Pub/Sub for real-time dashboards and dispatches
+        registered webhooks.
+        """
         entity_name = payload.get("name", "unknown")
         category = payload.get("category", "unknown")
         logger.info(
@@ -116,10 +120,22 @@ class NotificationConsumer:
             category,
             entity_name,
         )
-        # TODO: send email / push to curator dashboard
+
+        notification = {
+            "type": "entity.created",
+            "title": f"New {category} entity: {entity_name}",
+            "body": f"'{entity_name}' has been ingested and is ready for review.",
+            "payload": payload,
+        }
+        await self._publish_redis(notification)
+        await self._dispatch_webhooks("entity.created", payload)
 
     async def _notify_entity_updated(self, payload: dict[str, Any]) -> None:
-        """Placeholder: notify watchers when entity data changes."""
+        """Notify watchers when entity data changes.
+
+        Publishes to Redis Pub/Sub and dispatches webhooks for subscribed
+        consumers.
+        """
         entity_id = payload.get("entity_id", "unknown")
         changed = payload.get("changed_fields", [])
         logger.info(
@@ -127,10 +143,22 @@ class NotificationConsumer:
             entity_id,
             changed,
         )
-        # TODO: webhook / in-app notification for subscribed users
+
+        notification = {
+            "type": "entity.updated",
+            "title": f"Entity {entity_id} updated",
+            "body": f"Changed fields: {', '.join(changed) if changed else 'N/A'}",
+            "payload": payload,
+        }
+        await self._publish_redis(notification)
+        await self._dispatch_webhooks("entity.updated", payload)
 
     async def _notify_conversion(self, payload: dict[str, Any]) -> None:
-        """Placeholder: internal alert on user conversions for business metrics."""
+        """Alert on user conversions for business metrics.
+
+        Publishes to Redis Pub/Sub and dispatches webhooks (e.g. Slack
+        incoming webhook for the #conversions channel).
+        """
         user_id = payload.get("user_id", "unknown")
         conversion_type = payload.get("conversion_type", "unknown")
         logger.info(
@@ -138,4 +166,42 @@ class NotificationConsumer:
             user_id,
             conversion_type,
         )
-        # TODO: Slack webhook / analytics push
+
+        notification = {
+            "type": "user.converted",
+            "title": f"Conversion: {conversion_type}",
+            "body": f"User {user_id} triggered a '{conversion_type}' conversion.",
+            "payload": payload,
+        }
+        await self._publish_redis(notification)
+        await self._dispatch_webhooks("user.converted", payload)
+
+    # ------------------------------------------------------------------
+    # Delivery channels
+    # ------------------------------------------------------------------
+
+    async def _publish_redis(self, notification: dict) -> None:
+        """Publish a notification to Redis Pub/Sub for real-time dashboards."""
+        try:
+            from app.db.redis.client import get_redis_client
+
+            client = await get_redis_client()
+            if client:
+                await client.publish(
+                    "arbor:notifications",
+                    json.dumps(notification),
+                )
+                logger.debug("Redis notification published: %s", notification.get("type"))
+        except Exception as exc:
+            logger.warning("Redis notification publish failed: %s", exc)
+
+    async def _dispatch_webhooks(self, event_type: str, payload: dict) -> None:
+        """Dispatch registered webhooks for the given event type."""
+        try:
+            from app.events.webhooks import get_webhook_manager
+
+            manager = get_webhook_manager()
+            await manager.dispatch(event_type, payload)
+            logger.debug("Webhooks dispatched for event: %s", event_type)
+        except Exception as exc:
+            logger.warning("Webhook dispatch failed for %s: %s", event_type, exc)

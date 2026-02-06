@@ -176,9 +176,9 @@ class MLFeedbackConsumer:
             "Flushing %d ML feedback samples to feedback collector", batch_size
         )
 
-        # Placeholder: integrate with FeedbackCollector.record_batch(self._buffer)
-        # from app.ml.feedback_loop import get_feedback_collector
-        # collector = get_feedback_collector()
-        # await collector.record_batch(self._buffer)
+        from app.ml.feedback_loop import get_feedback_collector
+
+        collector = get_feedback_collector()
+        await collector.record_batch(self._buffer)
 
         self._buffer.clear()

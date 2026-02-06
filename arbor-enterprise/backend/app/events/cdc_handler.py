@@ -107,8 +107,7 @@ class VectorSyncHandler(ChangeHandler):
                 logger.error(f"Failed to remove from vector store: {e}")
         
         elif event.operation in (ChangeOperation.INSERT, ChangeOperation.UPDATE):
-            # Queue for re-embedding
-            # In production, this would trigger an async embedding job
+            # Queue for re-embedding via Kafka -> embedding worker
             logger.info(f"Queued entity {entity_id} for re-embedding")
             
             # Emit event for embedding worker
