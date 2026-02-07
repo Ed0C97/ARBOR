@@ -1,0 +1,567 @@
+% ============================================================================
+% Chapter 9: Ingestion Pipeline
+% ============================================================================
+
+\chapter{Ingestion Pipeline}
+\label{ch:ingestion}
+
+The ingestion pipeline transforms raw data from diverse sources into the structured knowledge that powers ARBOR's discovery capabilities. This chapter examines the components, workflows, and strategies that enable continuous knowledge base population and maintenance.
+
+
+\section{Pipeline Overview}
+
+Entity ingestion is a multi-stage process that discovers, extracts, enriches, and validates entities before they become available for discovery queries.
+
+\subsection{Pipeline Stages}
+
+The ingestion pipeline comprises five primary stages:
+
+\begin{enumerate}
+    \item \textbf{Source Discovery}: Identify candidate entities from configured data sources.
+    \item \textbf{Data Extraction}: Collect structured and unstructured data about each entity.
+    \item \textbf{AI Enrichment}: Apply machine learning models to extract insights and compute scores.
+    \item \textbf{Trinity Population}: Write processed data to PostgreSQL, Qdrant, and Neo4j.
+    \item \textbf{Validation Queue}: Entities enter curator review workflow.
+\end{enumerate}
+
+\subsection{Design Principles}
+
+The pipeline design reflects several principles:
+
+\begin{description}
+    \item[Durability] Temporal.io workflows ensure ingestion survives system failures, resuming from the last completed step.
+    
+    \item[Idempotency] Repeated processing of the same entity produces identical results, enabling safe retries.
+    
+    \item[Observability] Each stage emits detailed metrics and traces for monitoring and debugging.
+    
+    \item[Extensibility] New data sources and analyzers integrate through well-defined interfaces.
+\end{description}
+
+
+\section{Source Discovery}
+
+The first stage identifies candidates for ingestion from various data sources.
+
+\subsection{Scraper Architecture}
+
+All scrapers implement a common interface enabling uniform orchestration:
+
+\begin{lstlisting}[style=pythonstyle, caption={Base scraper interface}]
+from abc import ABC, abstractmethod
+from typing import AsyncIterator
+
+class BaseScraper(ABC):
+    """Abstract base class for entity scrapers."""
+    
+    def __init__(self, config: ScraperConfig):
+        self.config = config
+        self.rate_limiter = RateLimiter(config.rate_limit)
+    
+    @abstractmethod
+    async def discover(
+        self,
+        search_params: SearchParams
+    ) -> AsyncIterator[DiscoveredEntity]:
+        """Yield discovered entities matching search criteria."""
+        pass
+    
+    @abstractmethod
+    async def extract_details(
+        self,
+        entity: DiscoveredEntity
+    ) -> EntityDetails:
+        """Extract full details for a discovered entity."""
+        pass
+    
+    async def scrape(
+        self,
+        search_params: SearchParams
+    ) -> AsyncIterator[EntityDetails]:
+        """Complete scrape: discover then extract details."""
+        async for entity in self.discover(search_params):
+            await self.rate_limiter.acquire()
+            details = await self.extract_details(entity)
+            yield details
+\end{lstlisting}
+
+\subsection{Google Maps Integration}
+
+The Google Maps scraper is the primary source for location-based entities:
+
+\begin{lstlisting}[style=pythonstyle, caption={Google Maps scraper implementation}]
+class GoogleMapsScraper(BaseScraper):
+    """Scraper for Google Maps Places API."""
+    
+    async def discover(
+        self,
+        search_params: SearchParams
+    ) -> AsyncIterator[DiscoveredEntity]:
+        """Search for places matching criteria."""
+        
+        for location in search_params.locations:
+            for category in search_params.categories:
+                response = await self.client.places_nearby(
+                    location=location,
+                    type=self._map_category(category),
+                    radius=search_params.radius_meters,
+                )
+                
+                for place in response.places:
+                    yield DiscoveredEntity(
+                        external_id=f"google:{place.place_id}",
+                        source="google_maps",
+                        name=place.name,
+                        location=place.geometry.location,
+                        raw_data=place.dict(),
+                    )
+    
+    async def extract_details(
+        self,
+        entity: DiscoveredEntity
+    ) -> EntityDetails:
+        """Fetch full place details."""
+        
+        place_id = entity.external_id.replace("google:", "")
+        
+        details = await self.client.place_details(
+            place_id=place_id,
+            fields=[
+                "name", "formatted_address", "geometry",
+                "types", "rating", "user_ratings_total",
+                "reviews", "photos", "website", "opening_hours",
+                "price_level", "editorial_summary",
+            ]
+        )
+        
+        return self._transform_to_entity_details(details)
+\end{lstlisting}
+
+\subsection{Additional Data Sources}
+
+Beyond Google Maps, the pipeline supports:
+
+\begin{itemize}
+    \item \textbf{Instagram}: Visual content, aesthetic signals, engagement metrics
+    \item \textbf{Web Scraping}: Entity websites for detailed descriptions and imagery
+    \item \textbf{CSV/JSON Import}: Bulk import from curated datasets
+    \item \textbf{API Integrations}: Domain-specific data providers
+\end{itemize}
+
+
+\section{AI-Powered Enrichment}
+
+Raw data is enriched through multiple AI analyzers that extract structured insights.
+
+\subsection{Vision Analysis}
+
+GPT-4 Vision analyzes entity images to extract aesthetic attributes:
+
+\begin{lstlisting}[style=pythonstyle, caption={Vision analyzer implementation}]
+class VisionAnalyzer:
+    """Analyze images using GPT-4 Vision."""
+    
+    async def analyze_entity_images(
+        self,
+        images: List[bytes],
+        entity_type: str
+    ) -> VisionAnalysis:
+        """Extract visual attributes from entity images."""
+        
+        prompt = self.prompts.get("vision_analysis").format(
+            entity_type=entity_type,
+            dimensions=self.config.vibe_dimensions
+        )
+        
+        # Prepare image inputs
+        image_contents = [
+            {"type": "image_url", "image_url": {"url": self._to_data_url(img)}}
+            for img in images[:self.config.max_images]
+        ]
+        
+        response = await self.llm.ainvoke(
+            model="gpt-4o",
+            messages=[{
+                "role": "user",
+                "content": [{"type": "text", "text": prompt}] + image_contents
+            }]
+        )
+        
+        return self._parse_vision_response(response)
+\end{lstlisting}
+
+The vision analyzer extracts:
+\begin{itemize}
+    \item Atmosphere assessment (formal/casual, busy/intimate)
+    \item Design style classification
+    \item Quality signals (craftsmanship visible, attention to detail)
+    \item Category confirmation or refinement
+\end{itemize}
+
+\subsection{Review Sentiment Analysis}
+
+The Vibe Extractor processes reviews to understand entity characteristics:
+
+\begin{lstlisting}[style=pythonstyle, caption={Vibe extraction from reviews}]
+class VibeExtractor:
+    """Extract vibe dimensions from review text."""
+    
+    async def extract_vibe_dna(
+        self,
+        reviews: List[Review],
+        entity_type: str
+    ) -> VibeDNA:
+        """Compute Vibe DNA from review corpus."""
+        
+        # Aggregate review texts
+        review_text = self._prepare_review_corpus(reviews)
+        
+        prompt = self.prompts.get("vibe_extraction").format(
+            entity_type=entity_type,
+            dimensions=self._format_dimensions(),
+            reviews=review_text
+        )
+        
+        response = await self.llm.ainvoke(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        # Parse structured scores
+        scores = self._parse_vibe_scores(response)
+        
+        return VibeDNA(
+            scores=scores,
+            confidence=self._compute_confidence(len(reviews)),
+            extracted_at=datetime.utcnow()
+        )
+\end{lstlisting}
+
+\subsection{Embedding Generation}
+
+Entity text is embedded for semantic search:
+
+\begin{lstlisting}[style=pythonstyle, caption={Embedding generation}]
+class EmbeddingGenerator:
+    """Generate embeddings for entity content."""
+    
+    async def embed_entity(
+        self,
+        entity: EntityDetails
+    ) -> EntityEmbedding:
+        """Generate searchable embedding for entity."""
+        
+        # Construct embedding text
+        text = self._build_embedding_text(
+            name=entity.name,
+            description=entity.description,
+            category=entity.category,
+            vibe_summary=entity.vibe_dna.summary,
+            reviews_summary=entity.reviews_summary
+        )
+        
+        # Generate dense embedding
+        dense = await self.embedder.embed(text)
+        
+        # Generate sparse embedding for hybrid search
+        sparse = self.sparse_encoder.encode(text)
+        
+        return EntityEmbedding(
+            dense=dense,
+            sparse=sparse,
+            text_hash=self._hash_text(text)
+        )
+\end{lstlisting}
+
+
+\section{Enrichment Orchestrator}
+
+The Master Ingestor orchestrates the complete enrichment flow:
+
+\begin{lstlisting}[style=pythonstyle, caption={Enrichment orchestration}]
+class EnrichmentOrchestrator:
+    """Orchestrate entity enrichment pipeline."""
+    
+    async def enrich_entity(
+        self,
+        details: EntityDetails
+    ) -> EnrichedEntity:
+        """Apply all enrichment steps to an entity."""
+        
+        # Parallel enrichment tasks
+        async with asyncio.TaskGroup() as tg:
+            vision_task = tg.create_task(
+                self.vision.analyze_entity_images(
+                    details.images,
+                    details.entity_type
+                )
+            )
+            vibe_task = tg.create_task(
+                self.vibe.extract_vibe_dna(
+                    details.reviews,
+                    details.entity_type
+                )
+            )
+            embedding_task = tg.create_task(
+                self.embedder.embed_entity(details)
+            )
+        
+        # Merge enrichments
+        return EnrichedEntity(
+            **details.dict(),
+            vision_analysis=vision_task.result(),
+            vibe_dna=vibe_task.result(),
+            embedding=embedding_task.result()
+        )
+\end{lstlisting}
+
+
+\section{Temporal Workflows}
+
+Temporal.io provides durable workflow execution for the ingestion pipeline.
+
+\subsection{Workflow Definition}
+
+\begin{lstlisting}[style=pythonstyle, caption={Temporal ingestion workflow}]
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+
+@workflow.defn
+class IngestionWorkflow:
+    """Durable workflow for entity ingestion."""
+    
+    @workflow.run
+    async def run(self, params: IngestionParams) -> IngestionResult:
+        """Execute complete ingestion pipeline."""
+        
+        # Step 1: Discover entities
+        discovered = await workflow.execute_activity(
+            discover_entities,
+            params.search_params,
+            start_to_close_timeout=timedelta(minutes=30),
+            retry_policy=RetryPolicy(maximum_attempts=3)
+        )
+        
+        # Step 2: Process each entity
+        results = []
+        for entity in discovered:
+            try:
+                # Extract details
+                details = await workflow.execute_activity(
+                    extract_entity_details,
+                    entity,
+                    start_to_close_timeout=timedelta(minutes=5),
+                )
+                
+                # Enrich with AI
+                enriched = await workflow.execute_activity(
+                    enrich_entity,
+                    details,
+                    start_to_close_timeout=timedelta(minutes=10),
+                )
+                
+                # Write to databases
+                await workflow.execute_activity(
+                    write_to_trinity,
+                    enriched,
+                    start_to_close_timeout=timedelta(minutes=2),
+                )
+                
+                results.append(IngestionSuccess(entity.external_id))
+                
+            except Exception as e:
+                results.append(IngestionFailure(entity.external_id, str(e)))
+        
+        return IngestionResult(
+            total=len(discovered),
+            succeeded=len([r for r in results if r.success]),
+            failed=len([r for r in results if not r.success]),
+            details=results
+        )
+\end{lstlisting}
+
+\subsection{Activity Implementations}
+
+Activities execute individual pipeline steps with independent retry policies:
+
+\begin{lstlisting}[style=pythonstyle, caption={Temporal activities}]
+from temporalio import activity
+
+@activity.defn
+async def discover_entities(params: SearchParams) -> List[DiscoveredEntity]:
+    """Activity: Discover entities from sources."""
+    scraper = get_scraper(params.source)
+    entities = []
+    async for entity in scraper.discover(params):
+        entities.append(entity)
+    return entities
+
+@activity.defn
+async def enrich_entity(details: EntityDetails) -> EnrichedEntity:
+    """Activity: Apply AI enrichment."""
+    orchestrator = get_enrichment_orchestrator()
+    return await orchestrator.enrich_entity(details)
+
+@activity.defn
+async def write_to_trinity(entity: EnrichedEntity) -> None:
+    """Activity: Write to all three databases."""
+    writer = get_trinity_writer()
+    await writer.write_entity(entity)
+\end{lstlisting}
+
+
+\section{Change Data Capture}
+
+For entities with external sources that update independently, CDC maintains synchronization.
+
+\subsection{Debezium Integration}
+
+\begin{lstlisting}[style=yamlstyle, caption={CDC configuration}]
+# config/cdc_config.yaml
+connectors:
+  source_database:
+    connector: postgresql
+    database: source_db
+    tables:
+      - entities
+      - entity_attributes
+    transforms:
+      - route_by_type
+    
+  sink_arbor:
+    connector: jdbc
+    target: arbor_postgres
+    mode: upsert
+    pk_mode: record_key
+\end{lstlisting}
+
+\subsection{CDC Processing Pipeline}
+
+\begin{lstlisting}[style=pythonstyle, caption={CDC event processing}]
+async def process_cdc_event(event: CDCEvent) -> None:
+    """Process a change data capture event."""
+    
+    match event.operation:
+        case "INSERT":
+            # Queue new entity for ingestion
+            await ingestion_queue.enqueue(
+                IngestionTask(
+                    external_id=event.after["external_id"],
+                    source=event.source,
+                    priority="normal"
+                )
+            )
+        
+        case "UPDATE":
+            # Re-enrich if significant fields changed
+            if has_significant_changes(event.before, event.after):
+                await re_enrichment_queue.enqueue(
+                    entity_id=event.after["id"]
+                )
+        
+        case "DELETE":
+            # Mark entity as inactive
+            await mark_entity_inactive(event.before["id"])
+\end{lstlisting}
+
+
+\section{Quality Control}
+
+Ingestion quality is maintained through multiple mechanisms.
+
+\subsection{Validation Rules}
+
+Each entity type has domain-specific validation rules:
+
+\begin{lstlisting}[style=pythonstyle, caption={Entity validation}]
+class EntityValidator:
+    """Validate ingested entities."""
+    
+    async def validate(
+        self,
+        entity: EnrichedEntity
+    ) -> ValidationResult:
+        """Apply all validation rules."""
+        
+        errors = []
+        warnings = []
+        
+        # Required fields
+        if not entity.name:
+            errors.append("Missing required field: name")
+        
+        # Vibe DNA completeness
+        missing_dims = self._check_vibe_completeness(entity.vibe_dna)
+        if missing_dims:
+            warnings.append(f"Incomplete Vibe DNA: {missing_dims}")
+        
+        # Embedding quality
+        if entity.embedding.confidence < 0.7:
+            warnings.append("Low embedding confidence")
+        
+        # Domain-specific rules
+        errors.extend(
+            await self.domain_validator.validate(entity)
+        )
+        
+        return ValidationResult(
+            valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings
+        )
+\end{lstlisting}
+
+\subsection{Duplicate Detection}
+
+Before writing, duplicates are identified and resolved:
+
+\begin{lstlisting}[style=pythonstyle, caption={Duplicate detection}]
+async def detect_duplicates(
+    entity: EnrichedEntity
+) -> Optional[str]:
+    """Check for existing duplicate entities."""
+    
+    # Check by external ID
+    existing = await repo.get_by_external_id(entity.external_id)
+    if existing:
+        return existing.id
+    
+    # Check by name + location similarity
+    candidates = await repo.search_nearby(
+        name=entity.name,
+        location=entity.location,
+        radius_meters=100
+    )
+    
+    for candidate in candidates:
+        similarity = compute_name_similarity(entity.name, candidate.name)
+        if similarity > 0.85:
+            return candidate.id
+    
+    return None
+\end{lstlisting}
+
+
+\section{Monitoring and Alerting}
+
+The ingestion pipeline is closely monitored to ensure continuous operation.
+
+\subsection{Key Metrics}
+
+\begin{itemize}
+    \item \textbf{Throughput}: Entities processed per hour
+    \item \textbf{Latency}: Time from discovery to availability
+    \item \textbf{Success Rate}: Percentage of entities successfully ingested
+    \item \textbf{Enrichment Quality}: Vibe DNA completeness, embedding confidence
+    \item \textbf{Queue Depth}: Pending items in each processing stage
+\end{itemize}
+
+\subsection{Alerting Conditions}
+
+Alerts fire when:
+\begin{itemize}
+    \item Success rate drops below 95\%
+    \item Queue depth exceeds threshold for extended period
+    \item Enrichment API error rate spikes
+    \item Workflow failures exceed normal baseline
+\end{itemize}

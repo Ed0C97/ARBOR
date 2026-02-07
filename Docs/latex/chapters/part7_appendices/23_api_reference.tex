@@ -1,0 +1,194 @@
+% ============================================================================
+% Chapter 23: API Reference
+% ============================================================================
+
+\chapter{API Reference}
+\label{ch:api-reference}
+
+This appendix provides a comprehensive reference for ARBOR's REST API endpoints.
+
+
+\section{API Overview}
+
+\subsection{Base URL}
+
+\begin{description}
+    \item[Production] \code{https://api.arbor.io/v1}
+    \item[Staging] \code{https://api.staging.arbor.io/v1}
+    \item[Development] \code{http://localhost:8000/v1}
+\end{description}
+
+\subsection{Authentication}
+
+All authenticated endpoints require a Bearer token:
+
+\begin{lstlisting}[caption={Authentication header}]
+Authorization: Bearer <access_token>
+\end{lstlisting}
+
+
+\section{Discovery Endpoints}
+
+\subsection{POST /discover}
+
+Execute a discovery query.
+
+\textbf{Request Body:}
+\begin{lstlisting}[style=pythonstyle]
+{
+  "query": "Find cozy cafes in Milan",
+  "location": {"lat": 45.4642, "lng": 9.1900},
+  "session_id": "optional-session-id",
+  "filters": {
+    "category": "cafe",
+    "price_tier": [1, 2, 3]
+  }
+}
+\end{lstlisting}
+
+\textbf{Response:}
+\begin{lstlisting}[style=pythonstyle]
+{
+  "message": "Here are some cozy cafes...",
+  "recommendations": [
+    {
+      "id": "uuid",
+      "name": "Cafe Milano",
+      "score": 0.92,
+      "explanation": "This cafe offers..."
+    }
+  ],
+  "trace_id": "trace-uuid"
+}
+\end{lstlisting}
+
+
+\section{Entity Endpoints}
+
+\subsection{GET /entities/\{id\}}
+
+Retrieve entity details.
+
+\textbf{Response:}
+\begin{lstlisting}[style=pythonstyle]
+{
+  "id": "uuid",
+  "name": "Entity Name",
+  "entity_type": "store",
+  "attributes": {...},
+  "vibe_dna": {"formality": 65, "craftsmanship": 85},
+  "location": {"lat": 45.4642, "lng": 9.1900, "address": "..."}
+}
+\end{lstlisting}
+
+\subsection{GET /entities}
+
+List entities with filtering.
+
+\textbf{Query Parameters:}
+\begin{itemize}
+    \item \code{domain\_id}: Filter by domain
+    \item \code{category}: Filter by category
+    \item \code{city}: Filter by city
+    \item \code{limit}: Maximum results (default: 20)
+    \item \code{offset}: Pagination offset
+\end{itemize}
+
+
+\section{User Endpoints}
+
+\subsection{GET /users/me}
+
+Get current user profile. Requires authentication.
+
+\subsection{POST /users/me/saved}
+
+Save an entity to user's collection.
+
+\textbf{Request Body:}
+\begin{lstlisting}[style=pythonstyle]
+{
+  "entity_id": "uuid"
+}
+\end{lstlisting}
+
+
+\section{Admin Endpoints}
+
+\subsection{POST /admin/entities}
+
+Create a new entity. Requires admin role.
+
+\subsection{PUT /admin/entities/\{id\}}
+
+Update entity attributes. Requires curator role.
+
+\subsection{POST /admin/entities/\{id\}/validate}
+
+Approve or reject entity validation.
+
+\textbf{Request Body:}
+\begin{lstlisting}[style=pythonstyle]
+{
+  "action": "approve",  // or "reject"
+  "notes": "optional curator notes"
+}
+\end{lstlisting}
+
+
+\section{Webhook Endpoints}
+
+\subsection{POST /webhooks/entity-update}
+
+Receive entity update notifications (for integrations).
+
+\subsection{POST /webhooks/feedback}
+
+Submit external feedback data.
+
+
+\section{Error Responses}
+
+\subsection{Error Format}
+
+\begin{lstlisting}[style=pythonstyle]
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Query is required",
+    "details": {...}
+  }
+}
+\end{lstlisting}
+
+\subsection{HTTP Status Codes}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Code} & \textbf{Meaning} \\
+\midrule
+200 & Success \\
+400 & Bad Request \\
+401 & Unauthorized \\
+403 & Forbidden \\
+404 & Not Found \\
+422 & Validation Error \\
+429 & Rate Limited \\
+500 & Internal Error \\
+\bottomrule
+\end{tabular}
+\caption{HTTP status codes}
+\end{table}
+
+
+\section{Rate Limits}
+
+Rate limits are returned in response headers:
+
+\begin{lstlisting}[caption={Rate limit headers}]
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1640000000
+\end{lstlisting}

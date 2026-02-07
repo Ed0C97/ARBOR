@@ -1,0 +1,216 @@
+% ============================================================================
+% Chapter 17: Observability
+% ============================================================================
+
+\chapter{Observability}
+\label{ch:observability}
+
+Comprehensive observability enables understanding system behavior, diagnosing issues, and optimizing performance. ARBOR integrates multiple observability tools for tracing, metrics, logs, and LLM-specific monitoring.
+
+
+\section{Observability Stack}
+
+\subsection{Core Components}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+OpenTelemetry & Unified instrumentation and collection \\
+Langfuse & LLM-specific tracing and analytics \\
+Prometheus & Time-series metrics storage \\
+Grafana & Visualization and dashboards \\
+Loki & Log aggregation and querying \\
+\bottomrule
+\end{tabularx}
+\caption{Observability stack components}
+\end{table}
+
+
+\section{Distributed Tracing}
+
+\subsection{OpenTelemetry Integration}
+
+All services emit traces through OpenTelemetry:
+
+\begin{lstlisting}[style=pythonstyle, caption={OpenTelemetry setup}]
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+    OTLPSpanExporter
+)
+
+provider = TracerProvider()
+provider.add_span_processor(
+    BatchSpanProcessor(OTLPSpanExporter())
+)
+trace.set_tracer_provider(provider)
+\end{lstlisting}
+
+\subsection{Trace Context}
+
+Trace context propagates across:
+
+\begin{itemize}
+    \item HTTP requests (W3C Trace Context)
+    \item Kafka messages (custom headers)
+    \item Database queries (query comments)
+    \item LLM calls (Langfuse trace IDs)
+\end{itemize}
+
+
+\section{LLM Observability}
+
+\subsection{Langfuse Integration}
+
+Every LLM call is traced through Langfuse:
+
+\begin{lstlisting}[style=pythonstyle, caption={Langfuse tracing}]
+from langfuse.decorators import observe
+
+@observe(as_type="generation")
+async def generate_synthesis(
+    query: str,
+    context: str
+) -> str:
+    response = await llm.ainvoke(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": CURATOR_PROMPT},
+            {"role": "user", "content": f"{query}\n\n{context}"}
+        ]
+    )
+    return response.content
+\end{lstlisting}
+
+\subsection{LLM Metrics
+
+Langfuse captures:
+
+\begin{itemize}
+    \item Token usage (input/output)
+    \item Latency (time to first token, total)
+    \item Cost estimation
+    \item Prompt versions
+    \item User feedback correlation
+\end{itemize}
+
+
+\section{Metrics Collection}
+
+\subsection{Application Metrics}
+
+Key metrics are collected:
+
+\begin{description}
+    \item[Request Metrics] Latency, throughput, error rates
+    \item[Business Metrics] Queries per minute, active users
+    \item[Resource Metrics] CPU, memory, connections
+    \item[Custom Metrics] Cache hit rates, queue depths
+\end{description}
+
+\subsection{SLI/SLO Tracking}
+
+Service Level Indicators inform SLOs:
+
+\begin{itemize}
+    \item Discovery latency P95 < 2.5s
+    \item API availability > 99.9\%
+    \item Error rate < 0.1\%
+\end{itemize}
+
+
+\section{Logging Architecture}
+
+\subsection{Structured Logging}
+
+All logs are structured JSON:
+
+\begin{lstlisting}[style=pythonstyle, caption={Structured logging}]
+import structlog
+
+logger = structlog.get_logger()
+
+logger.info(
+    "query_processed",
+    query=query,
+    result_count=len(results),
+    latency_ms=latency,
+    trace_id=trace_id
+)
+\end{lstlisting}
+
+\subsection{Log Aggregation}
+
+Logs flow through:
+
+\begin{enumerate}
+    \item Application emits to stdout
+    \item Fluent Bit collects from containers
+    \item Loki stores with label indexing
+    \item Grafana provides querying interface
+\end{enumerate}
+
+
+\section{Dashboards}
+
+\subsection{Operational Dashboards}
+
+\begin{description}
+    \item[System Overview] Key health indicators
+    \item[API Performance] Request latency and errors
+    \item[Database Health] Connection pools, query times
+    \item[LLM Costs] Token usage and spend tracking
+\end{description}
+
+\subsection{Business Dashboards}
+
+\begin{description}
+    \item[Discovery Analytics] Query patterns, popular entities
+    \item[User Engagement] Sessions, conversions
+    \item[Content Quality] Validation rates, feedback
+\end{description}
+
+
+\section{Alerting}
+
+\subsection{Alert Rules}
+
+Prometheus Alertmanager handles alerting:
+
+\begin{lstlisting}[style=yamlstyle, caption={Alert rule example}]
+groups:
+  - name: api
+    rules:
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(request_duration_seconds_bucket[5m])
+          ) > 2.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API latency exceeds SLO"
+\end{lstlisting}
+
+\subsection{Escalation Paths}
+
+\begin{itemize}
+    \item Warning: Slack notification
+    \item Critical: PagerDuty alert
+    \item Emergency: Phone escalation
+\end{itemize}
+
+
+\section{Debugging Tools}
+
+\subsection{Request Tracing}
+
+Every request can be traced end-to-end using the trace ID, showing timing for each component and identifying bottlenecks.
+
+\subsection{Log Correlation}
+
+Logs are correlated by trace ID, enabling quick context gathering when investigating issues.

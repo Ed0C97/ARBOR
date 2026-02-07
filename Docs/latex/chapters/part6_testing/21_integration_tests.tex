@@ -1,0 +1,229 @@
+% ============================================================================
+% Chapter 21: Integration and E2E Tests
+% ============================================================================
+
+\chapter{Integration and End-to-End Tests}
+\label{ch:integration-tests}
+
+Integration tests validate that components work together correctly, while end-to-end tests verify complete user journeys. This chapter examines these higher-level testing approaches.
+
+
+\section{Integration Testing}
+
+\subsection{Database Integration}
+
+Tests verify correct database interactions:
+
+\begin{lstlisting}[style=pythonstyle, caption={Database integration test}]
+@pytest.mark.integration
+async def test_entity_lifecycle(db_session, qdrant_client):
+    """Test entity creation flows to all databases."""
+    
+    # Create entity
+    repo = GenericEntityRepository(db_session, config)
+    entity = await repo.create({
+        "name": "Integration Test",
+        "domain_id": "lifestyle"
+    })
+    
+    # Verify PostgreSQL
+    fetched = await repo.get_by_id(entity.id)
+    assert fetched is not None
+    
+    # Verify Qdrant (after sync)
+    await asyncio.sleep(0.5)
+    results = await qdrant_client.search(
+        collection="entities",
+        query_filter={"entity_id": str(entity.id)}
+    )
+    assert len(results) == 1
+\end{lstlisting}
+
+\subsection{Agent Integration}
+
+Tests verify agent orchestration:
+
+\begin{lstlisting}[style=pythonstyle, caption={Agent integration test}]
+@pytest.mark.integration
+async def test_discovery_flow(
+    db_with_entities,
+    qdrant_with_vectors,
+    mock_llm
+):
+    """Test complete discovery flow."""
+    
+    # Setup mock LLM responses
+    mock_llm.side_effect = [
+        intent_response,
+        synthesis_response
+    ]
+    
+    # Execute discovery
+    result = await discovery_graph.ainvoke(
+        AgentState(user_query="Find tailors in Milan")
+    )
+    
+    # Verify results
+    assert result["intent"].category == "RECOMMENDATION"
+    assert len(result["recommendations"]) > 0
+    assert "tailor" in result["final_response"].lower()
+\end{lstlisting}
+
+
+\section{API Integration Testing}
+
+\subsection{Full Stack API Tests}
+
+\begin{lstlisting}[style=pythonstyle, caption={API integration test}]
+@pytest.mark.integration
+async def test_discover_with_real_databases(
+    test_client,
+    seeded_database
+):
+    """Test discovery endpoint with real databases."""
+    
+    response = await test_client.post(
+        "/api/v1/discover",
+        json={"query": "Find cozy cafes"}
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "recommendations" in data
+    assert len(data["recommendations"]) > 0
+\end{lstlisting}
+
+
+\section{End-to-End Testing}
+
+\subsection{User Journey Tests}
+
+E2E tests validate complete user flows:
+
+\begin{lstlisting}[style=pythonstyle, caption={E2E user journey}]
+@pytest.mark.e2e
+class TestDiscoveryJourney:
+    async def test_search_and_detail_flow(self, browser):
+        """Test user discovering and viewing entity."""
+        
+        # Navigate to discovery
+        page = await browser.new_page()
+        await page.goto("http://localhost:3000")
+        
+        # Enter query
+        await page.fill('[data-testid="search-input"]', "tailors")
+        await page.press('[data-testid="search-input"]', "Enter")
+        
+        # Wait for results
+        await page.wait_for_selector('[data-testid="result-card"]')
+        results = await page.query_selector_all('[data-testid="result-card"]')
+        assert len(results) > 0
+        
+        # Click first result
+        await results[0].click()
+        
+        # Verify detail page
+        await page.wait_for_selector('[data-testid="entity-detail"]')
+        title = await page.text_content('[data-testid="entity-name"]')
+        assert title is not None
+\end{lstlisting}
+
+\subsection{Playwright Configuration}
+
+\begin{lstlisting}[style=pythonstyle, caption={Playwright setup}]
+@pytest.fixture(scope="session")
+async def browser():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        yield browser
+        await browser.close()
+\end{lstlisting}
+
+
+\section{Contract Testing}
+
+\subsection{API Contract Validation}
+
+OpenAPI schema validates API contracts:
+
+\begin{lstlisting}[style=pythonstyle, caption={Contract test}]
+@pytest.mark.contract
+def test_discover_response_schema():
+    """Verify response matches OpenAPI schema."""
+    
+    response = client.post("/api/v1/discover", json={"query": "test"})
+    
+    # Validate against schema
+    validate_response(
+        response.json(),
+        openapi_spec["paths"]["/discover"]["post"]["responses"]["200"]
+    )
+\end{lstlisting}
+
+
+\section{Performance Baseline Tests}
+
+\subsection{Latency Assertions}
+
+\begin{lstlisting}[style=pythonstyle, caption={Performance baseline test}]
+@pytest.mark.performance
+async def test_discovery_latency(seeded_database, benchmark):
+    """Verify discovery meets latency requirements."""
+    
+    async def discover():
+        return await discovery_service.discover("test query")
+    
+    result = await benchmark.pedantic(
+        discover,
+        iterations=10,
+        rounds=5
+    )
+    
+    assert benchmark.stats.stats.mean < 2.5  # seconds
+\end{lstlisting}
+
+
+\section{Test Environment Management}
+
+\subsection{Docker Compose for Testing}
+
+\begin{lstlisting}[style=yamlstyle, caption={Test docker-compose}]
+# docker-compose.test.yml
+services:
+  postgres-test:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: arbor_test
+
+  qdrant-test:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+
+  neo4j-test:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: neo4j/test
+\end{lstlisting}
+
+\subsection{Environment Isolation}
+
+Each test run uses isolated resources to prevent interference between tests.
+
+
+\section{Continuous Integration}
+
+\subsection{CI Pipeline Configuration}
+
+\begin{lstlisting}[style=yamlstyle, caption={CI pipeline}]
+test:
+  stage: test
+  services:
+    - postgres:16
+    - qdrant/qdrant:latest
+  script:
+    - pytest tests/unit -n auto
+    - pytest tests/integration --tb=short
+  coverage: '/TOTAL.*\s+(\d+%)/'
+\end{lstlisting}

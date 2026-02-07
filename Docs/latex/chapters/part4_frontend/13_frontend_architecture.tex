@@ -1,0 +1,245 @@
+% ============================================================================
+% Chapter 13: Frontend Architecture
+% ============================================================================
+
+\chapter{Frontend Architecture}
+\label{ch:frontend}
+
+ARBOR's frontend provides the primary interface for discovery interactions, curator administration, and system management. Built on Next.js with TypeScript, the frontend emphasizes performance, accessibility, and beautiful design.
+
+
+\section{Technology Stack}
+
+\subsection{Core Technologies}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Technology} & \textbf{Purpose} \\
+\midrule
+Next.js 14 & React framework with SSR/SSG \\
+TypeScript & Type safety and developer experience \\
+shadcn/ui & Component library \\
+Tailwind CSS & Utility-first styling \\
+TanStack Query & Server state management \\
+Zustand & Client state management \\
+\bottomrule
+\end{tabularx}
+\caption{Frontend technology stack}
+\end{table}
+
+\subsection{Selection Rationale}
+
+\begin{description}
+    \item[Next.js] Server components reduce client bundle, improve SEO, and enable streaming
+    \item[TypeScript] Catches errors early, improves refactoring confidence
+    \item[shadcn/ui] Unstyled primitives enable design customization
+    \item[TanStack Query] Handles caching, background refresh, optimistic updates
+\end{description}
+
+
+\section{Application Structure}
+
+\subsection{Directory Organization}
+
+\begin{lstlisting}[caption={Frontend directory structure}]
+frontend/
+├── src/
+│   ├── app/                # Next.js App Router
+│   │   ├── (discover)/     # Discovery routes
+│   │   ├── (admin)/        # Admin routes
+│   │   └── api/            # API routes
+│   ├── components/
+│   │   ├── ui/             # shadcn primitives
+│   │   ├── discovery/      # Discovery-specific
+│   │   └── admin/          # Admin-specific
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities
+│   └── types/              # TypeScript types
+├── public/                 # Static assets
+└── tests/                  # Test files
+\end{lstlisting}
+
+\subsection{Routing Strategy}
+
+The App Router enables route groups for logical separation:
+
+\begin{itemize}
+    \item \textbf{(discover)}: Public discovery interface
+    \item \textbf{(admin)}: Authenticated curator/admin area
+    \item \textbf{api}: Backend-for-frontend endpoints
+\end{itemize}
+
+
+\section{Data Fetching}
+
+\subsection{Server Components}
+
+Data fetching occurs on the server where possible:
+
+\begin{lstlisting}[style=pythonstyle, caption={Server component data fetching}]
+// app/(discover)/entity/[id]/page.tsx
+async function EntityPage({ params }: { params: { id: string } }) {
+  const entity = await fetchEntity(params.id);
+  const related = await fetchRelatedEntities(params.id);
+  
+  return (
+    <EntityDetail entity={entity}>
+      <RelatedEntities entities={related} />
+    </EntityDetail>
+  );
+}
+\end{lstlisting}
+
+\subsection{Client-Side Queries}
+
+Interactive features use TanStack Query:
+
+\begin{lstlisting}[style=pythonstyle, caption={Client-side data fetching}]
+function useDiscoveryQuery(query: string) {
+  return useQuery({
+    queryKey: ['discover', query],
+    queryFn: () => discoverApi.search(query),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30,   // 30 minutes
+  });
+}
+\end{lstlisting}
+
+
+\section{State Management}
+
+\subsection{Client State with Zustand}
+
+UI state uses Zustand for simplicity:
+
+\begin{lstlisting}[style=pythonstyle, caption={Zustand store}]
+const useDiscoveryStore = create<DiscoveryState>((set) => ({
+  query: '',
+  filters: {},
+  setQuery: (query) => set({ query }),
+  setFilter: (key, value) => 
+    set((state) => ({ 
+      filters: { ...state.filters, [key]: value } 
+    })),
+  clearFilters: () => set({ filters: {} }),
+}));
+\end{lstlisting}
+
+\subsection{Server State with TanStack Query}
+
+Server state (entities, recommendations) is managed separately from UI state, enabling proper cache invalidation and background updates.
+
+
+\section{Performance Optimization}
+
+\subsection{Streaming SSR}
+
+Long-running data fetches use streaming:
+
+\begin{lstlisting}[style=pythonstyle, caption={Streaming with Suspense}]
+function DiscoveryPage() {
+  return (
+    <div>
+      <SearchInput />
+      <Suspense fallback={<ResultsSkeleton />}>
+        <DiscoveryResults />
+      </Suspense>
+    </div>
+  );
+}
+\end{lstlisting}
+
+\subsection{Image Optimization}
+
+\begin{itemize}
+    \item Next.js Image component for automatic optimization
+    \item Cloudflare Image Resizing at the edge
+    \item WebP format with fallbacks
+    \item Lazy loading with blur placeholders
+\end{itemize}
+
+
+\section{Design System}
+
+\subsection{Token-Based Design}
+
+CSS custom properties define the design system:
+
+\begin{lstlisting}[caption={Design tokens}]
+:root {
+  --color-primary: oklch(0.7 0.15 250);
+  --color-surface: oklch(0.98 0.01 250);
+  --radius-md: 0.5rem;
+  --spacing-4: 1rem;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+\end{lstlisting}
+
+\subsection{Component Variants}
+
+Components support variants for flexibility:
+
+\begin{lstlisting}[style=pythonstyle, caption={Button variants}]
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md",
+  {
+    variants: {
+      variant: {
+        primary: "bg-primary text-white hover:bg-primary/90",
+        secondary: "bg-secondary text-secondary-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+      },
+      size: {
+        sm: "h-8 px-3 text-sm",
+        md: "h-10 px-4",
+        lg: "h-12 px-6 text-lg",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  }
+);
+\end{lstlisting}
+
+
+\section{Accessibility}
+
+\subsection{Standards Compliance}
+
+The frontend targets WCAG 2.1 AA compliance:
+
+\begin{itemize}
+    \item Semantic HTML structure
+    \item Keyboard navigation support
+    \item Screen reader compatibility
+    \item Color contrast requirements
+    \item Focus management
+\end{itemize}
+
+\subsection{Testing}
+
+Accessibility is validated through:
+
+\begin{itemize}
+    \item Automated axe-core testing in CI
+    \item Manual testing with screen readers
+    \item Keyboard-only navigation testing
+\end{itemize}
+
+
+\section{Mobile Responsiveness}
+
+\subsection{Responsive Strategy}
+
+The design adapts across breakpoints:
+
+\begin{itemize}
+    \item Mobile-first CSS approach
+    \item Touch-optimized interactions
+    \item Adaptive layout components
+    \item Progressive enhancement
+\end{itemize}

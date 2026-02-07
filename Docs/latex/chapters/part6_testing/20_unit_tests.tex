@@ -1,0 +1,225 @@
+% ============================================================================
+% Chapter 20: Unit Tests
+% ============================================================================
+
+\chapter{Unit Tests}
+\label{ch:unit-tests}
+
+Unit tests form the foundation of ARBOR's test pyramid, providing fast feedback on individual component correctness. This chapter examines unit testing patterns across different system areas.
+
+
+\section{Testing Patterns}
+
+\subsection{Arrange-Act-Assert}
+
+Tests follow the AAA pattern consistently:
+
+\begin{lstlisting}[style=pythonstyle, caption={AAA pattern example}]
+async def test_entity_creation():
+    # Arrange
+    factory = EntityFactory()
+    data = {"name": "Test Store", "domain_id": "lifestyle"}
+    
+    # Act
+    entity = factory.create(**data)
+    
+    # Assert
+    assert entity.name == "Test Store"
+    assert entity.domain_id == "lifestyle"
+    assert entity.id is not None
+\end{lstlisting}
+
+\subsection{Given-When-Then}
+
+BDD-style for behavior-focused tests:
+
+\begin{lstlisting}[style=pythonstyle, caption={BDD style example}]
+async def test_search_returns_matching_entities():
+    """Given entities with matching attributes,
+    When searching with those attributes,
+    Then matching entities are returned."""
+    
+    # Given
+    await create_entity(name="Test", category="tailoring")
+    await create_entity(name="Other", category="shoes")
+    
+    # When
+    results = await search(category="tailoring")
+    
+    # Then
+    assert len(results) == 1
+    assert results[0].name == "Test"
+\end{lstlisting}
+
+
+\section{Repository Tests}
+
+\subsection{Generic Repository Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={Repository unit tests}]
+class TestGenericEntityRepository:
+    async def test_create_entity(self, session):
+        repo = GenericEntityRepository(session, config)
+        
+        entity = await repo.create({
+            "name": "New Entity",
+            "domain_id": "lifestyle"
+        })
+        
+        assert entity.id is not None
+        assert entity.name == "New Entity"
+    
+    async def test_find_by_filters(self, session):
+        repo = GenericEntityRepository(session, config)
+        await repo.create({"name": "A", "attributes": {"city": "Milan"}})
+        await repo.create({"name": "B", "attributes": {"city": "Rome"}})
+        
+        results = await repo.get_entities_by_filters(
+            filters={"city": "Milan"}
+        )
+        
+        assert len(results) == 1
+        assert results[0]["name"] == "A"
+\end{lstlisting}
+
+
+\section{Agent Tests}
+
+\subsection{Intent Router Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={Intent router tests}]
+class TestIntentRouter:
+    async def test_recommendation_intent(self, mock_llm):
+        mock_llm.return_value = MockResponse(
+            content='{"intent": "RECOMMENDATION", "confidence": 0.95}'
+        )
+        
+        router = IntentRouter(llm=mock_llm)
+        state = AgentState(user_query="Find cozy restaurants")
+        
+        result = await router.analyze(state)
+        
+        assert result["intent"].category == "RECOMMENDATION"
+        assert result["intent"].confidence > 0.9
+    
+    async def test_filter_extraction(self, mock_llm):
+        mock_llm.return_value = MockResponse(
+            content='{"intent": "RECOMMENDATION", "filters": {"city": "Milan"}}'
+        )
+        
+        router = IntentRouter(llm=mock_llm)
+        state = AgentState(user_query="Tailors in Milan")
+        
+        result = await router.analyze(state)
+        
+        assert result["extracted_filters"]["city"] == "Milan"
+\end{lstlisting}
+
+
+\section{Service Tests}
+
+\subsection{Discovery Service Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={Service layer tests}]
+class TestDiscoveryService:
+    async def test_search_combines_sources(
+        self,
+        mock_vector_agent,
+        mock_metadata_agent
+    ):
+        mock_vector_agent.return_value = [entity_a, entity_b]
+        mock_metadata_agent.return_value = [entity_b, entity_c]
+        
+        service = DiscoveryService(
+            vector_agent=mock_vector_agent,
+            metadata_agent=mock_metadata_agent
+        )
+        
+        results = await service.discover("test query")
+        
+        # Fusion should combine and deduplicate
+        assert len(results) == 3
+        assert all(e in results for e in [entity_a, entity_b, entity_c])
+\end{lstlisting}
+
+
+\section{Utility Tests}
+
+\subsection{Pure Function Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={Utility function tests}]
+class TestVibeDNA:
+    def test_compute_similarity(self):
+        vibe_a = VibeDNA(scores={"dim1": 80, "dim2": 60})
+        vibe_b = VibeDNA(scores={"dim1": 75, "dim2": 65})
+        
+        similarity = compute_vibe_similarity(vibe_a, vibe_b)
+        
+        assert 0.9 < similarity < 1.0
+    
+    def test_merge_vibes(self):
+        vibes = [
+            VibeDNA(scores={"dim1": 80}),
+            VibeDNA(scores={"dim1": 70}),
+        ]
+        
+        merged = merge_vibe_dna(vibes)
+        
+        assert merged.scores["dim1"] == 75
+\end{lstlisting}
+
+
+\section{API Tests}
+
+\subsection{Endpoint Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={API endpoint tests}]
+class TestDiscoveryAPI:
+    async def test_discover_endpoint(self, client, mock_discovery):
+        mock_discovery.return_value = DiscoveryResult(
+            message="Test response",
+            recommendations=[]
+        )
+        
+        response = await client.post(
+            "/api/v1/discover",
+            json={"query": "test"}
+        )
+        
+        assert response.status_code == 200
+        assert response.json()["message"] == "Test response"
+    
+    async def test_discover_validation(self, client):
+        response = await client.post(
+            "/api/v1/discover",
+            json={}  # Missing query
+        )
+        
+        assert response.status_code == 422
+\end{lstlisting}
+
+
+\section{Coverage and Quality}
+
+\subsection{Coverage Reporting}
+
+pytest-cov generates coverage reports:
+
+\begin{lstlisting}[style=bashstyle, caption={Coverage commands}]
+# Run with coverage
+pytest --cov=app --cov-report=html tests/unit
+
+# Enforce minimum coverage
+pytest --cov=app --cov-fail-under=80 tests/unit
+\end{lstlisting}
+
+\subsection{Coverage Exclusions}
+
+Certain code is excluded from coverage requirements:
+
+\begin{itemize}
+    \item Abstract base classes
+    \item Type stubs
+    \item Configuration loaders
+    \item CLI entry points
+\end{itemize}

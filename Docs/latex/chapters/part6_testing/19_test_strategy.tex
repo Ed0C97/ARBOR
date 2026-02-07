@@ -1,0 +1,214 @@
+% ============================================================================
+% Chapter 19: Test Strategy
+% ============================================================================
+
+\chapter{Test Strategy}
+\label{ch:test-strategy}
+
+ARBOR's test strategy balances comprehensive coverage with development velocity, employing a pyramid of tests from fast unit tests to slower integration and end-to-end validations. This chapter outlines the testing philosophy and infrastructure.
+
+
+\section{Testing Philosophy}
+
+\subsection{Guiding Principles}
+
+\begin{description}
+    \item[Test Pyramid] Many unit tests, fewer integration tests, minimal E2E tests
+    \item[Fast Feedback] Local tests complete in seconds
+    \item[Determinism] Tests produce consistent results
+    \item[Isolation] Tests don't depend on external state
+    \item[Documentation] Tests serve as executable documentation
+\end{description}
+
+\subsection{Coverage Targets}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Layer} & \textbf{Target} & \textbf{Current} \\
+\midrule
+Unit Tests & 80\% & 78\% \\
+Integration Tests & Critical paths & 45 scenarios \\
+E2E Tests & Core flows & 12 flows \\
+\bottomrule
+\end{tabular}
+\caption{Test coverage targets}
+\end{table}
+
+
+\section{Test Types}
+
+\subsection{Unit Tests}
+
+Unit tests validate individual functions and classes in isolation:
+
+\begin{itemize}
+    \item Fast execution (< 1s per file)
+    \item No external dependencies
+    \item Mocked collaborators
+    \item High coverage target
+\end{itemize}
+
+\subsection{Integration Tests}
+
+Integration tests validate component interactions:
+
+\begin{itemize}
+    \item Real database instances (containerized)
+    \item Service-to-service communication
+    \item Event processing flows
+    \item Medium execution time
+\end{itemize}
+
+\subsection{End-to-End Tests}
+
+E2E tests validate complete user journeys:
+
+\begin{itemize}
+    \item Full system deployment
+    \item API-level interactions
+    \item Browser automation for frontend
+    \item Slowest but highest confidence
+\end{itemize}
+
+
+\section{Test Infrastructure}
+
+\subsection{pytest Configuration}
+
+pytest serves as the test framework:
+
+\begin{lstlisting}[style=pythonstyle, caption={pytest configuration}]
+# pyproject.toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "slow: Slow-running tests",
+]
+\end{lstlisting}
+
+\subsection{Test Fixtures}
+
+Shared fixtures provide consistent test setup:
+
+\begin{lstlisting}[style=pythonstyle, caption={Common fixtures}]
+@pytest.fixture
+async def db_session():
+    """Provide isolated database session."""
+    async with async_session_maker() as session:
+        yield session
+        await session.rollback()
+
+@pytest.fixture
+def mock_llm():
+    """Mock LLM for deterministic testing."""
+    with patch("app.llm.gateway.complete") as mock:
+        mock.return_value = MockLLMResponse(
+            content="Test response"
+        )
+        yield mock
+\end{lstlisting}
+
+\subsection{Test Containers}
+
+Testcontainers provides isolated database instances:
+
+\begin{lstlisting}[style=pythonstyle, caption={Testcontainers usage}]
+@pytest.fixture(scope="session")
+def postgres_container():
+    with PostgresContainer("postgres:16") as postgres:
+        yield postgres
+
+@pytest.fixture(scope="session")
+def qdrant_container():
+    with DockerContainer("qdrant/qdrant:latest") as qdrant:
+        qdrant.with_exposed_ports(6333)
+        qdrant.start()
+        yield qdrant
+\end{lstlisting}
+
+
+\section{CI/CD Integration}
+
+\subsection{Pipeline Stages}
+
+\begin{enumerate}
+    \item \textbf{Lint}: Code style and type checking
+    \item \textbf{Unit Tests}: Fast feedback on logic
+    \item \textbf{Integration Tests}: Component interactions
+    \item \textbf{E2E Tests}: Full flow validation (staging)
+\end{enumerate}
+
+\subsection{Parallel Execution}
+
+Tests execute in parallel for speed:
+
+\begin{lstlisting}[style=bashstyle, caption={Parallel test execution}]
+# Unit tests: maximum parallelism
+pytest tests/unit -n auto
+
+# Integration tests: limited parallelism
+pytest tests/integration -n 4
+\end{lstlisting}
+
+
+\section{LLM Testing Considerations}
+
+\subsection{Deterministic Testing}
+
+LLM responses are mocked for determinism:
+
+\begin{lstlisting}[style=pythonstyle, caption={LLM mock fixture}]
+@pytest.fixture
+def deterministic_llm(monkeypatch):
+    """Provide deterministic LLM responses."""
+    responses = {
+        "intent": '{"intent": "RECOMMENDATION", ...}',
+        "synthesis": "Here are my recommendations...",
+    }
+    
+    async def mock_complete(model, messages, **kwargs):
+        prompt_type = detect_prompt_type(messages)
+        return MockResponse(content=responses[prompt_type])
+    
+    monkeypatch.setattr("app.llm.gateway.complete", mock_complete)
+\end{lstlisting}
+
+\subsection{Golden Set Evaluation}
+
+LLM quality is validated against golden sets:
+
+\begin{itemize}
+    \item Curated query-response pairs
+    \item Semantic similarity scoring
+    \item Human evaluation sampling
+    \item Regression detection
+\end{itemize}
+
+
+\section{Test Data Management}
+
+\subsection{Factory Pattern}
+
+Test data uses factory patterns:
+
+\begin{lstlisting}[style=pythonstyle, caption={Entity factory}]
+class EntityFactory(factory.Factory):
+    class Meta:
+        model = Entity
+    
+    id = factory.LazyFunction(uuid4)
+    name = factory.Faker("company")
+    domain_id = "lifestyle"
+    entity_type = "store"
+    vibe_dna = factory.LazyFunction(random_vibe_dna)
+\end{lstlisting}
+
+\subsection{Seed Data}
+
+Consistent seed data enables reproducible integration tests with known entities and relationships.

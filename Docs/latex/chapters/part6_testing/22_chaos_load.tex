@@ -1,0 +1,236 @@
+% ============================================================================
+% Chapter 22: Chaos and Load Testing
+% ============================================================================
+
+\chapter{Chaos and Load Testing}
+\label{ch:chaos-load}
+
+Production reliability requires validation under stress and failure conditions. This chapter examines chaos engineering and load testing approaches for ARBOR.
+
+
+\section{Chaos Engineering}
+
+\subsection{Philosophy}
+
+Chaos engineering proactively identifies weaknesses by introducing controlled failures:
+
+\begin{itemize}
+    \item Verify failure detection mechanisms work
+    \item Validate graceful degradation behavior
+    \item Test recovery procedures
+    \item Build confidence in system resilience
+\end{itemize}
+
+\subsection{Chaos Experiments}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Experiment} & \textbf{Validates} \\
+\midrule
+Database failover & Read replica promotion, connection handling \\
+LLM provider outage & Fallback routing, circuit breaker \\
+Network partition & Split-brain handling, timeout behavior \\
+Pod termination & Graceful shutdown, request draining \\
+Resource exhaustion & Memory limits, CPU throttling \\
+\bottomrule
+\end{tabularx}
+\caption{Chaos experiment categories}
+\end{table}
+
+
+\section{Chaos Toolkit}
+
+\subsection{Experiment Definition}
+
+\begin{lstlisting}[style=yamlstyle, caption={Chaos experiment definition}]
+# experiments/database_failover.yaml
+title: Database Failover Resilience
+description: Verify system handles database failover
+
+steady-state-hypothesis:
+  title: Service remains available
+  probes:
+    - name: api_responds
+      type: probe
+      tolerance: 200
+      provider:
+        type: http
+        url: http://api/health
+
+method:
+  - name: kill_primary_database
+    type: action
+    provider:
+      type: process
+      path: kubectl
+      arguments: ["delete", "pod", "postgres-0"]
+
+rollbacks:
+  - name: restore_database
+    type: action
+    provider:
+      type: process
+      path: kubectl
+      arguments: ["rollout", "restart", "statefulset/postgres"]
+\end{lstlisting}
+
+
+\section{Load Testing}
+
+\subsection{Load Test Objectives}
+
+\begin{itemize}
+    \item Validate performance under expected load
+    \item Identify breaking points (stress testing)
+    \item Verify autoscaling behavior
+    \item Measure degradation characteristics
+\end{itemize}
+
+\subsection{Load Profiles}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Profile} & \textbf{RPS} & \textbf{Duration} \\
+\midrule
+Baseline & 50 & 10 min \\
+Peak Load & 200 & 30 min \\
+Stress & 500 & 15 min \\
+Spike & 1000 (burst) & 2 min \\
+Soak & 100 & 4 hours \\
+\bottomrule
+\end{tabular}
+\caption{Load test profiles}
+\end{table}
+
+
+\section{Locust Load Testing}
+
+\subsection{Test Scenarios}
+
+\begin{lstlisting}[style=pythonstyle, caption={Locust load test}]
+from locust import HttpUser, task, between
+
+class DiscoveryUser(HttpUser):
+    wait_time = between(1, 3)
+    
+    @task(10)
+    def discover(self):
+        queries = [
+            "Find tailors in Milan",
+            "Cozy restaurants nearby",
+            "Best coffee shops",
+        ]
+        self.client.post(
+            "/api/v1/discover",
+            json={"query": random.choice(queries)}
+        )
+    
+    @task(3)
+    def get_entity(self):
+        entity_id = random.choice(self.entity_ids)
+        self.client.get(f"/api/v1/entities/{entity_id}")
+    
+    @task(1)
+    def browse_category(self):
+        self.client.get("/api/v1/categories/tailoring")
+\end{lstlisting}
+
+
+\section{Performance Metrics}
+
+\subsection{Key Metrics Under Load}
+
+\begin{description}
+    \item[Latency] P50, P95, P99 response times
+    \item[Throughput] Requests per second sustained
+    \item[Error Rate] Percentage of failed requests
+    \item[Resource Usage] CPU, memory, connections
+\end{description}
+
+\subsection{Acceptance Criteria}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Metric} & \textbf{Baseline} & \textbf{Peak} & \textbf{Stress} \\
+\midrule
+P95 Latency & < 1.5s & < 2.5s & < 5s \\
+Error Rate & < 0.1\% & < 0.5\% & < 2\% \\
+Throughput & 50 rps & 200 rps & 300 rps \\
+\bottomrule
+\end{tabular}
+\caption{Performance acceptance criteria}
+\end{table}
+
+
+\section{Database Load Testing}
+
+\subsection{Query Performance}
+
+\begin{lstlisting}[style=pythonstyle, caption={Database load test}]
+@pytest.mark.load
+async def test_concurrent_queries(db_pool):
+    """Test database under concurrent query load."""
+    
+    async def run_query():
+        async with db_pool.acquire() as conn:
+            return await conn.fetch(
+                "SELECT * FROM entities WHERE domain_id = $1 LIMIT 50",
+                "lifestyle"
+            )
+    
+    tasks = [run_query() for _ in range(100)]
+    results = await asyncio.gather(*tasks)
+    
+    assert all(len(r) > 0 for r in results)
+\end{lstlisting}
+
+
+\section{LLM Load Testing}
+
+\subsection{Token Budget Testing}
+
+\begin{lstlisting}[style=pythonstyle, caption={LLM throughput test}]
+@pytest.mark.load
+async def test_llm_throughput(llm_client):
+    """Verify LLM can handle concurrent requests."""
+    
+    async def make_request():
+        return await llm_client.complete(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "Test prompt"}],
+            max_tokens=100
+        )
+    
+    start = time.time()
+    tasks = [make_request() for _ in range(50)]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    duration = time.time() - start
+    
+    errors = [r for r in results if isinstance(r, Exception)]
+    assert len(errors) / len(results) < 0.05  # < 5% error rate
+\end{lstlisting}
+
+
+\section{Reporting}
+
+\subsection{Load Test Reports}
+
+Reports include:
+
+\begin{itemize}
+    \item Latency distribution charts
+    \item Throughput over time
+    \item Error rate by endpoint
+    \item Resource utilization graphs
+    \item Comparison with previous runs
+\end{itemize}
+
+\subsection{Trend Analysis}
+
+Performance trends are tracked across releases to identify regressions early.

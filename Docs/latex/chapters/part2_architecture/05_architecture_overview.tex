@@ -1,0 +1,337 @@
+% ============================================================================
+% Chapter 5: Architecture Overview
+% ============================================================================
+
+\chapter{Architecture Overview}
+\label{ch:architecture}
+
+The ARBOR architecture reflects a careful balance between competing concerns: the need for sophisticated AI capabilities against the requirement for predictable latency; the desire for rich data relationships against the constraint of query performance at scale; the goal of domain flexibility against the necessity of structured representation. This chapter presents the high-level architecture before subsequent chapters examine each layer in detail.
+
+
+\section{Architectural Principles}
+
+Several guiding principles inform every architectural decision in ARBOR.
+
+\subsection{Domain Agnosticism Through Configuration}
+
+The system is designed to adapt to any discovery domain—lifestyle, real estate, hospitality, professional services—without code modification. All domain-specific knowledge resides in configuration files that specify entity types, relationship schemas, Vibe dimensions, and curator personas.
+
+This principle has profound implications for the codebase. Rather than hardcoding entity attributes or relationship types, the system reads these from configuration at startup. Repository interfaces accept generic entity objects. Queries are constructed dynamically based on the active domain schema.
+
+\subsection{Polyglot Persistence}
+
+No single database technology optimally serves all of ARBOR's data access patterns. The architecture embraces polyglot persistence, selecting the best-fit storage for each use case:
+
+\begin{itemize}
+    \item \textbf{PostgreSQL} for relational data: entities, users, feedback with ACID guarantees
+    \item \textbf{Qdrant} for vector similarity: semantic search and hybrid retrieval
+    \item \textbf{Neo4j} for graph traversal: relationship discovery and path queries
+    \item \textbf{Redis} for ephemeral data: caching, sessions, rate limiting
+\end{itemize}
+
+The tradeoff is operational complexity—four databases to maintain—justified by the significant performance and capability gains.
+
+\subsection{Agentic Orchestration}
+
+Rather than implementing a rigid pipeline, ARBOR employs autonomous agents that collaborate to fulfill queries. Each agent has a specific competency; a supervisor orchestrates their interaction based on query requirements. This design enables:
+
+\begin{itemize}
+    \item Dynamic query routing based on intent classification
+    \item Parallel execution of independent retrieval operations
+    \item Graceful degradation when individual agents fail
+    \item Extensibility through new agent types
+\end{itemize}
+
+\subsection{Observability by Design}
+
+Every significant operation emits traces, metrics, and logs. Observability is not an afterthought but a first-class architectural concern, enabling:
+
+\begin{itemize}
+    \item Distributed tracing across the entire request lifecycle
+    \item LLM-specific observability with token counting and cost tracking
+    \item Real-time dashboards for operational health
+    \item Historical analysis for optimization and debugging
+\end{itemize}
+
+
+\section{System Layers}
+
+The architecture organizes into distinct layers, each with clear responsibilities and interfaces.
+
+\subsection{Edge Layer}
+
+The edge layer handles client connectivity and content delivery:
+
+\begin{description}
+    \item[CDN] Cloudflare provides global content distribution for static assets, DDoS protection, and edge caching.
+    \item[Web Frontend] Next.js/Vite application served directly or through Vercel.
+    \item[Mobile Apps] Flutter applications for iOS and Android.
+    \item[API Gateway] Kong or AWS API Gateway for unified API management.
+\end{description}
+
+All client interactions pass through this layer before reaching backend services, enabling consistent security policies, rate limiting, and request transformation.
+
+\subsection{Security Layer}
+
+Authentication and authorization are handled centrally:
+
+\begin{description}
+    \item[Authentication] Auth0 provides OAuth2/OIDC authentication with social login support.
+    \item[Authorization] Role-based access control (RBAC) enforces permission policies.
+    \item[Rate Limiting] Tiered limits based on authentication status and subscription tier.
+    \item[WAF] Web Application Firewall rules protect against common attack patterns.
+\end{description}
+
+\subsection{AI Gateway Layer}
+
+LLM access is mediated through a unified gateway:
+
+\begin{description}
+    \item[LiteLLM] Multi-provider router supporting OpenAI, Azure, Anthropic, Groq, and local models.
+    \item[GPTCache] Semantic caching to reduce redundant inference.
+    \item[Guardrails] NeMo Guardrails for content safety and output validation.
+    \item[Tracing] Langfuse integration for LLM-specific observability.
+\end{description}
+
+\subsection{Agentic Orchestration Layer}
+
+The core intelligence resides in orchestrated agents:
+
+\begin{description}
+    \item[LangGraph] State machine orchestrating agent collaboration.
+    \item[Specialized Agents] Intent Router, Vector Agent, Metadata Agent, Historian Agent, Curator.
+    \item[Temporal.io] Durable workflow execution for long-running operations.
+\end{description}
+
+This layer receives structured requests from the API and returns synthesized responses, coordinating all necessary data retrieval and LLM inference.
+
+\subsection{Knowledge Trinity Layer}
+
+The three-database architecture provides complementary data access patterns:
+
+\begin{description}
+    \item[PostgreSQL + PostGIS] Structured entity storage with geospatial capabilities.
+    \item[Qdrant] Vector similarity search with hybrid (sparse + dense) retrieval.
+    \item[Neo4j] Knowledge graph for relationship queries and GraphRAG.
+\end{description}
+
+\subsection{Event \& Cache Layer}
+
+Asynchronous processing and caching support real-time operations:
+
+\begin{description}
+    \item[Apache Kafka] Event streaming for analytics, ML feedback, and async processing.
+    \item[Redis Cluster] Session storage, rate limiting state, and hot data caching.
+\end{description}
+
+\subsection{Observability Layer}
+
+Comprehensive monitoring ensures operational visibility:
+
+\begin{description}
+    \item[OpenTelemetry] Distributed tracing and metrics collection.
+    \item[Langfuse] LLM-specific tracing with cost tracking.
+    \item[Grafana + Loki] Dashboards and log aggregation.
+    \item[Prometheus] Time-series metrics storage.
+\end{description}
+
+
+\section{Data Flow}
+
+Understanding how data flows through the system illuminates the interaction between components.
+
+\subsection{Query Processing Flow}
+
+When a user submits a discovery query, the following sequence occurs:
+
+\begin{enumerate}
+    \item \textbf{Request Ingress}: The query arrives at the API Gateway, which validates authentication and applies rate limiting.
+    
+    \item \textbf{API Processing}: The FastAPI backend receives the request, validates the payload, and constructs an initial agent state.
+    
+    \item \textbf{Intent Routing}: The Intent Router agent classifies the query to determine which subsequent agents are relevant.
+    
+    \item \textbf{Parallel Retrieval}: Based on intent, relevant agents execute concurrently:
+    \begin{itemize}
+        \item Vector Agent queries Qdrant for semantically similar entities
+        \item Metadata Agent queries PostgreSQL for structured filters
+        \item Historian Agent queries Neo4j for relationship context
+    \end{itemize}
+    
+    \item \textbf{Result Fusion}: Retrieved results are merged and deduplicated.
+    
+    \item \textbf{Reranking}: ML-based reranking adjusts ordering based on relevance signals.
+    
+    \item \textbf{Curator Synthesis}: The Curator agent generates a natural language response explaining recommendations.
+    
+    \item \textbf{Response Delivery}: The formatted response returns through the API to the client.
+    
+    \item \textbf{Event Emission}: The query and results are published to Kafka for analytics.
+\end{enumerate}
+
+The entire flow typically completes in 1.5-2.5 seconds, depending on query complexity and cache hit rates.
+
+\subsection{Ingestion Flow}
+
+New entities enter the system through the ingestion pipeline:
+
+\begin{enumerate}
+    \item \textbf{Source Discovery}: Scrapers identify candidate entities from configured sources.
+    
+    \item \textbf{Data Extraction}: Entity attributes are extracted from source pages.
+    
+    \item \textbf{Enrichment}: AI analyzers assess images, reviews, and other signals to compute Vibe DNA scores.
+    
+    \item \textbf{Embedding Generation}: Text content is embedded using the configured embedding model.
+    
+    \item \textbf{Trinity Population}: Data is written to PostgreSQL (structured), Qdrant (vectors), and Neo4j (relationships).
+    
+    \item \textbf{Validation Queue}: Entities enter a curator review queue for human validation.
+\end{enumerate}
+
+Ingestion workflows execute through Temporal.io for durability, with automatic retry and failure handling.
+
+
+\section{Component Interactions}
+
+The architecture diagram below illustrates the primary component interactions:
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.5cm,
+        box/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\small},
+        db/.style={cylinder, draw, shape border rotate=90, aspect=0.3, minimum height=1cm, minimum width=1.5cm, font=\small},
+        arrow/.style={->, >=stealth, thick}
+    ]
+    
+    % Client layer
+    \node[box, fill=blue!10] (client) {Client\\(Web/Mobile)};
+    
+    % API layer
+    \node[box, fill=green!10, below=of client] (api) {FastAPI\\Backend};
+    
+    % Agent layer
+    \node[box, fill=orange!10, below=of api] (agents) {LangGraph\\Agents};
+    
+    % Databases
+    \node[db, fill=blue!5, below left=1.5cm and 1cm of agents] (pg) {PostgreSQL};
+    \node[db, fill=purple!5, below=of agents] (qdrant) {Qdrant};
+    \node[db, fill=green!5, below right=1.5cm and 1cm of agents] (neo4j) {Neo4j};
+    
+    % LLM
+    \node[box, fill=yellow!10, right=2cm of agents] (llm) {LiteLLM\\Gateway};
+    
+    % Arrows
+    \draw[arrow] (client) -- (api);
+    \draw[arrow] (api) -- (agents);
+    \draw[arrow] (agents) -- (pg);
+    \draw[arrow] (agents) -- (qdrant);
+    \draw[arrow] (agents) -- (neo4j);
+    \draw[arrow] (agents) -- (llm);
+    
+    \end{tikzpicture}
+    \caption{Simplified component interaction diagram}
+    \label{fig:component-diagram}
+\end{figure}
+
+
+\section{Scalability Architecture}
+
+The system is designed for horizontal scaling at each layer.
+
+\subsection{Stateless API Tier}
+
+API servers maintain no local state; all state resides in external stores (databases, Redis, session storage). This enables:
+
+\begin{itemize}
+    \item Arbitrary instance count scaling via Kubernetes HPA
+    \item Rolling deployments without request loss
+    \item Geographic distribution for latency optimization
+\end{itemize}
+
+\subsection{Database Scaling}
+
+Each database scales according to its characteristics:
+
+\begin{itemize}
+    \item \textbf{PostgreSQL}: Read replicas for query distribution; connection pooling via PgBouncer
+    \item \textbf{Qdrant}: Cluster mode with sharding across nodes
+    \item \textbf{Neo4j}: Causal clustering for read scaling
+    \item \textbf{Redis}: Cluster mode with hash slot distribution
+\end{itemize}
+
+\subsection{LLM Scaling}
+
+LLM capacity scales through:
+
+\begin{itemize}
+    \item Multiple concurrent connections to provider APIs
+    \item Provider fallback when primary is rate-limited
+    \item Semantic caching reducing inference demand
+    \item Cost-aware routing to cheaper models for simple queries
+\end{itemize}
+
+
+\section{Failure Handling}
+
+The architecture includes multiple mechanisms for handling failures gracefully.
+
+\subsection{Circuit Breakers}
+
+External service calls (databases, LLMs, external APIs) are wrapped in circuit breakers that:
+
+\begin{itemize}
+    \item Track failure rates over sliding windows
+    \item Open circuits when failure rates exceed thresholds
+    \item Attempt periodic recovery with exponential backoff
+    \item Provide fallback responses during outages
+\end{itemize}
+
+\subsection{Retry Policies}
+
+Transient failures trigger automatic retries with:
+
+\begin{itemize}
+    \item Exponential backoff to avoid thundering herd
+    \item Jitter to distribute retry timing
+    \item Maximum attempt limits to bound latency
+    \item Idempotency keys to prevent duplicate operations
+\end{itemize}
+
+\subsection{Graceful Degradation}
+
+When components fail, the system degrades gracefully:
+
+\begin{itemize}
+    \item If Qdrant is unavailable, fall back to PostgreSQL full-text search
+    \item If Neo4j is unavailable, omit relationship context from responses
+    \item If primary LLM provider fails, route to backup provider
+    \item If cache is unavailable, bypass rather than fail
+\end{itemize}
+
+
+\section{Technology Selection Rationale}
+
+Key technology choices reflect specific requirements:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Technology} & \textbf{Selection Rationale} \\
+\midrule
+Python + FastAPI & Async support, ML ecosystem compatibility, rapid development \\
+PostgreSQL & Proven reliability, PostGIS for geo, JSONB for flex schema \\
+Qdrant & Native hybrid search, strong performance, self-hostable \\
+Neo4j & Cypher expressiveness, GraphRAG capabilities \\
+LangGraph & State machine flexibility, agent orchestration native \\
+Temporal.io & Durable execution, workflow versioning, observability \\
+LiteLLM & Provider abstraction, unified interface, fallback support \\
+Redis & Sub-millisecond latency, versatile data structures \\
+\bottomrule
+\end{tabularx}
+\caption{Technology selection rationale}
+\label{tab:tech-rationale}
+\end{table}

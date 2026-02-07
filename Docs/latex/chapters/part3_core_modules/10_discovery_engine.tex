@@ -1,0 +1,503 @@
+% ============================================================================
+% Chapter 10: Discovery Engine
+% ============================================================================
+
+\chapter{Discovery Engine}
+\label{ch:discovery}
+
+The Discovery Engine is the heart of ARBOR's user-facing functionality, orchestrating the transformation of natural language queries into ranked, explained recommendations. This chapter examines the end-to-end discovery flow, from query understanding to response delivery.
+
+
+\section{Query Processing}
+
+Discovery begins when a user submits a query expressing their needs.
+
+\subsection{Query Reception}
+
+The API endpoint receives and validates incoming queries:
+
+\begin{lstlisting}[style=pythonstyle, caption={Discovery endpoint implementation}]
+@router.post("/discover", response_model=DiscoveryResponse)
+async def discover(
+    request: DiscoveryRequest,
+    user: Optional[User] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+) -> DiscoveryResponse:
+    """Main discovery endpoint."""
+    
+    # Build initial state
+    state = AgentState(
+        user_query=request.query,
+        user_id=user.id if user else None,
+        user_location=request.location,
+        conversation_history=await get_conversation_history(
+            request.session_id
+        ),
+        trace_id=generate_trace_id(),
+    )
+    
+    # Execute agent graph
+    result = await discovery_graph.ainvoke(state)
+    
+    # Emit analytics event
+    await emit_search_event(request, result)
+    
+    return DiscoveryResponse(
+        message=result["final_response"],
+        recommendations=result["recommendations"],
+        trace_id=state["trace_id"]
+    )
+\end{lstlisting}
+
+\subsection{Context Assembly}
+
+Each query is enriched with contextual information:
+
+\begin{itemize}
+    \item \textbf{User Profile}: Preferences, history, and saved entities if authenticated
+    \item \textbf{Conversation History}: Previous turns in ongoing conversations
+    \item \textbf{Location Context}: User's current or specified location
+    \item \textbf{Temporal Context}: Time of day, day of week, seasonality
+\end{itemize}
+
+
+\section{Intent Understanding}
+
+The Intent Router classifies queries and extracts actionable parameters.
+
+\subsection{Classification Process}
+
+Query classification determines how the system processes the request:
+
+\begin{lstlisting}[style=pythonstyle, caption={Intent classification prompt}]
+# config/prompts/intent_classification.txt
+
+You are analyzing a query for a {domain_name} discovery system.
+
+Query: {query}
+
+Classify the intent and extract relevant parameters.
+
+Intent categories:
+- RECOMMENDATION: User wants suggestions matching criteria
+- COMPARISON: User wants to compare specific entities
+- EXPLORATION: User is browsing without specific criteria
+- DETAIL: User wants information about a known entity
+- CLARIFICATION: User is refining a previous query
+- OUT_OF_SCOPE: Query is outside system capabilities
+
+Available filters:
+{filter_schema}
+
+Respond in JSON format:
+{
+    "intent": "<category>",
+    "confidence": <0-1>,
+    "filters": {...},
+    "entities_mentioned": [...],
+    "vibe_preferences": {...}
+}
+\end{lstlisting}
+
+\subsection{Filter Extraction}
+
+Structured filters are extracted from natural language:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{5.5cm}l}
+\toprule
+\textbf{Query Fragment} & \textbf{Extracted Filter} & \textbf{Type} \\
+\midrule
+``in Milan'' & \code{city: "Milano"} & Location \\
+``elegant but casual'' & \code{formality: 40-60} & Vibe range \\
+``under 100 euros'' & \code{price\_tier: [1, 2]} & Price \\
+``Neapolitan style'' & \code{style: "neapolitan"} & Category \\
+``near Duomo'' & \code{near: \{lat, lng\}} & Proximity \\
+\bottomrule
+\end{tabularx}
+\caption{Examples of filter extraction}
+\end{table}
+
+
+\section{Multi-Source Retrieval}
+
+With intent classified and filters extracted, retrieval agents gather relevant entities.
+
+\subsection{Parallel Execution}
+
+Independent retrieval operations execute concurrently to minimize latency:
+
+\begin{lstlisting}[style=pythonstyle, caption={Parallel retrieval orchestration}]
+async def parallel_retrieval(state: AgentState) -> AgentState:
+    """Execute all retrieval agents in parallel."""
+    
+    async with asyncio.TaskGroup() as tg:
+        # Semantic search
+        vector_task = tg.create_task(
+            vector_agent.search(state)
+        )
+        
+        # Structured filtering
+        metadata_task = tg.create_task(
+            metadata_agent.query(state)
+        )
+    
+    # Merge results
+    state["vector_results"] = vector_task.result()["vector_results"]
+    state["metadata_results"] = metadata_task.result()["metadata_results"]
+    
+    # Graph exploration depends on initial results
+    state = await historian_agent.explore(state)
+    
+    return state
+\end{lstlisting}
+
+\subsection{Retrieval Strategies}
+
+Different query types emphasize different retrieval sources:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{9cm}}
+\toprule
+\textbf{Query Type} & \textbf{Strategy} \\
+\midrule
+Semantic (``somewhere cozy'') & Vector search primary, metadata secondary \\
+Filtered (``tailors in Rome'') & Metadata primary, vector for ranking \\
+Relationship (``similar to X'') & Graph primary with vector similarity \\
+Hybrid & Equal weight, RRF fusion \\
+\bottomrule
+\end{tabularx}
+\caption{Retrieval strategies by query type}
+\end{table}
+
+
+\section{Result Fusion and Ranking}
+
+Results from multiple sources are merged and ranked before synthesis.
+
+\subsection{Reciprocal Rank Fusion}
+
+RRF combines ranked lists from multiple sources:
+
+\begin{lstlisting}[style=pythonstyle, caption={RRF implementation}]
+def reciprocal_rank_fusion(
+    ranked_lists: List[List[EntityResult]],
+    k: int = 60
+) -> List[EntityResult]:
+    """Combine ranked lists using RRF."""
+    
+    scores = defaultdict(float)
+    entities = {}
+    
+    for ranked_list in ranked_lists:
+        for rank, entity in enumerate(ranked_list, start=1):
+            scores[entity.id] += 1 / (k + rank)
+            entities[entity.id] = entity
+    
+    # Sort by fused score
+    sorted_ids = sorted(
+        scores.keys(),
+        key=lambda x: scores[x],
+        reverse=True
+    )
+    
+    return [entities[id] for id in sorted_ids]
+\end{lstlisting}
+
+\subsection{ML Reranking}
+
+After fusion, ML models refine the ranking:
+
+\begin{lstlisting}[style=pythonstyle, caption={Reranking pipeline}]
+class RerankerPipeline:
+    """Multi-stage reranking pipeline."""
+    
+    async def rerank(
+        self,
+        query: str,
+        candidates: List[EntityResult],
+        limit: int = 10
+    ) -> List[EntityResult]:
+        """Apply reranking stages."""
+        
+        # Stage 1: Cohere rerank for relevance
+        if len(candidates) > 50:
+            candidates = await self.cohere_rerank(
+                query, candidates, top_k=50
+            )
+        
+        # Stage 2: Vibe alignment scoring
+        candidates = self.score_vibe_alignment(
+            query, candidates
+        )
+        
+        # Stage 3: Diversity injection
+        candidates = self.inject_diversity(candidates)
+        
+        # Stage 4: Final cutoff
+        return candidates[:limit]
+\end{lstlisting}
+
+
+\section{Personalization}
+
+For authenticated users, results are personalized based on history and preferences.
+
+\subsection{User Profile Integration}
+
+\begin{lstlisting}[style=pythonstyle, caption={Personalization layer}]
+class PersonalizationLayer:
+    """Apply user-specific personalization."""
+    
+    async def personalize(
+        self,
+        user_id: str,
+        candidates: List[EntityResult]
+    ) -> List[EntityResult]:
+        """Adjust ranking based on user profile."""
+        
+        profile = await self.get_user_profile(user_id)
+        
+        for candidate in candidates:
+            # Boost entities matching user preferences
+            pref_score = self.compute_preference_alignment(
+                candidate.vibe_dna,
+                profile.vibe_preferences
+            )
+            
+            # Penalize already-seen entities
+            if candidate.id in profile.viewed_entities:
+                candidate.score *= 0.7
+            
+            # Boost based on similar liked entities
+            similarity_boost = self.compute_similarity_to_liked(
+                candidate,
+                profile.liked_entities
+            )
+            
+            candidate.score += pref_score + similarity_boost
+        
+        return sorted(candidates, key=lambda x: x.score, reverse=True)
+\end{lstlisting}
+
+\subsection{Preference Learning}
+
+User preferences are learned from implicit and explicit signals:
+
+\begin{itemize}
+    \item \textbf{Clicks}: Entities the user explored in detail
+    \item \textbf{Saves}: Explicitly saved entities
+    \item \textbf{Conversion}: Entities where the user took action
+    \item \textbf{Dwell Time}: Time spent viewing entity details
+    \item \textbf{Explicit Ratings}: Direct feedback when provided
+\end{itemize}
+
+
+\section{Response Synthesis}
+
+The Curator agent transforms ranked results into coherent recommendations.
+
+\subsection{Synthesis Strategy}
+
+Response synthesis follows a structured approach:
+
+\begin{enumerate}
+    \item \textbf{Context Framing}: Acknowledge the user's request and any constraints
+    \item \textbf{Primary Recommendations}: Present top matches with explanations
+    \item \textbf{Relationship Insights}: Note relevant connections between entities
+    \item \textbf{Alternatives}: Suggest alternatives if main recommendations have caveats
+    \item \textbf{Follow-up Invitation}: Offer to refine or explore further
+\end{enumerate}
+
+\subsection{Explanation Generation}
+
+Each recommendation includes substantive justification:
+
+\begin{lstlisting}[caption={Example recommendation with explanation}]
+**Sartoria Ciardi** emerges as a strong match for your 
+requirements. The workshop maintains the Neapolitan 
+construction you specified—unstructured shoulders, 
+hand-stitched buttonholes—while offering a more 
+accessible price point than some competitors. 
+
+What distinguishes Ciardi is the direct lineage: 
+Maestro Ciardi trained under Antonio Panico, 
+widely considered the dean of Neapolitan tailoring. 
+The atmosphere is intimate (they take perhaps three 
+clients at a time), which suits your preference for 
+a personal experience over a high-volume operation.
+\end{lstlisting}
+
+
+\section{Conversation Management}
+
+Discovery extends beyond single queries to multi-turn conversations.
+
+\subsection{Context Persistence}
+
+Conversation state persists across turns:
+
+\begin{lstlisting}[style=pythonstyle, caption={Conversation state management}]
+class ConversationStore:
+    """Persist and retrieve conversation context."""
+    
+    async def get_context(
+        self,
+        session_id: str
+    ) -> ConversationContext:
+        """Retrieve conversation context."""
+        
+        data = await self.redis.get(f"conv:{session_id}")
+        if not data:
+            return ConversationContext.new()
+        
+        return ConversationContext.parse_raw(data)
+    
+    async def update_context(
+        self,
+        session_id: str,
+        user_message: str,
+        assistant_response: str,
+        recommendations: List[Recommendation]
+    ) -> None:
+        """Update conversation with new turn."""
+        
+        context = await self.get_context(session_id)
+        
+        context.turns.append(ConversationTurn(
+            user=user_message,
+            assistant=assistant_response,
+            recommendations=recommendations,
+            timestamp=datetime.utcnow()
+        ))
+        
+        # Retain last N turns to manage context size
+        context.turns = context.turns[-self.max_turns:]
+        
+        await self.redis.set(
+            f"conv:{session_id}",
+            context.json(),
+            ex=self.ttl_seconds
+        )
+\end{lstlisting}
+
+\subsection{Reference Resolution}
+
+Follow-up queries reference previous context:
+
+\begin{lstlisting}[style=pythonstyle, caption={Reference resolution}]
+def resolve_references(
+    query: str,
+    context: ConversationContext
+) -> str:
+    """Resolve pronouns and references to previous turns."""
+    
+    # Expand "the first one" → entity name
+    if "first one" in query.lower() or "first option" in query.lower():
+        if context.last_recommendations:
+            entity_name = context.last_recommendations[0].name
+            query = query.replace("the first one", entity_name)
+    
+    # Expand "that one" / "it" based on recency
+    if "that" in query.lower() or query.lower().startswith("it "):
+        if context.last_discussed_entity:
+            query = query.replace("that", context.last_discussed_entity)
+    
+    # Expand "similar" → similar to last recommendation
+    if "similar" in query.lower() and "to" not in query.lower():
+        if context.last_recommendations:
+            query = f"{query} to {context.last_recommendations[0].name}"
+    
+    return query
+\end{lstlisting}
+
+
+\section{Performance Considerations}
+
+Meeting latency targets requires optimization at every stage.
+
+\subsection{Latency Budget}
+
+The 2.5-second P95 target is allocated across stages:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Stage} & \textbf{Target (ms)} & \textbf{Max (ms)} \\
+\midrule
+Request parsing & 10 & 20 \\
+Intent classification & 200 & 400 \\
+Parallel retrieval & 150 & 300 \\
+Graph exploration & 100 & 200 \\
+Fusion \& reranking & 50 & 100 \\
+Curator synthesis & 800 & 1200 \\
+Response formatting & 10 & 20 \\
+\midrule
+\textbf{Total} & 1320 & 2240 \\
+\bottomrule
+\end{tabular}
+\caption{Latency budget allocation}
+\end{table}
+
+\subsection{Optimization Techniques}
+
+\begin{itemize}
+    \item \textbf{Streaming}: Begin response delivery before synthesis completes
+    \item \textbf{Precomputation}: Cache common query patterns
+    \item \textbf{Early Termination}: Stop retrieval when sufficient candidates found
+    \item \textbf{Result Size Limits}: Cap candidates at each stage
+\end{itemize}
+
+
+\section{Error Recovery}
+
+The discovery engine handles failures gracefully.
+
+\subsection{Fallback Strategies}
+
+When components fail, fallbacks preserve functionality:
+
+\begin{lstlisting}[style=pythonstyle, caption={Discovery fallback handling}]
+async def discover_with_fallbacks(state: AgentState) -> AgentState:
+    """Execute discovery with fallback handling."""
+    
+    try:
+        # Normal flow
+        state = await intent_router.analyze(state)
+        state = await parallel_retrieval(state)
+        state = await curator.synthesize(state)
+        
+    except VectorSearchError:
+        # Fallback to metadata-only search
+        logger.warning("Vector search failed, using metadata fallback")
+        state = await metadata_only_search(state)
+        state = await curator.synthesize(state)
+        
+    except LLMError:
+        # Fallback to template-based response
+        logger.error("LLM synthesis failed, using template")
+        state = await template_synthesis(state)
+        
+    except Exception as e:
+        # Generic fallback
+        logger.exception("Discovery failed")
+        state["final_response"] = (
+            "I apologize, but I'm having trouble processing your "
+            "request right now. Please try again in a moment."
+        )
+    
+    return state
+\end{lstlisting}
+
+\subsection{Partial Result Handling}
+
+When some retrieval sources fail, others continue:
+
+\begin{itemize}
+    \item If Qdrant fails: Use PostgreSQL full-text search
+    \item If Neo4j fails: Omit relationship context from response
+    \item If reranker fails: Use fusion scores directly
+\end{itemize}

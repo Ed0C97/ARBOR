@@ -1,0 +1,122 @@
+% ============================================================================
+% Chapter 11: Machine Learning Pipeline
+% ============================================================================
+
+\chapter{Machine Learning Pipeline}
+\label{ch:ml-pipeline}
+
+ARBOR's machine learning infrastructure incorporates 24 distinct modules addressing challenges from knowledge graph reasoning to explainability. This chapter surveys these capabilities.
+
+
+\section{ML Architecture Overview}
+
+The ML pipeline serves multiple objectives:
+
+\begin{itemize}
+    \item \textbf{Quality Enhancement}: Improving ranking relevance
+    \item \textbf{Cost Optimization}: Reducing inference costs
+    \item \textbf{Continuous Learning}: Adapting to feedback
+    \item \textbf{Operational Intelligence}: Detecting drift and anomalies
+\end{itemize}
+
+
+\section{Knowledge Graph Reasoning}
+
+The \module{kg\_reasoning.py} module implements graph neural network techniques for entity resolution and relationship prediction.
+
+\subsection{Entity Resolution}
+
+When ingested data may refer to the same entity under different identifiers, graph reasoning resolves these using neighbor similarity, name matching, and type compatibility.
+
+\subsection{Link Prediction}
+
+The system predicts relationships: training lineages between artisans, brand-retailer associations, style affiliations, and competitive relationships.
+
+
+\section{Reranking Pipeline}
+
+The \module{reranking\_pipeline.py} module implements multi-stage ranking refinement:
+
+\begin{enumerate}
+    \item \textbf{Semantic Reranking}: Cross-encoder for relevance
+    \item \textbf{Vibe Alignment}: Score entities on preference match
+    \item \textbf{Freshness Weighting}: Boost recent entities
+    \item \textbf{Diversity Injection}: Ensure variety
+    \item \textbf{Business Rules}: Domain-specific adjustments
+\end{enumerate}
+
+
+\section{Cost-Aware Routing}
+
+The \module{cost\_aware\_router.py} module optimizes LLM selection:
+
+\begin{itemize}
+    \item Estimates query complexity
+    \item Tracks model costs and latencies
+    \item Selects cheapest model meeting quality threshold
+    \item Respects latency constraints
+\end{itemize}
+
+
+\section{Feature Store}
+
+The \module{feature\_store.py} module provides real-time feature serving:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Category} & \textbf{Examples} \\
+\midrule
+Entity Features & Vibe DNA scores, category, price tier \\
+User Features & Preference vectors, session count \\
+Query Features & Length, complexity, filter count \\
+Interaction Features & Query-entity similarity, CTR \\
+\bottomrule
+\end{tabularx}
+\caption{Feature categories}
+\end{table}
+
+
+\section{Explainability}
+
+The \module{explainability.py} module generates interpretable explanations:
+
+\begin{description}
+    \item[SHAP Values] Feature attribution for rankings
+    \item[LIME] Local explanations for recommendations
+    \item[Attention] Query-attribute matching
+    \item[Counterfactual] What would change this recommendation
+\end{description}
+
+
+\section{Drift Detection}
+
+The \module{drift\_detection.py} module monitors distribution shifts:
+
+\begin{itemize}
+    \item Data drift in entity attributes
+    \item Concept drift in preferences
+    \item Model degradation
+    \item Embedding space movement
+\end{itemize}
+
+
+\section{Additional ML Modules}
+
+\begin{description}
+    \item[\module{prompt\_optimizer.py}] Automatic prompt tuning
+    \item[\module{causal\_inference.py}] Treatment effect estimation
+    \item[\module{federated\_learning.py}] Privacy-preserving training
+    \item[\module{rlhf.py}] Human feedback integration
+    \item[\module{ab\_testing.py}] Experimentation framework
+    \item[\module{predictive\_prefetch.py}] Query anticipation
+    \item[\module{knowledge\_distillation.py}] Model compression
+    \item[\module{adversarial\_testing.py}] Robustness testing
+    \item[\module{synthetic\_data.py}] Training data generation
+    \item[\module{graph\_expansion.py}] Relationship discovery
+    \item[\module{personalization.py}] User preference modeling
+    \item[\module{rag\_evaluation.py}] Retrieval quality metrics
+\end{description}
+
+Each module follows ARBOR's patterns for configuration, observability, and testing.

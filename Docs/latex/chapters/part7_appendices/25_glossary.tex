@@ -1,0 +1,144 @@
+% ============================================================================
+% Chapter 25: Glossary
+% ============================================================================
+
+\chapter{Glossary}
+\label{ch:glossary}
+
+This glossary defines key terms used throughout the ARBOR documentation.
+
+
+\section{Architecture Terms}
+
+\begin{description}
+    \item[Agentic Orchestration] The pattern of using autonomous AI agents coordinated by a supervisor to accomplish complex tasks, as implemented via LangGraph in ARBOR.
+    
+    \item[GraphRAG] Graph-based Retrieval-Augmented Generation; using knowledge graph traversal to provide context for LLM responses.
+    
+    \item[Hybrid Search] Combining dense vector similarity (semantic) and sparse vector matching (keyword) for retrieval, using RRF fusion.
+    
+    \item[Knowledge Trinity] ARBOR's three-database architecture: PostgreSQL for structured data, Qdrant for vector search, Neo4j for graph relationships.
+    
+    \item[LLM Gateway] Centralized layer managing LLM access, including routing, caching, guardrails, and observability.
+    
+    \item[Polyglot Persistence] Using multiple database technologies, each optimized for specific access patterns.
+\end{description}
+
+
+\section{Domain Concepts}
+
+\begin{description}
+    \item[Curator] Human expert who validates entities and maintains knowledge base quality; also the AI persona that synthesizes recommendations.
+    
+    \item[Domain] A configured vertical such as lifestyle, hospitality, or real estate, with its own categories, dimensions, and relationship types.
+    
+    \item[Entity] Any discoverable item in the knowledge base: a store, restaurant, professional, brand, or other domain-specific object.
+    
+    \item[Vibe DNA] Multi-dimensional scoring representing an entity's qualitative characteristics (e.g., formality, craftsmanship, price level).
+    
+    \item[Vibe Dimension] A single axis of the Vibe DNA, defined per domain (e.g., ``formality: 0-100'').
+\end{description}
+
+
+\section{Technical Components}
+
+\begin{description}
+    \item[Agent State] The TypedDict structure containing all information that flows through the agent graph during query processing.
+    
+    \item[Curator Agent] The agent responsible for synthesizing retrieval results into natural language recommendations.
+    
+    \item[Enrichment Orchestrator] Component that coordinates AI analysis (vision, review, embedding) during entity ingestion.
+    
+    \item[GenericEntityRepository] Schema-agnostic repository pattern enabling domain flexibility without code changes.
+    
+    \item[Historian Agent] Agent that queries Neo4j for relationship context around retrieved entities.
+    
+    \item[Intent Router] Agent that classifies user queries and extracts structured filters.
+    
+    \item[LangGraph] LangChain framework for building stateful, multi-agent workflows as graphs.
+    
+    \item[Langfuse] LLM observability platform for tracing, cost tracking, and evaluation.
+    
+    \item[LiteLLM] Multi-provider LLM gateway enabling unified access to OpenAI, Anthropic, Azure, etc.
+    
+    \item[Metadata Agent] Agent that queries PostgreSQL for entities matching structured filters.
+    
+    \item[NeMo Guardrails] NVIDIA framework for adding safety rails to LLM applications.
+    
+    \item[Qdrant] Vector database used for semantic similarity search.
+    
+    \item[Reciprocal Rank Fusion (RRF)] Algorithm for combining ranked lists from multiple retrieval sources.
+    
+    \item[Temporal.io] Durable workflow execution platform used for ingestion and background processing.
+    
+    \item[Vector Agent] Agent that performs semantic similarity search in Qdrant.
+\end{description}
+
+
+\section{ML Terms}
+
+\begin{description}
+    \item[A/B Testing] Controlled experimentation comparing variants to measure impact.
+    
+    \item[Causal Inference] Statistical methods for estimating treatment effects.
+    
+    \item[Drift Detection] Monitoring for changes in data distributions that may affect model performance.
+    
+    \item[Feature Store] Real-time serving infrastructure for ML features.
+    
+    \item[Knowledge Distillation] Compressing large models into smaller, efficient variants.
+    
+    \item[Reranking] Second-stage ranking refinement after initial retrieval.
+    
+    \item[RLHF] Reinforcement Learning from Human Feedback; using human preferences to improve model outputs.
+    
+    \item[SHAP] SHapley Additive exPlanations; method for explaining individual predictions.
+\end{description}
+
+
+\section{Infrastructure Terms}
+
+\begin{description}
+    \item[Circuit Breaker] Pattern that prevents cascading failures by stopping requests to failing services.
+    
+    \item[HPA] Horizontal Pod Autoscaler; Kubernetes mechanism for scaling based on metrics.
+    
+    \item[Istio] Service mesh providing mTLS, traffic management, and observability.
+    
+    \item[OpenTelemetry] Observability framework for distributed tracing and metrics.
+    
+    \item[PgBouncer] Connection pooler for PostgreSQL.
+    
+    \item[StatefulSet] Kubernetes workload for stateful applications like databases.
+\end{description}
+
+
+\section{Abbreviations}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Abbreviation} & \textbf{Meaning} \\
+\midrule
+AAA & Arrange-Act-Assert \\
+API & Application Programming Interface \\
+CDC & Change Data Capture \\
+CDN & Content Delivery Network \\
+CI/CD & Continuous Integration/Continuous Deployment \\
+E2E & End-to-End \\
+GNN & Graph Neural Network \\
+JWT & JSON Web Token \\
+LLM & Large Language Model \\
+OIDC & OpenID Connect \\
+P95 & 95th Percentile \\
+RAG & Retrieval-Augmented Generation \\
+RBAC & Role-Based Access Control \\
+RPS & Requests Per Second \\
+SLI/SLO & Service Level Indicator/Objective \\
+SSR & Server-Side Rendering \\
+WAF & Web Application Firewall \\
+\bottomrule
+\end{tabular}
+\caption{Common abbreviations}
+\end{table}

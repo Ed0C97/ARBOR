@@ -1,0 +1,177 @@
+% ============================================================================
+% Chapter 12: Event-Driven Architecture
+% ============================================================================
+
+\chapter{Event-Driven Architecture}
+\label{ch:events}
+
+ARBOR employs event-driven patterns to enable loose coupling, real-time analytics, and asynchronous processing. Apache Kafka serves as the event backbone, with producers and consumers distributed across the system.
+
+
+\section{Event-Driven Design}
+
+\subsection{Design Rationale}
+
+Event-driven architecture provides several benefits:
+
+\begin{description}
+    \item[Decoupling] Components communicate through events rather than direct calls
+    \item[Scalability] Consumers scale independently based on throughput needs
+    \item[Durability] Events are persisted for replay and recovery
+    \item[Analytics] Event streams enable real-time and historical analysis
+\end{description}
+
+
+\section{Kafka Topology}
+
+\subsection{Topic Structure}
+
+Events flow through organized topics:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Topic} & \textbf{Contents} \\
+\midrule
+\code{entity.ingested} & New entities entering the system \\
+\code{entity.updated} & Entity attribute changes \\
+\code{query.executed} & Discovery queries and results \\
+\code{user.feedback} & Explicit and implicit feedback signals \\
+\code{ml.predictions} & Model inference results \\
+\code{system.events} & Operational events and metrics \\
+\bottomrule
+\end{tabularx}
+\caption{Primary Kafka topics}
+\end{table}
+
+\subsection{Event Schema}
+
+All events follow a consistent envelope:
+
+\begin{lstlisting}[style=pythonstyle, caption={Event envelope schema}]
+class EventEnvelope(BaseModel):
+    event_id: str = Field(default_factory=lambda: str(uuid4()))
+    event_type: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    source: str
+    trace_id: Optional[str]
+    payload: Dict[str, Any]
+\end{lstlisting}
+
+
+\section{Event Producers}
+
+\subsection{Query Events}
+
+Every discovery query emits events for analytics:
+
+\begin{lstlisting}[style=pythonstyle, caption={Query event production}]
+class QueryEventProducer:
+    async def emit_query_event(
+        self,
+        query: str,
+        results: List[EntityResult],
+        latency_ms: int,
+        trace_id: str
+    ) -> None:
+        event = EventEnvelope(
+            event_type="query.executed",
+            source="discovery_engine",
+            trace_id=trace_id,
+            payload={
+                "query": query,
+                "result_count": len(results),
+                "result_ids": [r.id for r in results[:10]],
+                "latency_ms": latency_ms,
+            }
+        )
+        await self.producer.send("query.executed", event.json())
+\end{lstlisting}
+
+\subsection{Entity Change Events}
+
+Entity lifecycle changes propagate through events enabling cache invalidation and search index updates.
+
+
+\section{Event Consumers}
+
+\subsection{Analytics Pipeline}
+
+Query events feed the analytics pipeline:
+
+\begin{itemize}
+    \item Query pattern analysis
+    \item Popular entity tracking
+    \item Latency monitoring
+    \item Conversion funnel analysis
+\end{itemize}
+
+\subsection{ML Feedback Loop}
+
+User feedback events trigger model updates:
+
+\begin{lstlisting}[style=pythonstyle, caption={Feedback consumer}]
+class FeedbackConsumer:
+    async def process(self, event: EventEnvelope) -> None:
+        feedback = FeedbackSignal(**event.payload)
+        
+        # Update feature store
+        await self.feature_store.record_interaction(
+            user_id=feedback.user_id,
+            entity_id=feedback.entity_id,
+            signal=feedback.signal
+        )
+        
+        # Check if retraining threshold reached
+        if await self.should_retrain():
+            await self.training_queue.enqueue(RetrainJob())
+\end{lstlisting}
+
+
+\section{Cache Invalidation}
+
+Entity changes trigger cache invalidation across Redis and CDN:
+
+\begin{lstlisting}[style=pythonstyle, caption={Cache invalidation consumer}]
+class CacheInvalidator:
+    async def handle_entity_update(
+        self,
+        event: EventEnvelope
+    ) -> None:
+        entity_id = event.payload["entity_id"]
+        
+        # Invalidate Redis caches
+        await self.redis.delete(f"entity:{entity_id}")
+        await self.redis.delete(f"features:{entity_id}")
+        
+        # Purge CDN cache
+        await self.cdn.purge(f"/api/entities/{entity_id}")
+\end{lstlisting}
+
+
+\section{Stream Processing}
+
+For real-time aggregations, stream processing augments batch analytics:
+
+\begin{itemize}
+    \item Rolling query counts by category
+    \item Real-time trending entities
+    \item Active user session tracking
+    \item Anomaly detection on query patterns
+\end{itemize}
+
+
+\section{Operational Considerations}
+
+\subsection{Retention Policies}
+
+\begin{itemize}
+    \item Query events: 30 days retention
+    \item Feedback events: 90 days retention
+    \item Entity events: Compacted (keep latest)
+\end{itemize}
+
+\subsection{Consumer Groups}
+
+Each processing concern uses isolated consumer groups, enabling independent scaling and failure isolation.

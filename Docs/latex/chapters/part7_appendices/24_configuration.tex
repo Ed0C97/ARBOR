@@ -1,0 +1,205 @@
+% ============================================================================
+% Chapter 24: Configuration Reference
+% ============================================================================
+
+\chapter{Configuration Reference}
+\label{ch:configuration}
+
+This appendix documents ARBOR's configuration files and environment variables.
+
+
+\section{Domain Configuration}
+
+\subsection{Domain Profile Structure}
+
+Domain profiles define domain-specific configuration:
+
+\begin{lstlisting}[style=yamlstyle, caption={Domain profile example}]
+domain:
+  id: lifestyle
+  name: "Lifestyle & Fashion"
+  description: "Curated discovery for lifestyle entities"
+
+categories:
+  - id: tailoring
+    name: "Tailoring"
+    subcategories:
+      - id: bespoke
+        name: "Bespoke"
+      - id: mtm
+        name: "Made-to-Measure"
+  - id: shoes
+    name: "Footwear"
+
+dimensions:
+  formality:
+    name: "Formality"
+    description: "0 = Casual, 100 = Formal"
+    weight: 1.0
+  craftsmanship:
+    name: "Craftsmanship"
+    description: "0 = Mass-produced, 100 = Artisanal"
+    weight: 1.2
+
+styles:
+  - id: neapolitan
+    name: "Neapolitan"
+    keywords: ["spalla scesa", "unconstructed"]
+  - id: english
+    name: "English/Savile Row"
+    keywords: ["structured", "padded shoulder"]
+
+relationship_types:
+  - sells_brand
+  - trained_by
+  - has_style
+
+curator_persona:
+  name: "The Style Curator"
+  voice: "Sophisticated but approachable"
+\end{lstlisting}
+
+
+\section{Source Schema Configuration}
+
+\subsection{Data Source Schema}
+
+SOURCE\_SCHEMA\_CONFIG defines data source mappings:
+
+\begin{lstlisting}[style=yamlstyle, caption={Source schema configuration}]
+source_schema:
+  name: "google_maps"
+  entity_mapping:
+    name: "$.name"
+    external_id: "$.place_id"
+    location:
+      lat: "$.geometry.location.lat"
+      lng: "$.geometry.location.lng"
+    attributes:
+      rating: "$.rating"
+      review_count: "$.user_ratings_total"
+      price_level: "$.price_level"
+  
+  category_mapping:
+    "clothing_store": "fashion"
+    "restaurant": "dining"
+    "cafe": "coffee"
+\end{lstlisting}
+
+
+\section{Environment Variables}
+
+\subsection{Core Settings}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}}
+\toprule
+\textbf{Variable} & \textbf{Description} \\
+\midrule
+\code{ENVIRONMENT} & Environment name (dev/staging/prod) \\
+\code{DEBUG} & Enable debug mode \\
+\code{LOG\_LEVEL} & Logging level \\
+\code{SECRET\_KEY} & Application secret key \\
+\bottomrule
+\end{tabularx}
+\caption{Core environment variables}
+\end{table}
+
+\subsection{Database Settings}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}}
+\toprule
+\textbf{Variable} & \textbf{Description} \\
+\midrule
+\code{DATABASE\_URL} & PostgreSQL connection string \\
+\code{QDRANT\_URL} & Qdrant server URL \\
+\code{QDRANT\_API\_KEY} & Qdrant API key \\
+\code{NEO4J\_URI} & Neo4j connection URI \\
+\code{NEO4J\_USER} & Neo4j username \\
+\code{NEO4J\_PASSWORD} & Neo4j password \\
+\code{REDIS\_URL} & Redis connection string \\
+\bottomrule
+\end{tabularx}
+\caption{Database environment variables}
+\end{table}
+
+\subsection{LLM Settings}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}}
+\toprule
+\textbf{Variable} & \textbf{Description} \\
+\midrule
+\code{OPENAI\_API\_KEY} & OpenAI API key \\
+\code{ANTHROPIC\_API\_KEY} & Anthropic API key \\
+\code{AZURE\_API\_KEY} & Azure OpenAI key \\
+\code{AZURE\_API\_BASE} & Azure endpoint URL \\
+\code{DEFAULT\_LLM\_MODEL} & Default model for inference \\
+\bottomrule
+\end{tabularx}
+\caption{LLM environment variables}
+\end{table}
+
+\subsection{Authentication}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}}
+\toprule
+\textbf{Variable} & \textbf{Description} \\
+\midrule
+\code{AUTH0\_DOMAIN} & Auth0 tenant domain \\
+\code{AUTH0\_AUDIENCE} & Auth0 API audience \\
+\code{AUTH0\_CLIENT\_ID} & Auth0 client ID \\
+\code{AUTH0\_CLIENT\_SECRET} & Auth0 client secret \\
+\bottomrule
+\end{tabularx}
+\caption{Authentication environment variables}
+\end{table}
+
+
+\section{Prompt Templates}
+
+\subsection{Template Directory}
+
+Prompts are stored in \code{config/prompts/}:
+
+\begin{lstlisting}[caption={Prompt directory structure}]
+config/prompts/
+├── intent_classification.txt
+├── curator_synthesis.txt
+├── vibe_extraction.txt
+├── vision_analysis.txt
+└── entity_comparison.txt
+\end{lstlisting}
+
+\subsection{Template Variables}
+
+Common template variables:
+
+\begin{itemize}
+    \item \code{\{domain\_name\}}: Current domain name
+    \item \code{\{dimensions\}}: List of vibe dimensions
+    \item \code{\{categories\}}: Available categories
+    \item \code{\{query\}}: User query
+    \item \code{\{context\}}: Retrieved context
+    \item \code{\{persona\}}: Curator persona
+\end{itemize}
+
+
+\section{Feature Flags}
+
+Feature flags control runtime behavior:
+
+\begin{lstlisting}[style=yamlstyle, caption={Feature flags}]
+features:
+  semantic_cache: true
+  graph_rag: true
+  personalization: true
+  experimental_reranker: false
+  new_curator_prompt: false
+\end{lstlisting}

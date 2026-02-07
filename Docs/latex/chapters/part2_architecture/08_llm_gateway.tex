@@ -1,0 +1,547 @@
+% ============================================================================
+% Chapter 8: LLM Gateway
+% ============================================================================
+
+\chapter{LLM Gateway}
+\label{ch:llm-gateway}
+
+Large Language Models form the cognitive backbone of ARBOR, powering everything from intent understanding to response synthesis. Managing LLM access at scale requires sophisticated infrastructure: multi-provider routing for reliability, intelligent caching for cost reduction, guardrails for safety, and observability for optimization. This chapter examines the LLM Gateway layer that orchestrates these concerns.
+
+
+\section{Gateway Architecture}
+
+The LLM Gateway mediates all interactions between ARBOR and language model providers, centralizing critical cross-cutting concerns.
+
+\subsection{Design Goals}
+
+The gateway serves several objectives:
+
+\begin{itemize}
+    \item \textbf{Provider Abstraction}: Application code uses a unified interface regardless of the underlying provider.
+    \item \textbf{Reliability}: Automatic failover between providers when primary is unavailable.
+    \item \textbf{Cost Optimization}: Route requests to appropriate models based on complexity.
+    \item \textbf{Safety}: Enforce content policies and output validation.
+    \item \textbf{Observability}: Track usage, costs, and performance across all LLM calls.
+\end{itemize}
+
+\subsection{LiteLLM Integration}
+
+LiteLLM provides the foundation for multi-provider access:
+
+\begin{lstlisting}[style=pythonstyle, caption={LiteLLM router configuration}]
+from litellm import Router
+
+llm_router = Router(
+    model_list=[
+        {
+            "model_name": "gpt-4o",
+            "litellm_params": {
+                "model": "gpt-4o",
+                "api_key": os.getenv("OPENAI_API_KEY"),
+            },
+            "tpm": 150000,  # Tokens per minute limit
+            "rpm": 500,     # Requests per minute limit
+        },
+        {
+            "model_name": "gpt-4o",  # Fallback with same name
+            "litellm_params": {
+                "model": "azure/gpt-4o",
+                "api_base": os.getenv("AZURE_API_BASE"),
+                "api_key": os.getenv("AZURE_API_KEY"),
+            },
+            "tpm": 150000,
+            "rpm": 500,
+        },
+        {
+            "model_name": "gpt-3.5-turbo",
+            "litellm_params": {
+                "model": "gpt-3.5-turbo",
+                "api_key": os.getenv("OPENAI_API_KEY"),
+            },
+        },
+        {
+            "model_name": "claude-3-sonnet",
+            "litellm_params": {
+                "model": "anthropic/claude-3-sonnet-20240229",
+                "api_key": os.getenv("ANTHROPIC_API_KEY"),
+            },
+        },
+    ],
+    fallbacks=[
+        {"gpt-4o": ["claude-3-sonnet"]},
+        {"gpt-3.5-turbo": ["groq/llama-3-8b"]},
+    ],
+    routing_strategy="least-busy",
+)
+\end{lstlisting}
+
+This configuration enables transparent failover: if OpenAI's GPT-4o is rate-limited, requests automatically route to Azure's deployment or Anthropic's Claude.
+
+
+\section{Multi-Provider Strategy}
+
+ARBOR's LLM strategy employs multiple providers for distinct purposes.
+
+\subsection{Provider Selection}
+
+Different providers serve different needs:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{5.5cm}l}
+\toprule
+\textbf{Provider} & \textbf{Use Case} & \textbf{Models} \\
+\midrule
+OpenAI & Primary inference, embeddings & GPT-4o, GPT-3.5, text-embedding-3 \\
+Azure OpenAI & Enterprise backup, compliance & Same as OpenAI \\
+Anthropic & Alternative reasoning style, fallback & Claude 3 Sonnet/Opus \\
+Groq & Fast inference for simple tasks & Llama 3, Mixtral \\
+Ollama & Local development, privacy testing & Various open models \\
+\bottomrule
+\end{tabularx}
+\caption{LLM providers and their roles}
+\end{table}
+
+\subsection{Failover Mechanisms}
+
+The gateway implements multiple failover strategies:
+
+\begin{description}
+    \item[Automatic Retry] Transient failures trigger immediate retry with exponential backoff.
+    
+    \item[Provider Failover] When a provider is consistently failing, requests route to configured alternatives.
+    
+    \item[Model Downgrade] If the requested model is unavailable, the system may substitute a capable alternative.
+    
+    \item[Circuit Breaker] Persistent failures open a circuit, preventing requests to the failing provider for a cooldown period.
+\end{description}
+
+\begin{lstlisting}[style=pythonstyle, caption={Failover implementation}]
+async def complete_with_fallback(
+    messages: List[Dict],
+    model: str = "gpt-4o",
+    **kwargs
+) -> LLMResponse:
+    """Complete with automatic failover."""
+    
+    try:
+        response = await llm_router.acompletion(
+            model=model,
+            messages=messages,
+            **kwargs
+        )
+        return LLMResponse.from_litellm(response)
+    
+    except RateLimitError:
+        logger.warning(f"Rate limited on {model}, trying fallback")
+        # LiteLLM handles fallback automatically
+        raise
+    
+    except ServiceUnavailableError as e:
+        logger.error(f"Provider unavailable: {e}")
+        # Circuit breaker will prevent further calls
+        raise
+\end{lstlisting}
+
+
+\section{Semantic Caching}
+
+Semantic caching dramatically reduces LLM costs by recognizing when similar queries can reuse previous responses.
+
+\subsection{GPTCache Integration}
+
+ARBOR integrates GPTCache for intelligent caching:
+
+\begin{lstlisting}[style=pythonstyle, caption={Semantic cache configuration}]
+from gptcache import cache
+from gptcache.manager import CacheBase, VectorBase
+from gptcache.similarity_evaluation import OnnxModelEvaluation
+
+def init_semantic_cache():
+    """Initialize semantic similarity cache."""
+    
+    onnx_evaluation = OnnxModelEvaluation()
+    
+    cache.init(
+        pre_embedding_func=get_embedding,
+        data_manager=manager_factory(
+            "redis",
+            vector_params={
+                "dimension": 1536,
+                "index_type": "HNSW"
+            }
+        ),
+        similarity_evaluation=onnx_evaluation,
+        similarity_threshold=0.85,  # Cosine similarity
+    )
+    
+    return cache
+\end{lstlisting}
+
+\subsection{Cache Hit Processing}
+
+When a query is semantically similar to a cached query:
+
+\begin{enumerate}
+    \item The query is embedded using the same embedding model
+    \item Vector similarity search finds the nearest cached queries
+    \item If similarity exceeds threshold (0.85), the cached response is returned
+    \item Otherwise, the query proceeds to LLM inference
+\end{enumerate}
+
+\subsection{Cache Invalidation}
+
+Cached responses are invalidated when:
+
+\begin{itemize}
+    \item Entity data changes that would affect the response
+    \item System prompts or configurations are updated
+    \item Time-based expiry is reached (configurable per query type)
+    \item Manual invalidation is triggered during development
+\end{itemize}
+
+
+\section{Guardrails and Safety}
+
+NeMo Guardrails ensures LLM outputs conform to safety and quality requirements.
+
+\subsection{Guardrail Categories}
+
+ARBOR implements several guardrail categories:
+
+\begin{description}
+    \item[Input Validation] Blocks queries that attempt prompt injection, request harmful content, or fall outside system scope.
+    
+    \item[Output Validation] Ensures responses stay within domain boundaries and don't fabricate non-existent entities.
+    
+    \item[Fact Checking] Validates that entity claims match the knowledge base.
+    
+    \item[Tone Enforcement] Maintains the Curator persona's voice and avoids inappropriate language.
+\end{description}
+
+\subsection{Guardrail Configuration}
+
+Guardrails are configured declaratively:
+
+\begin{lstlisting}[style=yamlstyle, caption={NeMo Guardrails configuration}]
+# config/guardrails/config.yml
+models:
+  - type: main
+    engine: openai
+    model: gpt-4o
+
+rails:
+  input:
+    flows:
+      - check query scope
+      - detect prompt injection
+      
+  output:
+    flows:
+      - verify entity exists
+      - check response tone
+      - filter hallucinations
+
+prompts:
+  - task: check query scope
+    content: |
+      Determine if the query is within scope for a 
+      {domain_name} discovery system.
+      
+      Query: {user_input}
+      
+      Respond with: IN_SCOPE or OUT_OF_SCOPE
+\end{lstlisting}
+
+\subsection{Hallucination Prevention}
+
+A critical guardrail prevents hallucinated entity recommendations:
+
+\begin{lstlisting}[style=pythonstyle, caption={Hallucination check implementation}]
+async def verify_entities_exist(
+    response: str,
+    valid_entities: Set[str]
+) -> VerificationResult:
+    """Ensure recommended entities exist in knowledge base."""
+    
+    # Extract entity mentions from response
+    mentioned = extract_entity_mentions(response)
+    
+    # Check against known entities
+    unknown = mentioned - valid_entities
+    
+    if unknown:
+        logger.warning(f"Hallucinated entities detected: {unknown}")
+        return VerificationResult(
+            valid=False,
+            hallucinated=list(unknown),
+            corrected_response=remove_mentions(response, unknown)
+        )
+    
+    return VerificationResult(valid=True)
+\end{lstlisting}
+
+
+\section{Cost-Aware Routing}
+
+Not all queries require the most powerful (and expensive) models. The cost-aware router matches query complexity to appropriate models.
+
+\subsection{Complexity Classification}
+
+Queries are classified by complexity:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{7cm}l}
+\toprule
+\textbf{Complexity} & \textbf{Characteristics} & \textbf{Model} \\
+\midrule
+Simple & Basic intent, single filter, direct answer & GPT-3.5 / Llama \\
+Moderate & Multiple filters, comparison, explanation needed & GPT-4o-mini \\
+Complex & Nuanced reasoning, relationship synthesis & GPT-4o \\
+\bottomrule
+\end{tabularx}
+\caption{Query complexity tiers}
+\end{table}
+
+\subsection{Routing Logic}
+
+\begin{lstlisting}[style=pythonstyle, caption={Cost-aware model selection}]
+class CostAwareRouter:
+    async def select_model(
+        self,
+        query: str,
+        task_type: TaskType
+    ) -> str:
+        """Select optimal model for query."""
+        
+        # Classify complexity
+        complexity = await self.classify_complexity(query)
+        
+        # Get pricing for models
+        available = self.get_available_models()
+        
+        # Select cheapest model meeting quality threshold
+        for model in sorted(available, key=lambda m: m.cost_per_token):
+            if model.quality_tier >= complexity.required_tier:
+                return model.name
+        
+        # Fallback to best available
+        return self.config.default_model
+\end{lstlisting}
+
+\subsection{Cost Tracking}
+
+Token usage and costs are tracked per request:
+
+\begin{lstlisting}[style=pythonstyle, caption={Cost tracking implementation}]
+@dataclass
+class UsageMetrics:
+    input_tokens: int
+    output_tokens: int
+    model: str
+    latency_ms: int
+    
+    @property
+    def cost(self) -> float:
+        pricing = MODEL_PRICING[self.model]
+        return (
+            self.input_tokens * pricing.input_per_1k / 1000 +
+            self.output_tokens * pricing.output_per_1k / 1000
+        )
+\end{lstlisting}
+
+
+\section{Prompt Management}
+
+Effective LLM usage requires careful prompt management.
+
+\subsection{Prompt Templates}
+
+Prompts are externalized from code for easy iteration:
+
+\begin{lstlisting}[style=pythonstyle, caption={Prompt template loading}]
+class PromptManager:
+    def __init__(self, prompt_dir: Path):
+        self.templates = {}
+        self._load_templates(prompt_dir)
+    
+    def get(self, name: str, **kwargs) -> str:
+        """Get formatted prompt by name."""
+        template = self.templates[name]
+        return template.format(**kwargs)
+    
+    def _load_templates(self, directory: Path):
+        for path in directory.glob("*.txt"):
+            name = path.stem
+            self.templates[name] = path.read_text()
+\end{lstlisting}
+
+\subsection{Template Structure}
+
+Prompt templates follow a consistent structure:
+
+\begin{lstlisting}[caption={Example prompt template}]
+# config/prompts/curator_synthesis.txt
+
+You are {curator_name}, {curator_description}
+
+## Your Expertise
+{expertise_list}
+
+## User Query
+{user_query}
+
+## Available Entities
+{entity_context}
+
+## Relationship Context
+{graph_context}
+
+## Instructions
+Synthesize a response that:
+1. Addresses the user's specific needs
+2. Explains WHY each recommendation fits
+3. Notes relevant connections between entities
+4. Maintains your voice and expertise
+
+Response:
+\end{lstlisting}
+
+
+\section{Observability}
+
+Comprehensive LLM observability enables optimization and debugging.
+
+\subsection{Langfuse Integration}
+
+Langfuse provides LLM-specific tracing:
+
+\begin{lstlisting}[style=pythonstyle, caption={Langfuse tracing setup}]
+from langfuse import Langfuse
+from langfuse.decorators import observe
+
+langfuse = Langfuse(
+    public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+    secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+)
+
+@observe(as_type="generation")
+async def generate_response(
+    messages: List[Dict],
+    model: str = "gpt-4o"
+) -> str:
+    """Generate LLM response with tracing."""
+    
+    response = await llm_router.acompletion(
+        model=model,
+        messages=messages,
+    )
+    
+    return response.choices[0].message.content
+\end{lstlisting}
+
+\subsection{Tracked Metrics}
+
+The observability layer captures:
+
+\begin{itemize}
+    \item \textbf{Latency}: Time to first token, total generation time
+    \item \textbf{Token Usage}: Input and output tokens per request
+    \item \textbf{Costs}: Computed costs per request, aggregated by timeframe
+    \item \textbf{Cache Performance}: Hit rates, similarity scores
+    \item \textbf{Error Rates}: By provider, model, and error type
+    \item \textbf{Quality Signals}: User feedback, guardrail triggers
+\end{itemize}
+
+\subsection{Cost Dashboards}
+
+Grafana dashboards visualize LLM economics:
+
+\begin{itemize}
+    \item Daily/weekly/monthly token consumption
+    \item Cost breakdown by model and task type
+    \item Cache hit rate trends
+    \item Provider reliability metrics
+    \item Budget burn rate and projections
+\end{itemize}
+
+
+\section{Local Development}
+
+For development and testing, Ollama provides local LLM access:
+
+\begin{lstlisting}[style=pythonstyle, caption={Ollama configuration for development}]
+# Development override
+if settings.ENVIRONMENT == "development":
+    llm_router.model_list.append({
+        "model_name": "gpt-4o",  # Use same name for drop-in
+        "litellm_params": {
+            "model": "ollama/llama3",
+            "api_base": "http://localhost:11434",
+        },
+    })
+\end{lstlisting}
+
+This enables:
+\begin{itemize}
+    \item Offline development without API costs
+    \item Testing without rate limit concerns
+    \item Privacy-sensitive experimentation
+    \item Rapid iteration on prompts
+\end{itemize}
+
+
+\section{Token Budget Management}
+
+Large responses require budget management to control costs and latency.
+
+\subsection{Budget Allocation}
+
+Each request type has a token budget:
+
+\begin{lstlisting}[style=pythonstyle, caption={Token budget configuration}]
+TOKEN_BUDGETS = {
+    "intent_routing": 500,      # Fast classification
+    "entity_search": 1000,      # Search context
+    "detail_query": 2000,       # Full entity details  
+    "curator_synthesis": 3000,  # Rich response
+    "conversation_turn": 4000,  # With history context
+}
+\end{lstlisting}
+
+\subsection{Context Truncation}
+
+When input exceeds budget, intelligent truncation preserves critical information:
+
+\begin{lstlisting}[style=pythonstyle, caption={Smart context truncation}]
+def truncate_context(
+    context: str,
+    max_tokens: int,
+    priorities: List[str]
+) -> str:
+    """Truncate context preserving priority sections."""
+    
+    sections = parse_sections(context)
+    result_sections = []
+    remaining_tokens = max_tokens
+    
+    # Include priority sections first
+    for priority in priorities:
+        if priority in sections:
+            section = sections[priority]
+            tokens = count_tokens(section)
+            if tokens <= remaining_tokens:
+                result_sections.append(section)
+                remaining_tokens -= tokens
+    
+    # Fill with remaining sections
+    for name, section in sections.items():
+        if name not in priorities:
+            tokens = count_tokens(section)
+            if tokens <= remaining_tokens:
+                result_sections.append(section)
+                remaining_tokens -= tokens
+    
+    return "\n\n".join(result_sections)
+\end{lstlisting}

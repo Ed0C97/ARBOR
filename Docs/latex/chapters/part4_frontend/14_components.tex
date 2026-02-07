@@ -1,0 +1,167 @@
+% ============================================================================
+% Chapter 14: UI Components
+% ============================================================================
+
+\chapter{UI Components}
+\label{ch:components}
+
+The ARBOR interface comprises carefully designed components that balance aesthetic appeal with functional clarity. This chapter examines the key UI components that define the user experience.
+
+
+\section{Discovery Components}
+
+\subsection{Conversational Search}
+
+The primary discovery interface presents as a conversational chat:
+
+\begin{description}
+    \item[SearchInput] Natural language query input with suggestions
+    \item[MessageList] Conversation history display
+    \item[RecommendationCard] Rich entity presentation
+    \item[LoadingStates] Skeleton and streaming indicators
+\end{description}
+
+\subsection{Entity Cards}
+
+Entity cards present discoveries with visual richness:
+
+\begin{itemize}
+    \item Hero image with lazy loading
+    \item Name and category badges
+    \item Vibe DNA visualization (radar chart)
+    \item Quick actions (save, share, details)
+    \item Curator explanation excerpt
+\end{itemize}
+
+\subsection{Vibe Visualizations}
+
+The Vibe DNA is visualized through:
+
+\begin{itemize}
+    \item Radar charts for multi-dimensional display
+    \item Animated transitions between states
+    \item Color-coded dimension axes
+    \item Comparative overlays for entity comparison
+\end{itemize}
+
+
+\section{Filter Components}
+
+\subsection{Faceted Filters}
+
+Structured filtering complements natural language:
+
+\begin{description}
+    \item[CategoryFilter] Hierarchical category selection
+    \item[LocationFilter] Map-based or address search
+    \item[PriceFilter] Tier selection with visual indicators
+    \item[VibeSliders] Dimension preference adjustment
+\end{description}
+
+\subsection{Active Filters}
+
+Applied filters display as dismissible chips, enabling easy modification.
+
+
+\section{Map Components}
+
+For location-aware discovery:
+
+\begin{description}
+    \item[EntityMap] Interactive map with entity markers
+    \item[ClusterMarkers] Grouped markers at zoom levels
+    \item[MapFilters] Geographic radius selection
+    \item[EntityPopup] Quick entity preview on marker click
+\end{description}
+
+
+\section{Detail Components}
+
+Entity detail views provide comprehensive information:
+
+\begin{description}
+    \item[EntityHeader] Hero image, name, key attributes
+    \item[VibeProfile] Full dimension breakdown
+    \item[RelationshipGraph] Visual relationship exploration
+    \item[ReviewSummary] AI-synthesized review insights
+    \item[ActionBar] Contact, directions, save actions
+\end{description}
+
+
+\section{Admin Components}
+
+The curator dashboard includes specialized components:
+
+\begin{description}
+    \item[EntityTable] Sortable, filterable entity list
+    \item[ValidationPanel] Approve/reject interface
+    \item[EnrichmentStatus] Processing pipeline status
+    \item[VibeEditor] Manual Vibe DNA adjustment
+    \item[RelationshipEditor] Graph relationship management
+\end{description}
+
+
+\section{Feedback Components}
+
+User feedback collection:
+
+\begin{description}
+    \item[RatingWidget] Simple thumbs up/down
+    \item[FeedbackForm] Detailed feedback collection
+    \item[ReportDialog] Issue reporting interface
+\end{description}
+
+
+\section{Animation and Motion}
+
+\subsection{Motion Principles}
+
+Animations follow principles of purposeful motion:
+
+\begin{itemize}
+    \item Subtle transitions (150-300ms)
+    \item Meaningful direction (enter from action source)
+    \item Reduced motion respect (prefers-reduced-motion)
+    \item Performance-first (GPU-accelerated transforms)
+\end{itemize}
+
+\subsection{Implementation}
+
+Animations use Framer Motion:
+
+\begin{lstlisting}[style=pythonstyle, caption={Animation example}]
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" }
+  },
+  exit: { opacity: 0, scale: 0.95 }
+};
+\end{lstlisting}
+
+
+\section{Component Testing}
+
+\subsection{Testing Strategy}
+
+Components are tested at multiple levels:
+
+\begin{itemize}
+    \item Unit tests for logic-heavy components
+    \item Integration tests for composed behaviors
+    \item Visual regression tests with Storybook
+    \item Accessibility tests with axe-core
+\end{itemize}
+
+\subsection{Storybook Documentation}
+
+Each component is documented in Storybook with:
+
+\begin{itemize}
+    \item Interactive variants and states
+    \item Props documentation
+    \item Usage examples
+    \item Accessibility annotations
+\end{itemize}

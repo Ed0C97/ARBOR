@@ -1,0 +1,361 @@
+% ============================================================================
+% A.R.B.O.R. Enterprise Documentation — Preamble
+% ============================================================================
+
+% ----------------------------------------------------------------------------
+% DOCUMENT CLASS & ENCODING
+% ----------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian,english]{babel}
+
+% ----------------------------------------------------------------------------
+% PAGE LAYOUT
+% ----------------------------------------------------------------------------
+\usepackage[
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2.5cm,
+    headheight=15pt
+]{geometry}
+
+% ----------------------------------------------------------------------------
+% TYPOGRAPHY & FONTS
+% ----------------------------------------------------------------------------
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage{setspace}
+\onehalfspacing
+
+% ----------------------------------------------------------------------------
+% HEADERS & FOOTERS
+% ----------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Plain style for chapter pages
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+% ----------------------------------------------------------------------------
+% COLORS
+% ----------------------------------------------------------------------------
+\usepackage{xcolor}
+
+% Primary palette
+\definecolor{arborgreen}{RGB}{34, 139, 34}
+\definecolor{arborblue}{RGB}{30, 90, 150}
+\definecolor{arborgray}{RGB}{64, 64, 64}
+
+% Code colors
+\definecolor{codebg}{RGB}{248, 248, 248}
+\definecolor{codeframe}{RGB}{200, 200, 200}
+\definecolor{codekeyword}{RGB}{0, 0, 180}
+\definecolor{codecomment}{RGB}{0, 128, 0}
+\definecolor{codestring}{RGB}{163, 21, 21}
+
+% Warning/Note colors
+\definecolor{noteblue}{RGB}{230, 240, 255}
+\definecolor{warnbg}{RGB}{255, 245, 230}
+\definecolor{cautionred}{RGB}{255, 235, 235}
+
+% ----------------------------------------------------------------------------
+% GRAPHICS & FIGURES
+% ----------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+\graphicspath{{figures/}{../figures/}}
+
+% ----------------------------------------------------------------------------
+% TABLES
+% ----------------------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+
+% Better column types
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ----------------------------------------------------------------------------
+% CODE LISTINGS
+% ----------------------------------------------------------------------------
+\usepackage{listings}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{codekeyword}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestring},
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{codeframe},
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    xleftmargin=15pt,
+    framexleftmargin=15pt,
+    aboveskip=12pt,
+    belowskip=8pt
+}
+
+\lstdefinestyle{yamlstyle}{
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{arborblue},
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestring},
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{codeframe},
+    showstringspaces=false,
+    breaklines=true,
+    tabsize=2,
+    xleftmargin=10pt,
+    aboveskip=12pt,
+    belowskip=8pt
+}
+
+\lstdefinestyle{bashstyle}{
+    language=bash,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{arborblue},
+    commentstyle=\color{codecomment}\itshape,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    showstringspaces=false,
+    breaklines=true,
+    xleftmargin=10pt,
+    aboveskip=12pt,
+    belowskip=8pt
+}
+
+\lstset{style=pythonstyle}
+
+% ----------------------------------------------------------------------------
+% HYPERLINKS & PDF METADATA
+% ----------------------------------------------------------------------------
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=arborblue,
+    citecolor=arborgreen,
+    urlcolor=arborblue,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdfauthor={ARBOR Development Team},
+    pdftitle={A.R.B.O.R. Enterprise Documentation},
+    pdfsubject={Technical Documentation},
+    pdfkeywords={AI, Discovery, Knowledge Graph, LLM, RAG}
+}
+
+% Better URL line breaks
+\usepackage{xurl}
+
+% ----------------------------------------------------------------------------
+% MATHEMATICS
+% ----------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+
+% ----------------------------------------------------------------------------
+% CUSTOM ENVIRONMENTS
+% ----------------------------------------------------------------------------
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+
+% Note box
+\newtcolorbox{notebox}[1][]{
+    colback=noteblue,
+    colframe=arborblue,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=2mm,
+    boxrule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    breakable
+}
+
+% Warning box
+\newtcolorbox{warningbox}[1][]{
+    colback=warnbg,
+    colframe=orange!70!black,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=2mm,
+    boxrule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    breakable
+}
+
+% Caution box
+\newtcolorbox{cautionbox}[1][]{
+    colback=cautionred,
+    colframe=red!70!black,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=2mm,
+    boxrule=0.5pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    breakable
+}
+
+% Technical definition box
+\newtcolorbox{techdef}[1][]{
+    colback=codebg,
+    colframe=arborgray,
+    fonttitle=\bfseries\sffamily,
+    title=#1,
+    arc=1mm,
+    boxrule=0.5pt,
+    left=8pt,
+    right=8pt,
+    breakable
+}
+
+% ----------------------------------------------------------------------------
+% CHAPTER & SECTION STYLING
+% ----------------------------------------------------------------------------
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{arborblue}}
+    {\chaptertitlename\ \thechapter}
+    {20pt}
+    {\Huge}
+    
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{arborblue}}
+    {\thesection}
+    {1em}
+    {}
+
+\titleformat{\subsection}
+    {\normalfont\large\bfseries\color{arborgray}}
+    {\thesubsection}
+    {1em}
+    {}
+
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries}
+    {\thesubsubsection}
+    {1em}
+    {}
+
+% ----------------------------------------------------------------------------
+% TABLE OF CONTENTS STYLING
+% ----------------------------------------------------------------------------
+\usepackage{tocloft}
+\renewcommand{\cftchapfont}{\bfseries\color{arborblue}}
+\renewcommand{\cftchappagefont}{\bfseries}
+\setlength{\cftbeforechapskip}{8pt}
+
+% ----------------------------------------------------------------------------
+% BIBLIOGRAPHY
+% ----------------------------------------------------------------------------
+\usepackage[
+    backend=biber,
+    style=numeric,
+    sorting=nyt
+]{biblatex}
+
+% ----------------------------------------------------------------------------
+% GLOSSARY
+% ----------------------------------------------------------------------------
+\usepackage[acronym, toc]{glossaries}
+\makeglossaries
+
+% ----------------------------------------------------------------------------
+% INDEX
+% ----------------------------------------------------------------------------
+\usepackage{imakeidx}
+\makeindex[intoc]
+
+% ----------------------------------------------------------------------------
+% CUSTOM COMMANDS
+% ----------------------------------------------------------------------------
+
+% Inline code
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% File path
+\newcommand{\filepath}[1]{\texttt{\color{arborgray}#1}}
+
+% API endpoint
+\newcommand{\endpoint}[2]{\texttt{\textbf{#1} #2}}
+
+% Component name
+\newcommand{\component}[1]{\textsf{\textbf{#1}}}
+
+% Database name
+\newcommand{\db}[1]{\textsc{#1}}
+
+% Module reference
+\newcommand{\module}[1]{\texttt{#1}}
+
+% Vibe dimension
+\newcommand{\vibe}[2]{\textsf{#1}\,(\textit{#2})}
+
+% Metric with value
+\newcommand{\metric}[2]{\texttt{#1}: #2}
+
+% Technology badge
+\newcommand{\tech}[1]{\fboxsep=2pt\colorbox{codebg}{\small\ttfamily #1}}
+
+% Latency specification
+\newcommand{\latency}[1]{\texttt{<#1}}
+
+% Coverage percentage
+\newcommand{\coverage}[1]{\texttt{#1\%}}
+
+% ----------------------------------------------------------------------------
+% DRAFT WATERMARK (comment out for final)
+% ----------------------------------------------------------------------------
+% \usepackage{draftwatermark}
+% \SetWatermarkText{DRAFT}
+% \SetWatermarkScale{0.5}
+% \SetWatermarkColor[gray]{0.9}
+
+% ----------------------------------------------------------------------------
+% DOCUMENT METADATA
+% ----------------------------------------------------------------------------
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{\today}
+\newcommand{\doctitle}{A.R.B.O.R. Enterprise}
+\newcommand{\docsubtitle}{Technical Documentation}

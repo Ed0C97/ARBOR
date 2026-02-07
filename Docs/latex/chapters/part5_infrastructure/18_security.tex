@@ -1,0 +1,250 @@
+% ============================================================================
+% Chapter 18: Security Architecture
+% ============================================================================
+
+\chapter{Security Architecture}
+\label{ch:security}
+
+Security is foundational to ARBOR's design, protecting user data, API access, and system integrity. This chapter examines authentication, authorization, data protection, and operational security measures.
+
+
+\section{Authentication}
+
+\subsection{Auth0 Integration}
+
+Auth0 provides identity management:
+
+\begin{itemize}
+    \item OAuth2/OIDC compliant flows
+    \item Social login (Google, Apple, GitHub)
+    \item Email/password with MFA
+    \item Enterprise SSO (SAML, OIDC)
+\end{itemize}
+
+\subsection{Token Strategy}
+
+\begin{description}
+    \item[Access Tokens] Short-lived (15 min), JWT format
+    \item[Refresh Tokens] Long-lived (7 days), secure rotation
+    \item[API Keys] Service-to-service authentication
+\end{description}
+
+\subsection{Token Validation}
+
+\begin{lstlisting}[style=pythonstyle, caption={JWT validation}]
+from jose import jwt, JWTError
+
+async def validate_token(token: str) -> TokenClaims:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.AUTH0_PUBLIC_KEY,
+            algorithms=["RS256"],
+            audience=settings.AUTH0_AUDIENCE,
+            issuer=f"https://{settings.AUTH0_DOMAIN}/"
+        )
+        return TokenClaims(**payload)
+    except JWTError:
+        raise HTTPException(status_code=401)
+\end{lstlisting}
+
+
+\section{Authorization}
+
+\subsection{Role-Based Access Control}
+
+Roles define permission sets:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Role} & \textbf{Permissions} \\
+\midrule
+Anonymous & Public discovery queries \\
+User & Discovery, save entities, feedback \\
+Curator & Validate entities, edit content \\
+Admin & Full system access \\
+\bottomrule
+\end{tabularx}
+\caption{Role definitions}
+\end{table}
+
+\subsection{Permission Enforcement}
+
+\begin{lstlisting}[style=pythonstyle, caption={Authorization decorator}]
+from functools import wraps
+
+def require_role(required_role: str):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, user: User, **kwargs):
+            if required_role not in user.roles:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Insufficient permissions"
+                )
+            return await func(*args, user=user, **kwargs)
+        return wrapper
+    return decorator
+\end{lstlisting}
+
+
+\section{API Security}
+
+\subsection{Rate Limiting}
+
+Tiered rate limits protect against abuse:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Tier} & \textbf{Requests/min} & \textbf{LLM calls/min} \\
+\midrule
+Anonymous & 10 & 5 \\
+Free User & 30 & 15 \\
+Premium & 100 & 50 \\
+Enterprise & Custom & Custom \\
+\bottomrule
+\end{tabular}
+\caption{Rate limit tiers}
+\end{table}
+
+\subsection{Input Validation}
+
+All inputs are validated:
+
+\begin{itemize}
+    \item Pydantic models for type safety
+    \item Length limits on text fields
+    \item Allowlist validation for enums
+    \item SQL injection prevention
+\end{itemize}
+
+
+\section{LLM Security}
+
+\subsection{Prompt Injection Prevention}
+
+NeMo Guardrails protects against prompt attacks:
+
+\begin{itemize}
+    \item Input sanitization
+    \item System prompt isolation
+    \item Output validation
+    \item Jailbreak detection
+\end{itemize}
+
+\subsection{Content Moderation}
+
+All LLM outputs pass through moderation:
+
+\begin{itemize}
+    \item Toxicity detection
+    \item PII detection and redaction
+    \item Hallucination checking against knowledge base
+\end{itemize}
+
+
+\section{Data Protection}
+
+\subsection{Encryption}
+
+\begin{description}
+    \item[At Rest] AES-256 for database storage
+    \item[In Transit] TLS 1.3 for all connections
+    \item[Application] Field-level encryption for sensitive data
+\end{description}
+
+\subsection{Data Minimization}
+
+\begin{itemize}
+    \item Collect only necessary data
+    \item Automated PII detection
+    \item Retention limits with automatic deletion
+    \item Anonymization for analytics
+\end{itemize}
+
+
+\section{Network Security}
+
+\subsection{Network Policies}
+
+Kubernetes network policies restrict traffic:
+
+\begin{itemize}
+    \item Default deny ingress
+    \item Explicit allowlists per service
+    \item Database access only from API tier
+    \item Management access via bastion
+\end{itemize}
+
+\subsection{Web Application Firewall}
+
+Cloudflare WAF provides:
+
+\begin{itemize}
+    \item DDoS protection
+    \item OWASP rule set
+    \item Bot management
+    \item Custom rules for API endpoints
+\end{itemize}
+
+
+\section{Secrets Management}
+
+\subsection{Secret Storage}
+
+Secrets are managed securely:
+
+\begin{itemize}
+    \item HashiCorp Vault for production
+    \item Kubernetes secrets for runtime
+    \item No secrets in code or logs
+    \item Rotation policies
+\end{itemize}
+
+\subsection{Secret Access}
+
+Applications access secrets through:
+
+\begin{itemize}
+    \item Environment variables (injected at deploy)
+    \item Vault sidecar for dynamic secrets
+    \item Kubernetes service accounts
+\end{itemize}
+
+
+\section{Audit and Compliance}
+
+\subsection{Audit Logging}
+
+Security-relevant events are logged:
+
+\begin{itemize}
+    \item Authentication attempts
+    \item Authorization decisions
+    \item Data access patterns
+    \item Configuration changes
+\end{itemize}
+
+\subsection{Compliance Considerations}
+
+\begin{description}
+    \item[GDPR] Data minimization, right to erasure, consent
+    \item[SOC 2] Access controls, monitoring, encryption
+    \item[CCPA] California privacy requirements
+\end{description}
+
+
+\section{Security Testing}
+
+\subsection{Ongoing Testing}
+
+\begin{itemize}
+    \item Automated vulnerability scanning in CI
+    \item Dependency vulnerability monitoring
+    \item Periodic penetration testing
+    \item Bug bounty program (enterprise)
+\end{itemize}

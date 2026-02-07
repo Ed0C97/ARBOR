@@ -1,0 +1,527 @@
+% ============================================================================
+% Chapter 7: Agentic Orchestration Layer
+% ============================================================================
+
+\chapter{Agentic Orchestration Layer}
+\label{ch:agentic-layer}
+
+The agentic layer represents ARBOR's core intelligence, orchestrating multiple specialized agents that collaborate to understand user queries and synthesize recommendations. This chapter examines the design philosophy, agent architecture, and orchestration mechanics that enable fluid, contextual discovery interactions.
+
+
+\section{From Pipeline to Agents}
+
+Traditional information retrieval systems implement fixed pipelines: parse query, retrieve documents, rank results, format response. While effective for straightforward lookups, this rigidity fails when queries require:
+
+\begin{itemize}
+    \item Interpretation of ambiguous intent
+    \item Multi-source information aggregation
+    \item Dynamic reasoning about relationships
+    \item Personalized synthesis based on context
+\end{itemize}
+
+ARBOR's agentic approach replaces fixed pipelines with autonomous agents that observe, decide, and act. Each agent specializes in a particular capability; an orchestrator coordinates their collaboration based on the specific query's needs.
+
+
+\section{Agent Architecture}
+
+The agent system comprises several components with distinct responsibilities.
+
+\subsection{Agent State}
+
+All agents share a common state structure that evolves through the query lifecycle:
+
+\begin{lstlisting}[style=pythonstyle, caption={Agent state definition}]
+class AgentState(TypedDict):
+    """Shared state for agent orchestration."""
+    
+    # Input
+    user_query: str
+    user_id: Optional[str]
+    user_location: Optional[Dict[str, float]]
+    conversation_history: List[Dict[str, str]]
+    
+    # Intent Analysis
+    intent: Optional[IntentClassification]
+    extracted_entities: List[str]
+    extracted_filters: Dict[str, Any]
+    
+    # Retrieval Results
+    vector_results: List[EntityResult]
+    metadata_results: List[EntityResult]
+    graph_context: Optional[GraphContext]
+    
+    # Synthesis
+    fused_results: List[EntityResult]
+    ranked_results: List[EntityResult]
+    final_response: Optional[str]
+    recommendations: List[Recommendation]
+    
+    # Metadata
+    trace_id: str
+    step_count: int
+    errors: List[AgentError]
+\end{lstlisting}
+
+This TypedDict structure enables LangGraph to track state mutations and implement checkpointing for durability.
+
+\subsection{Agent Types}
+
+Five primary agents handle the discovery workflow:
+
+\begin{description}
+    \item[Intent Router] Analyzes the user query to classify intent, extract entities and filters, and determine which subsequent agents to engage.
+    
+    \item[Vector Agent] Executes semantic similarity search against Qdrant, returning entities whose embeddings match the query semantically.
+    
+    \item[Metadata Agent] Queries PostgreSQL for entities matching structured filters extracted from the query.
+    
+    \item[Historian Agent] Explores Neo4j to retrieve relationship context and discover connected entities.
+    
+    \item[Curator Agent] Synthesizes results from all retrieval agents into a coherent natural language response with recommendations.
+\end{description}
+
+
+\section{Intent Router}
+
+The Intent Router serves as the gateway to the agentic system, determining how to process each query.
+
+\subsection{Classification Taxonomy}
+
+Queries are classified into intent categories that influence subsequent processing:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Intent} & \textbf{Description} \\
+\midrule
+\code{RECOMMENDATION} & User seeks suggestions matching preferences \\
+\code{COMPARISON} & User wants to compare specific entities \\
+\code{EXPLORATION} & User is browsing without specific criteria \\
+\code{DETAIL} & User wants information about a known entity \\
+\code{RELATIONSHIP} & User wants to discover connections \\
+\code{CLARIFICATION} & User is refining a previous query \\
+\code{OUT\_OF\_SCOPE} & Query falls outside system capabilities \\
+\bottomrule
+\end{tabularx}
+\caption{Intent classification taxonomy}
+\end{table}
+
+\subsection{Entity and Filter Extraction}
+
+Beyond intent, the router extracts structured information:
+
+\begin{lstlisting}[style=pythonstyle, caption={Intent router implementation}]
+class IntentRouter:
+    async def analyze(self, state: AgentState) -> AgentState:
+        """Analyze query to determine intent and extract filters."""
+        
+        prompt = self.prompt_template.format(
+            query=state["user_query"],
+            domain=self.domain_config.name,
+            dimensions=self.domain_config.dimension_names,
+            categories=self.domain_config.category_names
+        )
+        
+        response = await self.llm.ainvoke(prompt)
+        analysis = self.parser.parse(response.content)
+        
+        return {
+            **state,
+            "intent": analysis.intent,
+            "extracted_entities": analysis.entities,
+            "extracted_filters": analysis.filters,
+        }
+\end{lstlisting}
+
+The extraction is domain-aware, recognizing vocabulary specific to the configured domain (e.g., ``Neapolitan'' for tailoring, ``biodynamic'' for wine).
+
+
+\section{Retrieval Agents}
+
+The three retrieval agents operate in parallel, each accessing a different data store.
+
+\subsection{Vector Agent}
+
+The Vector Agent converts the semantic meaning of the query into entity matches:
+
+\begin{lstlisting}[style=pythonstyle, caption={Vector agent implementation}]
+class VectorAgent:
+    async def search(self, state: AgentState) -> AgentState:
+        """Execute semantic search against Qdrant."""
+        
+        # Build search query
+        search_text = self._build_search_text(
+            state["user_query"],
+            state["extracted_filters"]
+        )
+        
+        # Apply pre-filters from metadata
+        filters = self._build_qdrant_filters(
+            state["extracted_filters"]
+        )
+        
+        # Execute hybrid search
+        results = await self.qdrant.hybrid_search(
+            query=search_text,
+            filters=filters,
+            limit=self.config.vector_search_limit
+        )
+        
+        return {
+            **state,
+            "vector_results": results
+        }
+\end{lstlisting}
+
+The agent uses hybrid search (dense + sparse) to balance semantic understanding with keyword relevance.
+
+\subsection{Metadata Agent}
+
+The Metadata Agent handles structured queries efficiently:
+
+\begin{lstlisting}[style=pythonstyle, caption={Metadata agent implementation}]
+class MetadataAgent:
+    async def query(self, state: AgentState) -> AgentState:
+        """Query PostgreSQL for structured filters."""
+        
+        filters = state["extracted_filters"]
+        
+        # Skip if no structured filters
+        if not filters:
+            return state
+        
+        results = await self.repository.get_entities_by_filters(
+            filters=filters,
+            location=state.get("user_location"),
+            limit=self.config.metadata_search_limit
+        )
+        
+        return {
+            **state,
+            "metadata_results": results
+        }
+\end{lstlisting}
+
+When the router extracts filters like ``price\_tier: 4'' or ``category: tailoring'', the Metadata Agent retrieves matching entities with optimal query performance.
+
+\subsection{Historian Agent}
+
+The Historian Agent enriches understanding through relationships:
+
+\begin{lstlisting}[style=pythonstyle, caption={Historian agent implementation}]
+class HistorianAgent:
+    async def explore(self, state: AgentState) -> AgentState:
+        """Explore knowledge graph for relationship context."""
+        
+        # Identify seed entities from other results
+        seed_ids = self._extract_entity_ids(
+            state["vector_results"],
+            state["metadata_results"]
+        )
+        
+        if not seed_ids:
+            return state
+        
+        # Traverse graph for context
+        context = await self.neo4j.get_graph_context(
+            entity_ids=seed_ids,
+            max_hops=self.config.max_graph_hops,
+            relationship_types=self.config.relevant_relationships
+        )
+        
+        return {
+            **state,
+            "graph_context": context
+        }
+\end{lstlisting}
+
+The graph context reveals connections that enrich recommendations: ``This tailor trained under the same master as [well-known entity]'' or ``This restaurant sources from the same vineyard as [notable reference].''
+
+
+\section{Result Fusion}
+
+After parallel retrieval, results are merged and deduplicated:
+
+\begin{lstlisting}[style=pythonstyle, caption={Result fusion logic}]
+def fuse_results(state: AgentState) -> AgentState:
+    """Merge results from multiple retrieval sources."""
+    
+    seen_ids = set()
+    fused = []
+    
+    # Priority order: vector (semantic relevance first)
+    for result in state["vector_results"]:
+        if result.id not in seen_ids:
+            seen_ids.add(result.id)
+            result.source = "vector"
+            fused.append(result)
+    
+    # Add metadata results not already included
+    for result in state["metadata_results"]:
+        if result.id not in seen_ids:
+            seen_ids.add(result.id)
+            result.source = "metadata"
+            fused.append(result)
+    
+    # Enrich with graph context
+    if state.get("graph_context"):
+        fused = enrich_with_graph(fused, state["graph_context"])
+    
+    return {
+        **state,
+        "fused_results": fused
+    }
+\end{lstlisting}
+
+The fusion strategy prioritizes semantic matches while ensuring structured filter matches are included.
+
+
+\section{Curator Agent}
+
+The Curator Agent synthesizes all gathered information into a coherent response.
+
+\subsection{Persona and Voice}
+
+The Curator's personality is defined in the domain configuration:
+
+\begin{lstlisting}[style=yamlstyle, caption={Curator persona configuration}]
+curator_persona:
+  name: "The Curator"
+  voice: |
+    Sophisticated and warm but never pretentious. 
+    Speaks with genuine expertise, not marketing fluff.
+    Explains WHY not just WHAT.
+    Acknowledges uncertainty honestly.
+  expertise:
+    - Bespoke tailoring traditions
+    - Artisanal craftsmanship
+    - Local history and context
+  vocabulary_examples:
+    - "Goodyear welted"
+    - "Full canvas construction"
+    - "Seven-fold tie"
+\end{lstlisting}
+
+\subsection{Synthesis Process}
+
+The Curator generates responses that explain recommendations:
+
+\begin{lstlisting}[style=pythonstyle, caption={Curator synthesis}]
+class CuratorAgent:
+    async def synthesize(self, state: AgentState) -> AgentState:
+        """Generate natural language response."""
+        
+        # Rerank results
+        ranked = await self.reranker.rerank(
+            query=state["user_query"],
+            results=state["fused_results"],
+            limit=self.config.recommendation_count
+        )
+        
+        # Build context for synthesis
+        context = self._build_synthesis_context(
+            results=ranked,
+            graph_context=state.get("graph_context"),
+            intent=state["intent"]
+        )
+        
+        # Generate response
+        response = await self.llm.ainvoke(
+            self.synthesis_prompt.format(
+                persona=self.persona,
+                query=state["user_query"],
+                context=context
+            )
+        )
+        
+        # Parse into structured recommendations
+        recommendations = self.parser.extract_recommendations(
+            response.content,
+            ranked
+        )
+        
+        return {
+            **state,
+            "ranked_results": ranked,
+            "final_response": response.content,
+            "recommendations": recommendations
+        }
+\end{lstlisting}
+
+
+\section{LangGraph Orchestration}
+
+LangGraph provides the orchestration framework, implementing the agent workflow as a graph:
+
+\begin{lstlisting}[style=pythonstyle, caption={LangGraph workflow definition}]
+def build_discovery_graph() -> StateGraph:
+    """Construct the discovery agent graph."""
+    
+    graph = StateGraph(AgentState)
+    
+    # Add nodes
+    graph.add_node("intent_router", intent_router.analyze)
+    graph.add_node("vector_search", vector_agent.search)
+    graph.add_node("metadata_query", metadata_agent.query)
+    graph.add_node("graph_explore", historian_agent.explore)
+    graph.add_node("fuse_results", fuse_results)
+    graph.add_node("curator", curator_agent.synthesize)
+    
+    # Entry point
+    graph.set_entry_point("intent_router")
+    
+    # Conditional routing based on intent
+    graph.add_conditional_edges(
+        "intent_router",
+        route_by_intent,
+        {
+            "search": "parallel_retrieval",
+            "detail": "metadata_query",
+            "out_of_scope": END
+        }
+    )
+    
+    # Parallel retrieval fan-out
+    graph.add_node("parallel_retrieval", RunnableParallel(
+        vector=vector_agent.search,
+        metadata=metadata_agent.query
+    ))
+    
+    # Sequential processing
+    graph.add_edge("parallel_retrieval", "graph_explore")
+    graph.add_edge("graph_explore", "fuse_results")
+    graph.add_edge("fuse_results", "curator")
+    graph.add_edge("curator", END)
+    
+    return graph.compile()
+\end{lstlisting}
+
+The graph structure enables:
+\begin{itemize}
+    \item Parallel execution of independent retrieval operations
+    \item Conditional routing based on query intent
+    \item Checkpointing for durability and debugging
+    \item Visualization for development and monitoring
+\end{itemize}
+
+
+\section{Agentic Workflows}
+
+For complex scenarios beyond single queries, ARBOR employs extended agentic workflows managed by Temporal.io.
+
+\subsection{Multi-Turn Conversations}
+
+Conversation state persists across turns:
+
+\begin{lstlisting}[style=pythonstyle, caption={Conversation state management}]
+class ConversationManager:
+    async def process_turn(
+        self,
+        session_id: str,
+        user_message: str
+    ) -> AgentResponse:
+        """Process a conversation turn with context."""
+        
+        # Retrieve conversation history
+        history = await self.store.get_history(session_id)
+        
+        # Build state with context
+        state = AgentState(
+            user_query=user_message,
+            conversation_history=history,
+            # ... other fields
+        )
+        
+        # Execute agent graph
+        result = await self.graph.ainvoke(state)
+        
+        # Persist updated history
+        await self.store.append_turn(
+            session_id,
+            user_message,
+            result["final_response"]
+        )
+        
+        return AgentResponse(
+            message=result["final_response"],
+            recommendations=result["recommendations"]
+        )
+\end{lstlisting}
+
+\subsection{Enrichment Workflows}
+
+Background workflows handle entity enrichment without blocking user queries:
+
+\begin{itemize}
+    \item Image analysis via GPT-4 Vision
+    \item Review sentiment extraction
+    \item Competitor identification
+    \item Relationship discovery
+    \item Vibe DNA score updates
+\end{itemize}
+
+
+\section{Performance Optimization}
+
+Meeting latency targets requires careful optimization throughout the agentic layer.
+
+\subsection{Parallel Execution}
+
+Independent operations execute concurrently. A typical query overlaps:
+\begin{itemize}
+    \item Vector embedding generation (50-100ms)
+    \item Qdrant search (30-80ms)
+    \item PostgreSQL query (10-50ms)
+    \item Neo4j traversal (50-150ms)
+\end{itemize}
+
+Parallel execution reduces wall-clock time from 150-380ms (sequential) to 60-150ms (parallel).
+
+\subsection{Caching Layers}
+
+Multiple caching levels reduce computation:
+\begin{itemize}
+    \item \textbf{Query embedding cache}: Repeated query texts reuse embeddings
+    \item \textbf{Result cache}: Identical queries return cached results
+    \item \textbf{Context cache}: Entity context remains valid for minutes
+\end{itemize}
+
+\subsection{Model Selection}
+
+Cost-aware routing selects appropriate models:
+\begin{itemize}
+    \item Simple intent classification: GPT-3.5 or smaller models
+    \item Complex synthesis: GPT-4o for quality
+    \item Embedding: text-embedding-3-small for efficiency
+\end{itemize}
+
+
+\section{Error Handling}
+
+The agentic layer implements comprehensive error management:
+
+\begin{lstlisting}[style=pythonstyle, caption={Agent error handling}]
+async def safe_agent_call(
+    agent_fn: Callable,
+    state: AgentState,
+    fallback: Optional[Any] = None
+) -> AgentState:
+    """Execute agent with error handling."""
+    try:
+        return await agent_fn(state)
+    except DatabaseError as e:
+        logger.error(f"Database error: {e}")
+        state["errors"].append(AgentError("database", str(e)))
+        return state  # Continue with partial results
+    except LLMError as e:
+        logger.error(f"LLM error: {e}")
+        if fallback:
+            return fallback(state)
+        raise  # Escalate if no fallback
+    except TimeoutError:
+        logger.warning("Agent timeout, using partial results")
+        return state
+\end{lstlisting}
+
+The system degrades gracefully—if one agent fails, others' results remain available for synthesis.

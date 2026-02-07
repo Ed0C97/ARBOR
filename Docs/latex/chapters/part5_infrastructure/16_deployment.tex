@@ -1,0 +1,217 @@
+% ============================================================================
+% Chapter 16: Deployment Architecture
+% ============================================================================
+
+\chapter{Deployment Architecture}
+\label{ch:deployment}
+
+ARBOR's deployment architecture enables reliable, scalable operation across development, staging, and production environments. This chapter examines the containerization, orchestration, and infrastructure-as-code approaches.
+
+
+\section{Containerization Strategy}
+
+\subsection{Docker Images}
+
+Each service has an optimized container image:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{5cm}l}
+\toprule
+\textbf{Service} & \textbf{Base Image} & \textbf{Size} \\
+\midrule
+Backend API & python:3.12-slim & ~200MB \\
+Frontend & node:20-alpine & ~150MB \\
+Worker & python:3.12-slim & ~250MB \\
+\bottomrule
+\end{tabularx}
+\caption{Docker image configurations}
+\end{table}
+
+\subsection{Multi-Stage Builds}
+
+Images use multi-stage builds for minimal size:
+
+\begin{lstlisting}[style=bashstyle, caption={Multi-stage Dockerfile}]
+# Build stage
+FROM python:3.12-slim AS builder
+WORKDIR /app
+COPY pyproject.toml poetry.lock ./
+RUN pip install poetry && poetry export -o requirements.txt
+RUN pip wheel -r requirements.txt -w /wheels
+
+# Runtime stage
+FROM python:3.12-slim
+COPY --from=builder /wheels /wheels
+RUN pip install --no-index /wheels/*
+COPY . .
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0"]
+\end{lstlisting}
+
+
+\section{Kubernetes Architecture}
+
+\subsection{Cluster Structure}
+
+Production uses a multi-node Kubernetes cluster:
+
+\begin{itemize}
+    \item Control plane: 3 nodes for HA
+    \item Application nodes: Auto-scaling pool
+    \item Database nodes: Dedicated node pool with SSDs
+    \item GPU nodes: Optional for local inference
+\end{itemize}
+
+\subsection{Key Workloads}
+
+\begin{description}
+    \item[Deployments] Stateless services: API, frontend, workers
+    \item[StatefulSets] Databases: PostgreSQL, Redis, Qdrant
+    \item[DaemonSets] Logging agents, node monitoring
+    \item[CronJobs] Scheduled tasks: cleanup, reports
+\end{description}
+
+\subsection{Service Mesh}
+
+Istio provides service mesh capabilities:
+
+\begin{itemize}
+    \item mTLS between services
+    \item Traffic management and canary deployments
+    \item Observability integration
+    \item Circuit breaking
+\end{itemize}
+
+
+\section{Infrastructure as Code}
+
+\subsection{Terraform Configuration}
+
+Cloud infrastructure is defined in Terraform:
+
+\begin{lstlisting}[caption={Terraform module structure}]
+infrastructure/
+├── terraform/
+│   ├── modules/
+│   │   ├── networking/
+│   │   ├── kubernetes/
+│   │   ├── databases/
+│   │   └── observability/
+│   ├── environments/
+│   │   ├── dev/
+│   │   ├── staging/
+│   │   └── production/
+│   └── main.tf
+\end{lstlisting}
+
+\subsection{Environment Parity}
+
+Development, staging, and production share configuration with environment-specific variables for sizing and redundancy.
+
+
+\section{Database Deployments}
+
+\subsection{PostgreSQL}
+
+PostgreSQL uses CloudNativePG operator:
+
+\begin{itemize}
+    \item Primary with synchronous replicas
+    \item Automatic failover
+    \item Continuous WAL archiving to S3
+    \item PgBouncer connection pooling
+\end{itemize}
+
+\subsection{Qdrant}
+
+Qdrant cluster configuration:
+
+\begin{itemize}
+    \item 3-node cluster for redundancy
+    \item Sharding for data distribution
+    \item Snapshot backups to object storage
+\end{itemize}
+
+\subsection{Neo4j}
+
+Neo4j causal cluster:
+
+\begin{itemize}
+    \item 3 core members for write availability
+    \item Read replicas for query scaling
+    \item Online backup to cloud storage
+\end{itemize}
+
+
+\section{CI/CD Pipeline}
+
+\subsection{Pipeline Stages}
+
+\begin{enumerate}
+    \item \textbf{Build}: Compile, test, build images
+    \item \textbf{Security Scan}: Vulnerability scanning
+    \item \textbf{Deploy Staging}: Automatic deployment
+    \item \textbf{Integration Tests}: E2E test suite
+    \item \textbf{Deploy Production}: Manual approval gate
+    \item \textbf{Smoke Tests}: Post-deployment validation
+\end{enumerate}
+
+\subsection{Deployment Strategies}
+
+\begin{description}
+    \item[Rolling] Default for stateless services
+    \item[Blue-Green] Database schema migrations
+    \item[Canary] New features with gradual rollout
+\end{description}
+
+
+\section{Scaling Configuration}
+
+\subsection{Horizontal Pod Autoscaling}
+
+\begin{lstlisting}[style=yamlstyle, caption={HPA configuration}]
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+\end{lstlisting}
+
+\subsection{Vertical Pod Autoscaling}
+
+VPA recommends and optionally applies resource adjustments based on observed usage patterns.
+
+
+\section{Disaster Recovery}
+
+\subsection{Backup Strategy}
+
+\begin{itemize}
+    \item Database backups: Continuous + daily snapshots
+    \item Configuration: Version controlled
+    \item Secrets: Encrypted backup
+    \item Recovery testing: Monthly drills
+\end{itemize}
+
+\subsection{Multi-Region Considerations}
+
+For enterprise deployments:
+
+\begin{itemize}
+    \item Active-passive failover region
+    \item Cross-region database replication
+    \item Global load balancing at CDN layer
+\end{itemize}

@@ -1,0 +1,184 @@
+% ============================================================================
+%
+%   A.R.B.O.R. ENTERPRISE — TECHNICAL DOCUMENTATION
+%   Advanced Reasoning By Ontological Rules
+%   The Contextual Discovery Engine
+%
+%   Version: 1.0
+%   Date: February 2026
+%
+% ============================================================================
+
+\documentclass[
+    12pt,
+    a4paper,
+    openright,
+    twoside,
+    titlepage
+]{report}
+
+% Load preamble with all packages and configurations
+\input{preamble}
+
+% Bibliography file
+\addbibresource{bibliography.bib}
+
+% ============================================================================
+% DOCUMENT BEGIN
+% ============================================================================
+\begin{document}
+
+% ----------------------------------------------------------------------------
+% FRONT MATTER
+% ----------------------------------------------------------------------------
+\frontmatter
+
+% Title Page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries\color{arborgreen} A.R.B.O.R.}\\[0.5cm]
+    {\Large\textit{Advanced Reasoning By Ontological Rules}}\\[2cm]
+    
+    {\LARGE\bfseries Enterprise Technical Documentation}\\[0.5cm]
+    {\large The Contextual Discovery Engine}\\[3cm]
+    
+    \begin{tikzpicture}
+        \draw[arborgreen, very thick] (0,0) -- (4,0);
+    \end{tikzpicture}\\[2cm]
+    
+    {\large Version \docversion}\\[0.3cm]
+    {\large \docdate}\\[3cm]
+    
+    \vfill
+    
+    {\small\textit{Curated AI Discovery for Any Domain}}\\[0.5cm]
+    {\footnotesize Confidential — Internal Use Only}
+    
+\end{titlepage}
+
+% Copyright page
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+    \textcopyright\ 2026 ARBOR Development Team\\[1cm]
+    All rights reserved.\\[0.5cm]
+    This documentation is confidential and proprietary.\\
+    Unauthorized reproduction or distribution is prohibited.
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+% Table of Contents
+\tableofcontents
+\clearpage
+
+% List of Figures
+\listoffigures
+\clearpage
+
+% List of Tables
+\listoftables
+\clearpage
+
+% ----------------------------------------------------------------------------
+% MAIN MATTER
+% ----------------------------------------------------------------------------
+\mainmatter
+
+% ============================================================================
+% PART I: EXECUTIVE OVERVIEW
+% ============================================================================
+\part{Executive Overview}
+\label{part:executive}
+
+\input{chapters/part1_executive/01_introduction}
+\input{chapters/part1_executive/02_objectives}
+\input{chapters/part1_executive/03_competitive_analysis}
+\input{chapters/part1_executive/04_value_proposition}
+
+% ============================================================================
+% PART II: SYSTEM ARCHITECTURE
+% ============================================================================
+\part{System Architecture}
+\label{part:architecture}
+
+\input{chapters/part2_architecture/05_architecture_overview}
+\input{chapters/part2_architecture/06_knowledge_trinity}
+\input{chapters/part2_architecture/07_agentic_layer}
+\input{chapters/part2_architecture/08_llm_gateway}
+
+% ============================================================================
+% PART III: CORE MODULES
+% ============================================================================
+\part{Core Modules}
+\label{part:core}
+
+\input{chapters/part3_core_modules/09_ingestion_pipeline}
+\input{chapters/part3_core_modules/10_discovery_engine}
+\input{chapters/part3_core_modules/11_ml_pipeline}
+\input{chapters/part3_core_modules/12_event_architecture}
+
+% ============================================================================
+% PART IV: FRONTEND & USER EXPERIENCE
+% ============================================================================
+\part{Frontend \& User Experience}
+\label{part:frontend}
+
+\input{chapters/part4_frontend/13_frontend_architecture}
+\input{chapters/part4_frontend/14_components}
+\input{chapters/part4_frontend/15_admin_dashboard}
+
+% ============================================================================
+% PART V: INFRASTRUCTURE & OPERATIONS
+% ============================================================================
+\part{Infrastructure \& Operations}
+\label{part:infrastructure}
+
+\input{chapters/part5_infrastructure/16_deployment}
+\input{chapters/part5_infrastructure/17_observability}
+\input{chapters/part5_infrastructure/18_security}
+
+% ============================================================================
+% PART VI: TESTING & QUALITY ASSURANCE
+% ============================================================================
+\part{Testing \& Quality Assurance}
+\label{part:testing}
+
+\input{chapters/part6_testing/19_test_strategy}
+\input{chapters/part6_testing/20_unit_tests}
+\input{chapters/part6_testing/21_integration_tests}
+\input{chapters/part6_testing/22_chaos_load}
+
+% ----------------------------------------------------------------------------
+% BACK MATTER
+% ----------------------------------------------------------------------------
+\backmatter
+
+% ============================================================================
+% PART VII: APPENDICES
+% ============================================================================
+\part{Appendices}
+\label{part:appendices}
+
+\appendix
+
+\input{chapters/part7_appendices/23_api_reference}
+\input{chapters/part7_appendices/24_configuration}
+\input{chapters/part7_appendices/25_glossary}
+
+% Bibliography
+\printbibliography[heading=bibintoc, title={References}]
+
+% Glossary
+\printglossary[type=\acronymtype, title={Acronyms}]
+\printglossary[title={Glossary}]
+
+% Index
+\printindex
+
+% ============================================================================
+% DOCUMENT END
+% ============================================================================
+\end{document}

@@ -1,0 +1,176 @@
+% ============================================================================
+% Chapter 15: Admin Dashboard
+% ============================================================================
+
+\chapter{Admin Dashboard}
+\label{ch:admin}
+
+The Admin Dashboard provides curators and administrators with tools to manage entities, monitor system health, and maintain knowledge base quality. This chapter examines the dashboard's capabilities.
+
+
+\section{Dashboard Overview}
+
+\subsection{User Roles}
+
+The dashboard supports multiple roles:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lL{8cm}}
+\toprule
+\textbf{Role} & \textbf{Capabilities} \\
+\midrule
+Curator & Validate entities, edit Vibe DNA, manage relationships \\
+Domain Admin & Configure domain settings, manage curators \\
+System Admin & Full access, user management, system config \\
+\bottomrule
+\end{tabularx}
+\caption{Admin dashboard roles}
+\end{table}
+
+\subsection{Navigation Structure}
+
+\begin{itemize}
+    \item \textbf{Entities}: Browse, search, validate entities
+    \item \textbf{Queue}: Pending validation items
+    \item \textbf{Analytics}: Usage and quality metrics
+    \item \textbf{Configuration}: Domain and system settings
+\end{itemize}
+
+
+\section{Entity Management}
+
+\subsection{Entity Browser}
+
+The entity browser provides:
+
+\begin{itemize}
+    \item Searchable, sortable entity table
+    \item Quick filters by status, category, validation level
+    \item Bulk actions for efficient processing
+    \item Export capabilities
+\end{itemize}
+
+\subsection{Entity Editor}
+
+Detailed entity editing includes:
+
+\begin{itemize}
+    \item Core attribute editing
+    \item Vibe DNA score adjustment
+    \item Image management
+    \item Relationship editing
+    \item Validation history
+\end{itemize}
+
+
+\section{Validation Workflow}
+
+\subsection{Validation Queue}
+
+New entities enter the validation queue:
+
+\begin{enumerate}
+    \item AI-ingested entities appear with enriched data
+    \item Curator reviews accuracy and completeness
+    \item Curator adjusts Vibe scores if needed
+    \item Entity is approved, rejected, or sent for re-enrichment
+\end{enumerate}
+
+\subsection{Validation Interface}
+
+The validation panel presents:
+
+\begin{itemize}
+    \item Entity preview matching public display
+    \item AI enrichment results with confidence scores
+    \item Comparison against similar entities
+    \item Quick approve/reject actions
+    \item Detailed editing access
+\end{itemize}
+
+
+\section{Relationship Management}
+
+\subsection{Graph Editor}
+
+Visual relationship management:
+
+\begin{itemize}
+    \item Interactive graph visualization
+    \item Add/remove relationship edges
+    \item Relationship type selection from domain schema
+    \item Bulk relationship import
+\end{itemize}
+
+\subsection{Suggested Relationships}
+
+ML-suggested relationships for curator review based on entity similarity and pattern matching.
+
+
+\section{Analytics Dashboard}
+
+\subsection{Key Metrics}
+
+\begin{itemize}
+    \item Query volume and patterns
+    \item Entity click-through rates
+    \item Validation throughput
+    \item System latency percentiles
+\end{itemize}
+
+\subsection{Quality Metrics}
+
+\begin{itemize}
+    \item User feedback scores
+    \item Vibe DNA coverage completeness
+    \item Relationship density
+    \item Enrichment success rates
+\end{itemize}
+
+
+\section{Configuration Management}
+
+\subsection{Domain Configuration}
+
+Administrators can manage:
+
+\begin{itemize}
+    \item Vibe dimension definitions
+    \item Category hierarchy
+    \item Relationship types
+    \item Curator persona settings
+\end{itemize}
+
+\subsection{System Settings}
+
+\begin{itemize}
+    \item LLM provider configuration
+    \item Ingestion source settings
+    \item Rate limiting thresholds
+    \item Feature flags
+\end{itemize}
+
+
+\section{Audit and Compliance}
+
+\subsection{Activity Logging}
+
+All administrative actions are logged:
+
+\begin{itemize}
+    \item Entity modifications with before/after
+    \item Validation decisions
+    \item Configuration changes
+    \item User access events
+\end{itemize}
+
+\subsection{Audit Trail}
+
+Complete audit history enables:
+
+\begin{itemize}
+    \item Change tracking and rollback
+    \item Compliance reporting
+    \item Dispute resolution
+\end{itemize}

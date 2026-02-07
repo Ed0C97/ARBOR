@@ -1,0 +1,432 @@
+% ============================================================================
+% Chapter 6: The Knowledge Trinity
+% ============================================================================
+
+\chapter{The Knowledge Trinity}
+\label{ch:knowledge-trinity}
+
+At the heart of ARBOR's architecture lies what we term the ``Knowledge Trinity''—three databases working in concert to provide complementary access patterns to the entity knowledge base. PostgreSQL serves as the system of record for structured data, Qdrant enables semantic similarity search, and Neo4j captures and navigates relationships. This chapter examines each component in depth.
+
+
+\section{Design Philosophy}
+
+The decision to employ three databases rather than attempting to serve all needs from a single store reflects a pragmatic assessment of database capabilities. While modern databases increasingly offer hybrid features—PostgreSQL with pgvector, for instance—purpose-built solutions excel within their domains.
+
+\subsection{Right Tool for Each Job}
+
+Each database addresses a distinct access pattern:
+
+\begin{description}
+    \item[Structured Queries] ``Find all entities in category X with price tier Y in city Z'' requires efficient filtering and indexing on discrete attributes. PostgreSQL's query planner, indexing strategies, and SQL expressiveness handle this optimally.
+    
+    \item[Semantic Similarity] ``Find entities similar to this description'' requires computing similarity across high-dimensional embedding spaces. Qdrant's vector indexes (HNSW) achieve sub-100ms retrieval across millions of vectors.
+    
+    \item[Relationship Traversal] ``Find entities connected to X through relationship types Y within N hops'' requires graph traversal algorithms. Neo4j's native graph storage and Cypher query language express these patterns naturally.
+\end{description}
+
+\subsection{Consistency Model}
+
+With data distributed across three stores, consistency requires careful management. ARBOR implements eventual consistency with these guarantees:
+
+\begin{itemize}
+    \item PostgreSQL is the authoritative source of truth for entity data
+    \item Qdrant and Neo4j are derived views, populated via the ingestion pipeline
+    \item Updates propagate from PostgreSQL to secondary stores within seconds
+    \item Read queries tolerate brief inconsistency windows
+    \item Critical operations verify consistency across stores
+\end{itemize}
+
+
+\section{PostgreSQL: The Foundation}
+
+PostgreSQL 16 with PostGIS extension serves as the primary relational store.
+
+\subsection{Schema Design}
+
+The schema is designed for domain agnosticism, storing entity attributes in flexible JSONB fields while maintaining strong typing for core properties.
+
+\begin{lstlisting}[style=pythonstyle, caption={Entity model structure}]
+class Entity(Base):
+    __tablename__ = "entities"
+    
+    id = Column(UUID, primary_key=True, default=uuid4)
+    external_id = Column(String(512), unique=True, index=True)
+    domain_id = Column(String(128), nullable=False, index=True)
+    
+    # Core fields
+    name = Column(String(512), nullable=False)
+    slug = Column(String(512), unique=True)
+    entity_type = Column(String(128), index=True)
+    
+    # Flexible attributes
+    attributes = Column(JSONB, default=dict)
+    vibe_dna = Column(JSONB, default=dict)
+    
+    # Location (PostGIS)
+    location = Column(Geometry('POINT', srid=4326))
+    address = Column(JSONB)
+    
+    # Status
+    status = Column(String(64), default='pending')
+    validation_level = Column(String(64), default='unverified')
+    
+    # Timestamps
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+    last_enriched_at = Column(DateTime)
+\end{lstlisting}
+
+The use of JSONB for \code{attributes} and \code{vibe\_dna} enables schema flexibility—different domains store different attributes without requiring migrations.
+
+\subsection{The GenericEntityRepository}
+
+A critical architectural component is the \code{GenericEntityRepository}, which provides schema-agnostic access to entity data:
+
+\begin{lstlisting}[style=pythonstyle, caption={Schema-agnostic entity repository}]
+class GenericEntityRepository:
+    def __init__(self, session: AsyncSession, schema_config: SchemaConfig):
+        self.session = session
+        self.config = schema_config
+    
+    async def get_entities_by_filters(
+        self,
+        filters: Dict[str, Any],
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Query entities using dynamic filters from configuration."""
+        query = select(Entity).where(
+            Entity.domain_id == self.config.domain_id
+        )
+        
+        for field, value in filters.items():
+            if field in self.config.indexed_fields:
+                query = query.where(
+                    Entity.attributes[field].astext == str(value)
+                )
+        
+        result = await self.session.execute(query.limit(limit))
+        return [self._to_dict(e) for e in result.scalars()]
+\end{lstlisting}
+
+This approach means the codebase contains no hardcoded references to specific entity types or attributes—everything flows from the domain configuration.
+
+\subsection{Indexing Strategy}
+
+Performance at scale requires careful indexing:
+
+\begin{itemize}
+    \item \textbf{B-tree indexes} on frequently filtered columns: \code{domain\_id}, \code{entity\_type}, \code{status}
+    \item \textbf{GIN indexes} on JSONB fields enabling containment queries
+    \item \textbf{GiST indexes} on geometry columns for spatial queries
+    \item \textbf{Trigram indexes} for fuzzy text search on names
+\end{itemize}
+
+\subsection{Connection Pooling}
+
+PgBouncer provides connection pooling between the application and PostgreSQL:
+
+\begin{itemize}
+    \item Transaction pooling mode for maximum connection reuse
+    \item Connection limits protecting the database from overload
+    \item Query queuing during peak load
+    \item Health checking and automatic reconnection
+\end{itemize}
+
+
+\section{Qdrant: Semantic Search}
+
+Qdrant is a purpose-built vector database providing high-performance similarity search.
+
+\subsection{Collection Design}
+
+Entities are represented in Qdrant with multiple vector types:
+
+\begin{lstlisting}[style=yamlstyle, caption={Qdrant collection configuration}]
+entity_collection:
+  name: "entities"
+  vectors:
+    dense:
+      size: 1536  # text-embedding-3-small
+      distance: Cosine
+    sparse:
+      type: sparse
+  payload_schema:
+    domain_id: keyword
+    entity_type: keyword
+    city: keyword
+    status: keyword
+\end{lstlisting}
+
+The collection stores both dense embeddings (from OpenAI's text-embedding-3-small) and sparse vectors (BM25-style) enabling hybrid search.
+
+\subsection{Hybrid Search Implementation}
+
+ARBOR's vector search combines dense and sparse retrieval for optimal results:
+
+\begin{lstlisting}[style=pythonstyle, caption={Hybrid search implementation}]
+async def hybrid_search(
+    self,
+    query: str,
+    filters: Dict[str, Any],
+    limit: int = 20
+) -> List[SearchResult]:
+    """Execute hybrid dense + sparse search."""
+    
+    # Generate embeddings
+    dense_vector = await self.embed_dense(query)
+    sparse_vector = await self.embed_sparse(query)
+    
+    # Build filter conditions
+    filter_conditions = self._build_filters(filters)
+    
+    # Execute search with fusion
+    results = await self.client.query_points(
+        collection_name="entities",
+        prefetch=[
+            Prefetch(
+                query=dense_vector,
+                using="dense",
+                limit=limit * 2
+            ),
+            Prefetch(
+                query=sparse_vector,
+                using="sparse", 
+                limit=limit * 2
+            )
+        ],
+        query=FusionQuery(fusion=Fusion.RRF),
+        query_filter=filter_conditions,
+        limit=limit,
+        with_payload=True
+    )
+    
+    return [self._to_result(r) for r in results]
+\end{lstlisting}
+
+Reciprocal Rank Fusion (RRF) combines the ranked lists from both retrieval methods, balancing semantic understanding (dense) with keyword matching (sparse).
+
+\subsection{Embedding Strategy}
+
+Entity embeddings are computed from concatenated text fields:
+
+\begin{itemize}
+    \item Entity name and description
+    \item Category and style labels
+    \item Extracted review sentiment summaries
+    \item Curator notes and validation comments
+\end{itemize}
+
+The embedding model (text-embedding-3-small, 1536 dimensions) balances quality against cost and storage requirements.
+
+
+\section{Neo4j: Knowledge Graph}
+
+Neo4j captures and navigates the rich relationships between entities.
+
+\subsection{Graph Schema}
+
+The graph models entities and their relationships with several node and edge types:
+
+\begin{lstlisting}[language=, caption={Neo4j schema constraints}]
+// Node constraints
+CREATE CONSTRAINT entity_id IF NOT EXISTS
+FOR (e:Entity) REQUIRE e.id IS UNIQUE;
+
+CREATE CONSTRAINT abstract_entity_id IF NOT EXISTS
+FOR (ae:AbstractEntity) REQUIRE ae.id IS UNIQUE;
+
+CREATE CONSTRAINT style_id IF NOT EXISTS
+FOR (s:Style) REQUIRE s.id IS UNIQUE;
+
+// Index for fast lookups
+CREATE INDEX entity_type_idx IF NOT EXISTS
+FOR (e:Entity) ON (e.entity_type);
+\end{lstlisting}
+
+\subsection{Node Types}
+
+\begin{description}
+    \item[Entity] Physical establishments: stores, restaurants, professionals
+    \item[AbstractEntity] Non-physical concepts: brands, wine producers, fashion houses
+    \item[Style] Aesthetic or methodological categories: ``Neapolitan tailoring,'' ``natural wine''
+    \item[Curator] Human curators who validate and annotate entities
+\end{description}
+
+\subsection{Relationship Types}
+
+The domain configuration defines available relationship types, typical examples include:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llL{6cm}}
+\toprule
+\textbf{Relationship} & \textbf{Source → Target} & \textbf{Description} \\
+\midrule
+\code{SELLS\_BRAND} & Entity → AbstractEntity & Store sells products from brand \\
+\code{IS\_HQ\_OF} & Entity → AbstractEntity & Location is brand's flagship/HQ \\
+\code{TRAINED\_BY} & Entity → Entity & Artisan trained under master \\
+\code{HAS\_STYLE} & Entity → Style & Entity exemplifies style \\
+\code{CURATED\_BY} & Entity → Curator & Curator validated entity \\
+\code{SIMILAR\_TO} & Entity → Entity & Entities share characteristics \\
+\bottomrule
+\end{tabularx}
+\caption{Common relationship types in the knowledge graph}
+\end{table}
+
+\subsection{GraphRAG Integration}
+
+Neo4j integrates with the LLM layer through GraphRAG patterns:
+
+\begin{lstlisting}[style=pythonstyle, caption={GraphRAG context retrieval}]
+async def get_graph_context(
+    self,
+    entity_ids: List[str],
+    max_hops: int = 2
+) -> GraphContext:
+    """Retrieve relationship context for entities."""
+    
+    query = """
+    MATCH (e:Entity)
+    WHERE e.id IN $entity_ids
+    CALL {
+        WITH e
+        MATCH path = (e)-[r*1..$max_hops]-(connected)
+        RETURN path
+        LIMIT 50
+    }
+    RETURN e, collect(path) as paths
+    """
+    
+    result = await self.driver.execute_query(
+        query,
+        parameters={"entity_ids": entity_ids, "max_hops": max_hops}
+    )
+    
+    return self._build_context(result)
+\end{lstlisting}
+
+The retrieved graph context is provided to the Curator agent, enabling responses like: ``This tailor trained under [Master], who founded the [School] tradition. Nearby you'll also find [Related Entity], which shares the same approach to construction.''
+
+
+\section{Synchronization Mechanisms}
+
+Maintaining consistency across the three databases requires robust synchronization.
+
+\subsection{Ingestion Pipeline Writes}
+
+During entity ingestion, writes proceed in sequence:
+
+\begin{enumerate}
+    \item PostgreSQL receives the authoritative entity record
+    \item After PostgreSQL commit, embeddings are generated asynchronously
+    \item Qdrant receives the entity vectors with metadata
+    \item Neo4j receives entity nodes and relationship edges
+    \item A completion event signals successful ingestion
+\end{enumerate}
+
+\subsection{Update Propagation}
+
+Entity updates follow a similar pattern with change detection:
+
+\begin{lstlisting}[style=pythonstyle, caption={Update propagation logic}]
+async def update_entity(
+    self,
+    entity_id: str,
+    updates: Dict[str, Any]
+) -> Entity:
+    """Update entity with cascade to secondary stores."""
+    
+    # 1. Update PostgreSQL
+    entity = await self.pg_repo.update(entity_id, updates)
+    
+    # 2. Check if embedding-relevant fields changed
+    if self._needs_reembedding(updates):
+        embedding = await self.embedder.embed(entity)
+        await self.qdrant.update_vectors(entity_id, embedding)
+    else:
+        await self.qdrant.update_payload(entity_id, updates)
+    
+    # 3. Update Neo4j if relevant fields changed
+    if self._affects_graph(updates):
+        await self.neo4j.update_node(entity_id, updates)
+    
+    # 4. Emit change event
+    await self.events.emit(EntityUpdatedEvent(entity))
+    
+    return entity
+\end{lstlisting}
+
+\subsection{Consistency Verification}
+
+Periodic jobs verify consistency across stores:
+
+\begin{itemize}
+    \item Count reconciliation: entity counts match across databases
+    \item Sampling verification: random entities checked for field consistency
+    \item Orphan detection: vectors and nodes without corresponding PostgreSQL records
+    \item Staleness detection: entities not re-synced beyond threshold
+\end{itemize}
+
+Detected inconsistencies trigger automated repair or alert for manual intervention.
+
+
+\section{Query Patterns}
+
+Different query types leverage different Trinity components:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{L{5cm}ccc}
+\toprule
+\textbf{Query Pattern} & \textbf{PostgreSQL} & \textbf{Qdrant} & \textbf{Neo4j} \\
+\midrule
+Semantic similarity search & — & Primary & — \\
+Structured filtering & Primary & Filter & — \\
+Relationship discovery & — & — & Primary \\
+Entity detail retrieval & Primary & — & Context \\
+Geographic queries & Primary & Filter & — \\
+Full-text name search & Primary & — & — \\
+Style-based discovery & Filter & — & Primary \\
+\bottomrule
+\end{tabularx}
+\caption{Query patterns and database utilization}
+\end{table}
+
+
+\section{Operational Considerations}
+
+Running three databases requires operational maturity.
+
+\subsection{Backup Strategy}
+
+Each database has appropriate backup mechanisms:
+
+\begin{itemize}
+    \item \textbf{PostgreSQL}: Continuous WAL archiving to object storage, daily full backups
+    \item \textbf{Qdrant}: Snapshot exports to object storage, configurable retention
+    \item \textbf{Neo4j}: Online backups to object storage, point-in-time recovery
+\end{itemize}
+
+Recovery procedures are documented and periodically tested.
+
+\subsection{Scaling Thresholds}
+
+Monitoring identifies when scaling is needed:
+
+\begin{itemize}
+    \item PostgreSQL: Query latency P95 > 100ms, connection pool saturation > 80\%
+    \item Qdrant: Search latency P95 > 50ms, memory utilization > 75\%
+    \item Neo4j: Query latency P95 > 200ms, heap utilization > 70\%
+\end{itemize}
+
+\subsection{Failure Isolation}
+
+Database failures are isolated to prevent cascade:
+
+\begin{itemize}
+    \item Circuit breakers on each database connection
+    \item Timeouts preventing request blocking
+    \item Fallback strategies for degraded operation
+    \item Health checks enabling quick failure detection
+\end{itemize}
