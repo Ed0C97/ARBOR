@@ -19,9 +19,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres.connection import get_arbor_db, get_db
-from app.db.postgres.repository import (
-    UnifiedEntityRepository,
-)
+from app.db.postgres.unified_manager import UnifiedRepositoryManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -67,11 +65,11 @@ class EntityResponse(BaseModel):
     because the magazine_h182 data may have incomplete records.
     """
 
-    id: str  # "brand_42" or "venue_17"
-    entity_type: str  # "brand" | "venue"
+    id: str  # Composite: "{entity_type}_{source_id}"
+    entity_type: str  # Configured entity type
     source_id: int
     name: str
-    slug: str
+    slug: str | None = None
     category: str | None = None
     city: str | None = None
     region: str | None = None
@@ -148,8 +146,9 @@ async def list_entities(
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
     """List entities (brands + venues) with optional filters."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    entities, total = await repo.list_all(
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    entities, total = await manager.list_all(
         entity_type=entity_type,
         category=category,
         city=city,
@@ -177,15 +176,16 @@ async def get_entity(
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
     """Get a single entity by composite ID (e.g. 'brand_42' or 'venue_17')."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    entity = await repo.get_by_composite_id(entity_id)
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    entity = await manager.get_by_composite_id(entity_id)
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
     return EntityResponse(**asdict(entity))
 
 
 # ---------------------------------------------------------------------------
-# Endpoints — Brands only
+# Legacy endpoints — backward-compatible shortcuts for default schema
 # ---------------------------------------------------------------------------
 
 
@@ -204,8 +204,9 @@ async def list_brands(
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
     """List brands only."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    entities, total = await repo.list_all(
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    entities, total = await manager.list_all(
         entity_type="brand",
         category=category,
         country=country,
@@ -225,9 +226,7 @@ async def list_brands(
     )
 
 
-# ---------------------------------------------------------------------------
-# Endpoints — Venues only
-# ---------------------------------------------------------------------------
+# (Venues shortcut)
 
 
 @router.get("/venues", response_model=EntityListResponse)
@@ -246,8 +245,9 @@ async def list_venues(
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
     """List venues only."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    entities, total = await repo.list_all(
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    entities, total = await manager.list_all(
         entity_type="venue",
         category=category,
         city=city,
@@ -299,7 +299,8 @@ async def list_entities_cursor(
     The cursor encodes (created_at, id) to ensure stable pagination
     even when new items are added.
     """
-    repo = UnifiedEntityRepository(session, arbor_session)
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
 
     # Decode cursor if provided
     cursor_created_at, cursor_id = None, None
@@ -309,7 +310,7 @@ async def list_entities_cursor(
             raise HTTPException(status_code=400, detail="Invalid cursor format")
 
     # Get entities using keyset pagination
-    entities, total = await repo.list_with_cursor(
+    entities, total = await manager.list_with_cursor(
         entity_type=entity_type,
         category=category,
         city=city,

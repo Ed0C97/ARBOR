@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.db.postgres.connection import get_arbor_db, get_db
-from app.db.postgres.repository import EnrichmentRepository, UnifiedEntityRepository
+from app.db.postgres.repository import EnrichmentRepository
+from app.db.postgres.unified_manager import UnifiedRepositoryManager
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -30,9 +31,10 @@ router = APIRouter(prefix="/admin")
 
 class StatsResponse(BaseModel):
     total_entities: int = 0
-    total_brands: int = 0
-    total_venues: int = 0
     enriched_entities: int = 0
+    by_type: dict[str, int] = {}
+
+    model_config = {"extra": "allow"}  # Legacy clients may expect total_brands etc.
 
 
 class EnrichmentRequest(BaseModel):
@@ -59,10 +61,19 @@ async def get_stats(
     session: AsyncSession = Depends(get_db),
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
-    """Get real-time statistics from brands + venues tables."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    stats = await repo.stats()
-    return StatsResponse(**stats)
+    """Get real-time statistics for all configured entity types."""
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    stats = await manager.stats()
+
+    # Build response with dynamic per-type totals (e.g. total_brand, total_venue)
+    extra = {f"total_{etype}s": count for etype, count in stats["by_type"].items()}
+    return StatsResponse(
+        total_entities=stats["total_entities"],
+        enriched_entities=stats["enriched_entities"],
+        by_type=stats["by_type"],
+        **extra,
+    )
 
 
 @router.post("/enrich/{entity_id}", response_model=EnrichmentResponse)
@@ -83,8 +94,12 @@ async def enrich_entity(
         )
 
     entity_type, raw_id = parts
-    if entity_type not in ("brand", "venue"):
-        raise HTTPException(status_code=400, detail="entity_type must be 'brand' or 'venue'")
+    valid_types = settings.get_entity_types()
+    if entity_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"entity_type must be one of: {valid_types}",
+        )
 
     try:
         source_id = int(raw_id)
@@ -92,8 +107,9 @@ async def enrich_entity(
         raise HTTPException(status_code=400, detail="source_id must be an integer")
 
     # Verify the source entity exists (read from Magazine DB)
-    unified_repo = UnifiedEntityRepository(session, arbor_session)
-    entity = await unified_repo.get_by_composite_id(entity_id)
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    entity = await manager.get_by_composite_id(entity_id)
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
 

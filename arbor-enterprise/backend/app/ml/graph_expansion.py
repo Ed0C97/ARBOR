@@ -378,11 +378,14 @@ class GraphExpander:
 
         try:
             with driver.session() as session:
-                # Check if the entity is a brand with retailer info
+                # Check if source entity has retailer/cross-reference data
+                entity_types = settings.get_entity_types()
+
                 brand_result = session.run(
                     "MATCH (b:Entity {id: $id}) "
-                    "WHERE b.entity_type = 'brand' AND b.retailers IS NOT NULL "
-                    "RETURN b.id AS id, b.retailers AS retailers, b.name AS name",
+                    "WHERE b.retailers IS NOT NULL "
+                    "RETURN b.id AS id, b.retailers AS retailers, "
+                    "b.name AS name, b.entity_type AS entity_type",
                     id=entity_id,
                 )
                 brand_record = brand_result.single()
@@ -392,17 +395,20 @@ class GraphExpander:
                     if isinstance(retailers, str):
                         retailers = [r.strip() for r in retailers.split(",")]
 
-                    # Match retailer names to existing venue entities
+                    source_type = brand_record["entity_type"]
+
+                    # Match retailer names to entities of other types
                     for retailer_name in retailers:
                         venue_result = session.run(
                             "MATCH (v:Entity) "
-                            "WHERE v.entity_type = 'venue' "
+                            "WHERE v.entity_type <> $source_type "
                             "AND toLower(v.name) CONTAINS toLower($name) "
                             "RETURN v.id AS id, v.name AS name",
                             name=retailer_name,
+                            source_type=source_type,
                         )
                         for venue in venue_result:
-                            # SELLS_AT: brand -> venue
+                            # SELLS_AT: source -> target
                             candidates.append(
                                 RelationshipCandidate(
                                     source_id=entity_id,
@@ -410,14 +416,14 @@ class GraphExpander:
                                     rel_type="SELLS_AT",
                                     confidence=0.75,
                                     evidence=(
-                                        f"Brand '{brand_record['name']}' lists "
+                                        f"{source_type} '{brand_record['name']}' lists "
                                         f"retailer '{retailer_name}' matching "
-                                        f"venue '{venue['name']}'"
+                                        f"entity '{venue['name']}'"
                                     ),
                                     discovered_by=ExpansionStrategy.CATEGORY_BRIDGE.value,
                                 )
                             )
-                            # AVAILABLE_AT: venue -> brand (reverse)
+                            # AVAILABLE_AT: target -> source (reverse)
                             candidates.append(
                                 RelationshipCandidate(
                                     source_id=venue["id"],
@@ -425,7 +431,7 @@ class GraphExpander:
                                     rel_type="AVAILABLE_AT",
                                     confidence=0.75,
                                     evidence=(
-                                        f"Venue '{venue['name']}' carries brand "
+                                        f"Entity '{venue['name']}' carries {source_type} "
                                         f"'{brand_record['name']}' "
                                         f"(retailer field match)"
                                     ),

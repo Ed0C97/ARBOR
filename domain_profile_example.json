@@ -1,0 +1,135 @@
+{
+  "domain_id": "fine_dining_milano",
+  "name": "Fine Dining & Ristorazione di Lusso — Milano",
+  "description": "Ristoranti di alto livello, trattorie d'autore, bistrot gourmet, wine bar e esperienze culinarie nella scena gastronomica milanese e lombarda.",
+  "language": "it",
+  "target_audience": "Food blogger, critici gastronomici, clienti alto-spendenti e appassionati di cucina alla ricerca di esperienze culinarie uniche e memorabili.",
+
+  "vibe_dimensions": [
+    {
+      "id": "culinary_mastery",
+      "label": "Maestria Culinaria",
+      "description": "Livello di tecnica, creatività e padronanza nella preparazione dei piatti",
+      "low_label": "0 = Cibo pre-confezionato, nessuna tecnica, menu industriale",
+      "high_label": "100 = Tecnica da stella Michelin, piatti signature, anni di ricerca culinaria",
+      "low_examples": "Catena fast food, mensa aziendale, pizzeria da taglio senza pretese",
+      "high_examples": "Osteria Francescana (Modena), D'O di Davide Oldani, Seta by Antonio Guida",
+      "weight": 1.8
+    },
+    {
+      "id": "ingredient_quality",
+      "label": "Qualità degli Ingredienti",
+      "description": "Provenienza, freschezza e selezione delle materie prime utilizzate",
+      "low_label": "0 = Ingredienti industriali, surgelati, nessuna attenzione alla provenienza",
+      "high_label": "100 = Ingredienti DOP/IGP, km zero, fornitori selezionati, stagionalità rigorosa",
+      "low_examples": "Fast food con prodotti congelati, catena all-you-can-eat",
+      "high_examples": "Ristorante con orto proprio, pesce del giorno dal mercato di Chioggia, formaggi d'alpeggio",
+      "weight": 1.5
+    },
+    {
+      "id": "ambiance",
+      "label": "Atmosfera e Design",
+      "description": "L'ambiente, l'arredamento, l'illuminazione e l'esperienza sensoriale complessiva del locale",
+      "low_label": "0 = Luci al neon, sedie di plastica, rumoroso, nessuna cura estetica",
+      "high_label": "100 = Design d'autore, illuminazione curata, acustica perfetta, esperienza immersiva",
+      "low_examples": "Tavola calda anonima, locale con TV accesa a volume alto",
+      "high_examples": "Cracco in Galleria (archi storici + design contemporaneo), Nobu Milano (minimal luxury)",
+      "weight": 1.2
+    },
+    {
+      "id": "service_excellence",
+      "label": "Eccellenza del Servizio",
+      "description": "Professionalità, attenzione e personalizzazione del servizio in sala",
+      "low_label": "0 = Self-service, camerieri assenti o scortesi, nessuna cura del cliente",
+      "high_label": "100 = Servizio white-glove, sommelier dedicato, staff che anticipa ogni esigenza",
+      "low_examples": "Mensa con vassoio, fast casual dove ordini al bancone",
+      "high_examples": "Ristorante con maître, pairing vini personalizzato, attenzione alle intolleranze senza chiederlo",
+      "weight": 1.3
+    },
+    {
+      "id": "wine_beverage_program",
+      "label": "Proposta Vini e Bevande",
+      "description": "Qualità, profondità e curatela della carta vini e del programma beverage",
+      "low_label": "0 = Solo vino della casa sfuso, nessuna carta vini, bibite industriali",
+      "high_label": "100 = Cantina pluripremiata, sommelier AIS, cocktail bar d'autore, etichette rare",
+      "low_examples": "Trattoria con solo rosso/bianco della casa, bar con birra alla spina generica",
+      "high_examples": "Enoteca con 500+ referenze, verticali di Barolo, pairing omakase-sake curato",
+      "weight": 1.0
+    },
+    {
+      "id": "price_positioning",
+      "label": "Posizionamento di Prezzo",
+      "description": "Dove si colloca il ristorante nello spettro di prezzo del mercato milanese",
+      "low_label": "0 = Menu a prezzo fisso sotto 15 euro, street food, tavola calda",
+      "high_label": "100 = Menu degustazione 300+ euro, esperienza ultra-luxury con tartufo e caviale",
+      "low_examples": "Kebab da 6 euro, pranzo in mensa, pizza al taglio",
+      "high_examples": "Seta (menu degustazione 280 euro), Cracco (cena 200+ euro a persona)",
+      "weight": 0.8
+    },
+    {
+      "id": "exclusivity",
+      "label": "Esclusività e Unicità",
+      "description": "Quanto il ristorante è unico, difficile da replicare e desiderabile come esperienza",
+      "low_label": "0 = Catena replicabile, nessun elemento distintivo, interscambiabile con la concorrenza",
+      "high_label": "100 = Locale iconico, lista d'attesa di mesi, esperienza irripetibile",
+      "low_examples": "Franchising di hamburger, catena di sushi all-you-can-eat",
+      "high_examples": "Unico tavolo dello chef con 6 posti, ristorante nascosto senza insegna accessibile solo su prenotazione",
+      "weight": 1.0
+    }
+  ],
+
+  "categories": [
+    "Fine Dining",
+    "Trattoria d'Autore",
+    "Bistrot Gourmet",
+    "Osteria Contemporanea",
+    "Ristorante Stellato",
+    "Wine Bar con Cucina",
+    "Cocktail Bar Gastronomico",
+    "Pizzeria Gourmet",
+    "Sushi & Giapponese d'Autore",
+    "Cucina Etnica di Ricerca",
+    "Pasticceria & Dessert Bar",
+    "Brunch Spot",
+    "Raw Bar & Crudo",
+    "Rooftop Dining",
+    "Chef's Table",
+    "Agriturismo Gourmet",
+    "Street Food d'Autore",
+    "Altro"
+  ],
+
+  "scoring_prompt_template": "",
+
+  "search_prompt_template": "Sei l'intelligenza di ricerca di A.R.B.O.R. per il dominio della ristorazione di lusso a Milano.\n\nInterpreta la query dell'utente in linguaggio naturale ed estrai:\n1. Intento: cosa cerca l'utente (raccomandazione, confronto, esplorazione, occasione speciale)\n2. Entità: ristoranti, chef o cucine specifiche menzionate\n3. Attributi: tipo di cucina, fascia di prezzo, zona, atmosfera desiderata, occasione\n4. Vincoli: requisiti obbligatori vs preferenze (es. terrazza, vegetariano, aperto domenica)\n\nContesto del dominio: ristoranti di alto livello, trattorie d'autore, bistrot gourmet, wine bar, chef stellati, cucina italiana contemporanea, cucina fusion, esperienze gastronomiche nella Milano metropolitana e hinterland.",
+
+  "discovery_persona": "Sei Il Curatore — l'esperto consigliere gastronomico di ARBOR per la scena culinaria milanese.\n\nLa tua personalità:\n- Autorevole ma caloroso, come un amico gourmand che conosce ogni angolo di Milano\n- Parli con genuina passione per la cucina d'autore, gli ingredienti di qualità e l'artigianalità\n- Non inventi mai ristoranti; parli solo di ciò che è nel contesto fornito\n- Spieghi PERCHÉ un ristorante è adatto all'utente, non solo COS'È\n- Tracci connessioni tra locali (stesso chef di formazione, filosofia simile, quartiere complementare)\n- Sei onesto sui limiti dei tuoi dati e non esiti a dire quando un locale potrebbe non essere aggiornato\n- Quando consigli, consideri l'occasione: un anniversario è diverso da un pranzo di lavoro",
+
+  "search_context_keywords": [
+    "ristorante",
+    "trattoria",
+    "osteria",
+    "bistrot",
+    "stellato",
+    "michelin",
+    "chef",
+    "degustazione",
+    "menu",
+    "cucina",
+    "gourmet",
+    "wine bar",
+    "sommelier",
+    "prenotazione",
+    "terrazza",
+    "brunch",
+    "aperitivo",
+    "cena",
+    "pranzo",
+    "km zero",
+    "stagionale",
+    "fusion",
+    "omakase",
+    "pizza gourmet",
+    "cocktail bar"
+  ]
+}

@@ -254,19 +254,19 @@ TAGS_BY_CATEGORY: dict[str, list[str]] = {
     ],
 }
 
-# Vibe DNA dimensions (used across the platform)
-VIBE_DIMENSIONS = [
-    "cozy",
-    "edgy",
-    "luxurious",
-    "minimalist",
-    "eclectic",
-    "vintage",
-    "modern",
-    "artistic",
-    "rustic",
-    "futuristic",
-]
+# Vibe DNA dimensions — loaded dynamically from active domain config
+
+
+def _get_vibe_dimensions() -> list[str]:
+    """Return dimension IDs from the active DomainConfig."""
+    try:
+        from app.core.domain_portability import get_domain_registry
+        return get_domain_registry().get_active_domain().dimension_ids
+    except Exception:
+        return ["quality", "price_positioning", "experience", "uniqueness", "accessibility"]
+
+
+VIBE_DIMENSIONS = _get_vibe_dimensions()
 
 # Category-specific vibe biases: which dimensions tend to score higher.
 VIBE_BIAS: dict[str, dict[str, float]] = {

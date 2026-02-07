@@ -18,7 +18,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.graphql_schema import create_graphql_app
-from app.api.v1 import admin, curator, discover, entities, graph, search
+from app.api.v1 import admin, curator, discover, entities, graph, onboarding, search
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -182,6 +182,7 @@ app.include_router(search.router, prefix="/api/v1", tags=["Search"])
 app.include_router(graph.router, prefix="/api/v1", tags=["Graph"])
 app.include_router(admin.router, prefix="/api/v1", tags=["Admin"])
 app.include_router(curator.router, prefix="/api/v1", tags=["Curator"])
+app.include_router(onboarding.router, prefix="/api/v1", tags=["Onboarding"])
 
 # GraphQL (Strawberry) — mirrors REST endpoints with flexible queries
 graphql_app = create_graphql_app()

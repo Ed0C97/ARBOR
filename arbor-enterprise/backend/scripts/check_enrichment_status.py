@@ -7,25 +7,29 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.db.postgres.connection import magazine_session_factory, arbor_session_factory
-from app.db.postgres.models import Brand, Venue, ArborEnrichment
+from app.db.postgres.models import ArborEnrichment
+from app.config import get_settings
+from app.db.postgres.dynamic_model import create_dynamic_model
+from app.db.postgres.connection import magazine_engine
 from sqlalchemy import select, func
 
 async def main():
     async with magazine_session_factory() as main_session, arbor_session_factory() as arbor_session:
-        # Count brands and venues
-        brand_count = await main_session.scalar(select(func.count()).select_from(Brand))
-        venue_count = await main_session.scalar(select(func.count()).select_from(Venue))
+        from sqlalchemy import MetaData
+        settings = get_settings()
+        configs = settings.get_entity_type_configs()
+        _metadata = MetaData()
+
+        by_type = {}
+        for config in configs:
+            table = await create_dynamic_model(config, magazine_engine, _metadata)
+            count = await main_session.scalar(select(func.count()).select_from(table))
+            by_type[config.entity_type] = count
+
+        total_entities = sum(by_type.values())
 
         # Count enrichments
         enr_count = await arbor_session.scalar(select(func.count()).select_from(ArborEnrichment))
-
-        # Count by type
-        brand_enr = await arbor_session.scalar(
-            select(func.count()).select_from(ArborEnrichment).where(ArborEnrichment.entity_type == "brand")
-        )
-        venue_enr = await arbor_session.scalar(
-            select(func.count()).select_from(ArborEnrichment).where(ArborEnrichment.entity_type == "venue")
-        )
 
         # Count synced to neo4j
         neo4j_synced = await arbor_session.scalar(
@@ -33,12 +37,14 @@ async def main():
         )
 
         print("\n=== ENRICHMENT STATUS ===")
-        print(f"Total Brands in DB: {brand_count}")
-        print(f"Total Venues in DB: {venue_count}")
-        print(f"Total Entities: {brand_count + venue_count}")
-        print()
-        print(f"Brand Enrichments: {brand_enr} / {brand_count} ({brand_enr/brand_count*100 if brand_count else 0:.1f}%)")
-        print(f"Venue Enrichments: {venue_enr} / {venue_count} ({venue_enr/venue_count*100 if venue_count else 0:.1f}%)")
+        for etype, count in by_type.items():
+            enr_count_for_type = await arbor_session.scalar(
+                select(func.count()).select_from(ArborEnrichment)
+                .where(ArborEnrichment.entity_type == etype)
+            )
+            pct = enr_count_for_type / count * 100 if count else 0
+            print(f"  {etype}: {enr_count_for_type} / {count} ({pct:.1f}%)")
+        print(f"Total Entities: {total_entities}")
         print(f"Total Enrichments: {enr_count}")
         print()
         print(f"Synced to Neo4j: {neo4j_synced} / {enr_count} ({neo4j_synced/enr_count*100 if enr_count else 0:.1f}%)")

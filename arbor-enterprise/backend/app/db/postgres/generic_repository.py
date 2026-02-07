@@ -264,6 +264,97 @@ class GenericEntityRepository:
 
         return entities, total
 
+    async def list_with_cursor(
+        self,
+        category: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        cursor_created_at: str | None = None,
+        cursor_id: int | None = None,
+        limit: int = 50,
+    ) -> tuple[list[UnifiedEntity], int]:
+        """List entities using keyset (cursor-based) pagination.
+
+        Uses ``WHERE (created_at, id) < (cursor, cursor_id)``
+        for O(1) performance regardless of page number.
+        """
+        from datetime import datetime as _dt
+
+        query = select(self.table)
+        count_query = select(func.count()).select_from(self.table)
+
+        filters: list = []
+        count_filters: list = []
+
+        if category:
+            col_name = self.config.all_mappings.get("category")
+            if col_name and col_name in self.table.c:
+                f = self.table.c[col_name] == category
+                filters.append(f)
+                count_filters.append(f)
+
+        if city:
+            col_name = self.config.all_mappings.get("city")
+            if col_name and col_name in self.table.c:
+                f = self.table.c[col_name].ilike(f"%{city}%")
+                filters.append(f)
+                count_filters.append(f)
+
+        if country:
+            col_name = self.config.all_mappings.get("country")
+            if col_name and col_name in self.table.c:
+                f = self.table.c[col_name] == country
+                filters.append(f)
+                count_filters.append(f)
+
+        # Keyset cursor filter
+        created_at_col = self.config.all_mappings.get("created_at")
+        id_col_name = self.config.id_column
+        if (
+            cursor_created_at
+            and cursor_id is not None
+            and created_at_col
+            and created_at_col in self.table.c
+        ):
+            try:
+                cursor_dt = _dt.fromisoformat(cursor_created_at)
+            except ValueError:
+                cursor_dt = None
+            if cursor_dt is not None:
+                ca_col = self.table.c[created_at_col]
+                pk_col = self.table.c[id_col_name]
+                filters.append(
+                    or_(
+                        ca_col < cursor_dt,
+                        (ca_col == cursor_dt) & (pk_col < cursor_id),
+                    )
+                )
+
+        for f in filters:
+            query = query.where(f)
+        for f in count_filters:
+            count_query = count_query.where(f)
+
+        # Order by created_at DESC, id DESC for stable cursor pagination
+        if created_at_col and created_at_col in self.table.c:
+            query = query.order_by(
+                self.table.c[created_at_col].desc(),
+                self.table.c[id_col_name].desc(),
+            )
+        else:
+            query = query.order_by(self.table.c[id_col_name].desc())
+
+        query = query.limit(limit)
+
+        result = await self.session.execute(query)
+        rows = result.all()
+
+        count_result = await self.session.execute(count_query)
+        total = count_result.scalar_one()
+
+        entities = [self._row_to_unified(row) for row in rows]
+        return entities, total
+
     async def count(self) -> int:
         """Count total entities."""
         query = select(func.count()).select_from(self.table)

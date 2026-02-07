@@ -1022,9 +1022,8 @@ class PromptOptimizer:
                 input_fields=["entity_data", "scoring_criteria"],
                 output_fields=["vibe_scores", "reasoning"],
                 description=(
-                    "Score an entity across multiple vibe dimensions (atmosphere, "
-                    "design, cultural_relevance, exclusivity, innovation) on a "
-                    "0-10 scale with supporting reasoning."
+                    "Score an entity across its configured vibe dimensions on a "
+                    "0-100 scale with supporting reasoning."
                 ),
                 evaluation_metric="mae",
             )

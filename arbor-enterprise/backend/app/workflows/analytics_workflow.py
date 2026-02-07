@@ -123,50 +123,65 @@ async def compute_search_analytics(since_hours: int = 24) -> dict:
 @activity.defn
 async def compute_entity_stats() -> dict:
     """Compute entity coverage and enrichment statistics."""
-    from sqlalchemy import func, select
+    from sqlalchemy import MetaData, func, select
 
-    from app.db.postgres.connection import async_session_factory
-    from app.db.postgres.models import ArborEnrichment, Brand, Venue
+    from app.config import get_settings
+    from app.db.postgres.connection import magazine_session_factory, magazine_engine, arbor_session_factory
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.models import ArborEnrichment
 
-    async with async_session_factory() as session:
-        brands_count = (await session.execute(select(func.count()).select_from(Brand))).scalar_one()
+    settings = get_settings()
+    configs = settings.get_entity_type_configs()
+    _metadata = MetaData()
 
-        venues_count = (await session.execute(select(func.count()).select_from(Venue))).scalar_one()
+    total_entities = 0
+    by_type = {}
 
+    async with magazine_session_factory() as session:
+        for config in configs:
+            table = await create_dynamic_model(config, magazine_engine, _metadata)
+            count = (await session.execute(
+                select(func.count()).select_from(table)
+            )).scalar_one()
+            by_type[config.entity_type] = count
+            total_entities += count
+
+    async with arbor_session_factory() as arbor_session:
         enriched_count = (
-            await session.execute(select(func.count()).select_from(ArborEnrichment))
+            await arbor_session.execute(select(func.count()).select_from(ArborEnrichment))
         ).scalar_one()
 
         synced_count = (
-            await session.execute(
+            await arbor_session.execute(
                 select(func.count())
                 .select_from(ArborEnrichment)
                 .where(ArborEnrichment.neo4j_synced == True)  # noqa: E712
             )
         ).scalar_one()
 
-        total_entities = brands_count + venues_count
-        enrichment_coverage = enriched_count / total_entities if total_entities > 0 else 0.0
-
-        # Enrichments by entity type
-        by_type_result = await session.execute(
+        by_type_result = await arbor_session.execute(
             select(
                 ArborEnrichment.entity_type,
                 func.count().label("count"),
             ).group_by(ArborEnrichment.entity_type)
         )
-        by_type = {row.entity_type: row.count for row in by_type_result}
+        enriched_by_type = {row.entity_type: row.count for row in by_type_result}
 
-        return {
-            "total_entities": total_entities,
-            "total_brands": brands_count,
-            "total_venues": venues_count,
-            "enriched_entities": enriched_count,
-            "synced_entities": synced_count,
-            "enrichment_coverage": round(enrichment_coverage, 4),
-            "enriched_by_type": by_type,
-            "computed_at": datetime.now(UTC).isoformat(),
-        }
+    enrichment_coverage = enriched_count / total_entities if total_entities > 0 else 0.0
+
+    result = {
+        "total_entities": total_entities,
+        "by_type": by_type,
+        "enriched_entities": enriched_count,
+        "synced_entities": synced_count,
+        "enrichment_coverage": round(enrichment_coverage, 4),
+        "enriched_by_type": enriched_by_type,
+        "computed_at": datetime.now(UTC).isoformat(),
+    }
+    # Dynamic per-type totals for backward-compat consumers
+    for etype, count in by_type.items():
+        result[f"total_{etype}s"] = count
+    return result
 
 
 @activity.defn

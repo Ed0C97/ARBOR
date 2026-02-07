@@ -18,24 +18,45 @@ async def run_full_enrichment(entity_type: str, source_id: int) -> dict:
     This is the recommended single-activity approach — it runs all 5 layers
     within one activity, keeping database session management simple.
     """
-    from app.db.postgres.connection import async_session_factory
-    from app.db.postgres.models import Brand, Venue
+    from dataclasses import asdict
+    from sqlalchemy import MetaData
+    from app.config import get_settings
+    from app.db.postgres.connection import async_session_factory, magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.generic_repository import GenericEntityRepository
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
     async with async_session_factory() as session:
-        # Fetch the source entity
-        if entity_type == "brand":
-            entity = await session.get(Brand, source_id)
-        elif entity_type == "venue":
-            entity = await session.get(Venue, source_id)
-        else:
+        # Load configuration for this entity type
+        settings = get_settings()
+        try:
+            config = settings.get_entity_config(entity_type)
+        except ValueError:
             return {"success": False, "error": f"Unknown entity_type: {entity_type}"}
+
+        # Create dynamic model and repository
+        table = await create_dynamic_model(config, magazine_engine, MetaData())
+        repo = GenericEntityRepository(session, config, table)
+
+        # Fetch the source entity (UnifiedEntity)
+        entity = await repo.get_by_id(source_id)
 
         if not entity:
             return {"success": False, "error": f"{entity_type}_{source_id} not found"}
 
-        # Build kwargs from entity fields
-        kwargs = _entity_to_kwargs(entity, entity_type, source_id)
+        # Build kwargs from UnifiedEntity
+        # UnifiedEntity fields map 1:1 to enrich_entity arguments
+        # We filter out internal fields like 'vibe_dna' to avoid unexpected arg errors
+        entity_dict = asdict(entity)
+        valid_args = {
+            "name", "category", "city", "description", "specialty", "notes",
+            "website", "instagram", "style", "gender", "rating", "price_range",
+            "address", "latitude", "longitude", "neighborhood", "country",
+            "maps_url", "is_featured"
+        }
+        kwargs = {k: v for k, v in entity_dict.items() if k in valid_args}
+        kwargs["entity_type"] = entity_type
+        kwargs["source_id"] = source_id
 
         # Run the orchestrator
         orchestrator = EnrichmentOrchestrator(session)
@@ -55,22 +76,44 @@ async def run_full_enrichment(entity_type: str, source_id: int) -> dict:
 @activity.defn
 async def collect_entity_data(entity_type: str, source_id: int) -> dict:
     """Activity: Collect data from all sources for an entity (Layer 1)."""
-    from app.db.postgres.connection import async_session_factory
-    from app.db.postgres.models import Brand, Venue
+    from dataclasses import asdict
+    from sqlalchemy import MetaData
+    from app.config import get_settings
+    from app.db.postgres.connection import async_session_factory, magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.generic_repository import GenericEntityRepository
     from app.ingestion.pipeline.collector import MultiSourceCollector
 
     async with async_session_factory() as session:
-        if entity_type == "brand":
-            entity = await session.get(Brand, source_id)
-        elif entity_type == "venue":
-            entity = await session.get(Venue, source_id)
-        else:
+        # Load configuration for this entity type
+        settings = get_settings()
+        try:
+            config = settings.get_entity_config(entity_type)
+        except ValueError:
             return {"error": f"Unknown entity_type: {entity_type}"}
+
+        # Create dynamic model and repository
+        table = await create_dynamic_model(config, magazine_engine, MetaData())
+        repo = GenericEntityRepository(session, config, table)
+
+        # Fetch the source entity (UnifiedEntity)
+        entity = await repo.get_by_id(source_id)
 
         if not entity:
             return {"error": f"{entity_type}_{source_id} not found"}
 
-        kwargs = _entity_to_kwargs(entity, entity_type, source_id)
+        # Build kwargs from UnifiedEntity
+        entity_dict = asdict(entity)
+        valid_args = {
+            "name", "category", "city", "description", "specialty", "notes",
+            "website", "instagram", "style", "gender", "rating", "price_range",
+            "address", "latitude", "longitude", "neighborhood", "country",
+            "maps_url", "is_featured"
+        }
+        kwargs = {k: v for k, v in entity_dict.items() if k in valid_args}
+        kwargs["entity_type"] = entity_type
+        kwargs["source_id"] = source_id
+
         collector = MultiSourceCollector()
         collected = await collector.collect(**kwargs)
 
@@ -377,62 +420,92 @@ async def get_unenriched_entities(
     entity_type: str | None = None,
 ) -> list[dict]:
     """Activity: Get list of entities that don't have enrichment data yet."""
-    from sqlalchemy import and_, select
+    from sqlalchemy import MetaData, select
+    from app.config import get_settings
+    from app.db.postgres.connection import async_session_factory, magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.models import ArborEnrichment
 
-    from app.db.postgres.connection import async_session_factory
-    from app.db.postgres.models import ArborEnrichment, Brand, Venue
+    settings = get_settings()
+    _metadata = MetaData()
 
     async with async_session_factory() as session:
         entities = []
 
-        if entity_type is None or entity_type == "brand":
-            # Find brands without enrichment
-            subq = select(ArborEnrichment.source_id).where(ArborEnrichment.entity_type == "brand")
-            result = await session.execute(
-                select(Brand.id, Brand.name, Brand.category)
-                .where(
-                    and_(
-                        Brand.is_active == True,  # noqa: E712
-                        Brand.id.not_in(subq),
-                    )
-                )
-                .limit(max_entities)
-            )
+        # determine which types to process
+        target_types = [entity_type] if entity_type else settings.get_entity_types()
+
+        for etype in target_types:
+            remaining = max_entities - len(entities)
+            if remaining <= 0:
+                break
+
+            try:
+                config = settings.get_entity_config(etype)
+            except ValueError:
+                # Skip unknown types if explicitly requested? Or just continue
+                continue
+
+            # Load dynamic table
+            table = await create_dynamic_model(config, magazine_engine, _metadata)
+
+            # Resolve column objects
+            # id_column is the key in table.c
+            if config.id_column not in table.c:
+                continue
+            id_col = table.c[config.id_column]
+
+            # name/category are mapped via required_mappings
+            # mapping: "name" (unified) -> "brand_name" (db)
+            name_db_col = config.required_mappings.get("name")
+            cat_db_col = config.required_mappings.get("category")
+            
+            # Use columns if they exist in table, else literal None? 
+            # For simplicity, we assume they exist if mapped.
+            cols_to_select = [id_col]
+            if name_db_col and name_db_col in table.c:
+                cols_to_select.append(table.c[name_db_col])
+            else:
+                 cols_to_select.append(id_col) # placeholder, handled below
+
+            if cat_db_col and cat_db_col in table.c:
+                cols_to_select.append(table.c[cat_db_col])
+            
+            # Subquery: IDs already enriched
+            subq = select(ArborEnrichment.source_id).where(ArborEnrichment.entity_type == etype)
+
+            stmt = select(*cols_to_select).where(id_col.not_in(subq))
+            
+            # Add active filter if configured
+            if config.active_filter_column and config.active_filter_column in table.c:
+                active_col = table.c[config.active_filter_column]
+                if config.active_filter_value is not None:
+                     stmt = stmt.where(active_col == config.active_filter_value)
+            
+            stmt = stmt.limit(remaining)
+            
+            result = await session.execute(stmt)
+            
             for row in result:
+                # row is a tuple. 
+                # Index 0 is ID. 
+                # Index 1 is Name (if selected). 
+                # Index 2 is Category (if selected).
+                # We need to be careful about index matching if columns were missing.
+                
+                # Safer: map by column object? SQLAlchemy row access by col object works.
+                eid = row[0]
+                ename = row[1] if name_db_col and name_db_col in table.c else f"{etype} #{eid}"
+                ecat = row[2] if cat_db_col and cat_db_col in table.c and len(row) > 2 else "Uncategorized"
+
                 entities.append(
                     {
-                        "entity_type": "brand",
-                        "source_id": row.id,
-                        "name": row.name,
-                        "category": row.category,
+                        "entity_type": etype,
+                        "source_id": eid,
+                        "name": ename,
+                        "category": ecat,
                     }
                 )
-
-        if entity_type is None or entity_type == "venue":
-            remaining = max_entities - len(entities)
-            if remaining > 0:
-                subq = select(ArborEnrichment.source_id).where(
-                    ArborEnrichment.entity_type == "venue"
-                )
-                result = await session.execute(
-                    select(Venue.id, Venue.name, Venue.category)
-                    .where(
-                        and_(
-                            Venue.is_active == True,  # noqa: E712
-                            Venue.id.not_in(subq),
-                        )
-                    )
-                    .limit(remaining)
-                )
-                for row in result:
-                    entities.append(
-                        {
-                            "entity_type": "venue",
-                            "source_id": row.id,
-                            "name": row.name,
-                            "category": row.category,
-                        }
-                    )
 
         return entities
 
@@ -440,9 +513,13 @@ async def get_unenriched_entities(
 @activity.defn
 async def generate_and_sync_embedding(entity_type: str, source_id: int) -> dict:
     """Activity: Generate embedding from enrichment and sync to Qdrant + Neo4j."""
+    from sqlalchemy import MetaData, select
+    from app.config import get_settings
     from app.db.neo4j.queries import Neo4jQueries
-    from app.db.postgres.connection import async_session_factory
-    from app.db.postgres.models import ArborEnrichment, Brand, Venue
+    from app.db.postgres.connection import async_session_factory, magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.generic_repository import GenericEntityRepository
+    from app.db.postgres.models import ArborEnrichment
     from app.db.qdrant.collections import QdrantCollections
     from app.ingestion.analyzers.embedding import EmbeddingGenerator
 
@@ -450,8 +527,6 @@ async def generate_and_sync_embedding(entity_type: str, source_id: int) -> dict:
 
     async with async_session_factory() as session:
         # Get enrichment
-        from sqlalchemy import select
-
         result = await session.execute(
             select(ArborEnrichment).where(
                 ArborEnrichment.entity_type == entity_type,
@@ -462,11 +537,15 @@ async def generate_and_sync_embedding(entity_type: str, source_id: int) -> dict:
         if not enrichment or not enrichment.vibe_dna:
             return {"synced": False, "reason": "No enrichment found"}
 
-        # Get entity name and category
-        if entity_type == "brand":
-            entity = await session.get(Brand, source_id)
-        else:
-            entity = await session.get(Venue, source_id)
+        # Get entity name and category using Generic Repository
+        settings = get_settings()
+        try:
+            config = settings.get_entity_config(entity_type)
+            table = await create_dynamic_model(config, magazine_engine, MetaData())
+            repo = GenericEntityRepository(session, config, table)
+            entity = await repo.get_by_id(source_id)
+        except ValueError:
+            return {"synced": False, "reason": f"Unknown entity_type: {entity_type}"}
 
         if not entity:
             return {"synced": False, "reason": "Entity not found"}
@@ -519,48 +598,6 @@ async def generate_and_sync_embedding(entity_type: str, source_id: int) -> dict:
 # ── Helper functions ─────────────────────────────────────────────────
 
 
-def _entity_to_kwargs(entity, entity_type: str, source_id: int) -> dict:
-    """Convert a Brand or Venue ORM object to enrichment kwargs."""
-    base = {
-        "entity_type": entity_type,
-        "source_id": source_id,
-        "name": entity.name,
-        "category": entity.category,
-        "description": getattr(entity, "description", None),
-        "specialty": getattr(entity, "specialty", None),
-        "notes": getattr(entity, "notes", None),
-        "website": getattr(entity, "website", None),
-        "instagram": getattr(entity, "instagram", None),
-        "style": getattr(entity, "style", None),
-        "gender": getattr(entity, "gender", None),
-        "rating": getattr(entity, "rating", None),
-        "is_featured": getattr(entity, "is_featured", False),
-        "country": getattr(entity, "country", None),
-    }
-
-    # Venue-specific fields
-    if entity_type == "venue":
-        base.update(
-            {
-                "city": getattr(entity, "city", None),
-                "address": getattr(entity, "address", None),
-                "latitude": getattr(entity, "latitude", None),
-                "longitude": getattr(entity, "longitude", None),
-                "neighborhood": getattr(entity, "region", None),  # region ≈ neighborhood
-                "maps_url": getattr(entity, "maps_url", None),
-                "price_range": getattr(entity, "price_range", None),
-            }
-        )
-    else:
-        # Brand-specific
-        base.update(
-            {
-                "city": getattr(entity, "area", None),  # area ≈ city for brands
-                "neighborhood": getattr(entity, "neighborhood", None),
-            }
-        )
-
-    return base
 
 
 def _compute_priority(scored_data: dict) -> float:

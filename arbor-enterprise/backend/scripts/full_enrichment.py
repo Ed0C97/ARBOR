@@ -8,8 +8,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.db.postgres.connection import magazine_session_factory, arbor_session_factory
-from app.db.postgres.repository import EnrichmentRepository
-from app.db.postgres.models import Brand, Venue, ArborEnrichment
+from app.db.postgres.models import ArborEnrichment
+from app.config import get_settings
+from app.db.postgres.dynamic_model import create_dynamic_model
+from app.db.postgres.generic_repository import GenericEntityRepository
+from app.db.postgres.connection import magazine_engine
 from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 from sqlalchemy import select
 
@@ -28,93 +31,59 @@ async def main():
 
         logger.info(f"Found {len(existing_map)} existing enrichments")
 
-        # Get all active brands
-        brands_result = await main_session.execute(
-            select(Brand).where(Brand.is_active == True)
-        )
-        all_brands = list(brands_result.scalars().all())
-
-        # Get all active venues
-        venues_result = await main_session.execute(
-            select(Venue).where(Venue.is_active == True)
-        )
-        all_venues = list(venues_result.scalars().all())
-
-        logger.info(f"Found {len(all_brands)} active brands, {len(all_venues)} active venues")
-
-        # Filter unenriched
-        unenriched_brands = [b for b in all_brands if ("brand", b.id) not in existing_map]
-        unenriched_venues = [v for v in all_venues if ("venue", v.id) not in existing_map]
-
-        logger.info(f"Need to enrich: {len(unenriched_brands)} brands, {len(unenriched_venues)} venues")
-
-        if not unenriched_brands and not unenriched_venues:
-            logger.info("All entities already enriched!")
-            return
+        from sqlalchemy import MetaData
+        settings = get_settings()
+        configs = settings.get_entity_type_configs()
+        _metadata = MetaData()
 
         # Enrich all
         orchestrator = EnrichmentOrchestrator(arbor_session)
 
-        total = len(unenriched_brands) + len(unenriched_venues)
+        total = 0
         enriched = 0
         failed = 0
 
-        # Enrich brands
-        for i, brand in enumerate(unenriched_brands, 1):
-            try:
-                logger.info(f"[{i}/{len(unenriched_brands)}] Enriching brand: {brand.name} (id={brand.id})")
-                result = await orchestrator.enrich_entity(
-                    entity_type="brand",
-                    source_id=brand.id,
-                    name=brand.name,
-                    category=brand.category,
-                    description=brand.description,
-                    website=brand.website,
-                    instagram=brand.instagram,
-                    city=brand.city,
-                    country=brand.country
-                )
+        for config in configs:
+            table = await create_dynamic_model(config, magazine_engine, _metadata)
+            repo = GenericEntityRepository(main_session, config, table)
+            entities, count = await repo.list_entities(is_active=True, offset=0, limit=9999)
 
-                if result.success:
-                    enriched += 1
-                    logger.info(f"  ✓ Success (confidence: {result.overall_confidence:.2f})")
-                else:
+            unenriched = [
+                e for e in entities
+                if (config.entity_type, e.source_id) not in existing_map
+            ]
+            logger.info(f"Need to enrich: {len(unenriched)} {config.entity_type} entities")
+            total += len(unenriched)
+
+            for i, entity in enumerate(unenriched, 1):
+                try:
+                    from dataclasses import asdict
+                    logger.info(
+                        f"[{i}/{len(unenriched)}] Enriching {config.entity_type}: "
+                        f"{entity.name} (id={entity.source_id})"
+                    )
+                    entity_dict = asdict(entity)
+                    valid_args = {
+                        "name", "category", "city", "description", "specialty", "notes",
+                        "website", "instagram", "style", "gender", "rating", "price_range",
+                        "address", "latitude", "longitude", "country",
+                    }
+                    kwargs = {k: v for k, v in entity_dict.items() if k in valid_args and v is not None}
+                    kwargs["entity_type"] = config.entity_type
+                    kwargs["source_id"] = entity.source_id
+
+                    result = await orchestrator.enrich_entity(**kwargs)
+
+                    if result.success:
+                        enriched += 1
+                        logger.info(f"  -> Success (confidence: {result.overall_confidence:.2f})")
+                    else:
+                        failed += 1
+                        logger.warning(f"  -> Failed: {result.error}")
+
+                except Exception as e:
                     failed += 1
-                    logger.warning(f"  ✗ Failed: {result.error}")
-
-            except Exception as e:
-                failed += 1
-                logger.error(f"  ✗ Exception: {e}")
-
-        # Enrich venues
-        for i, venue in enumerate(unenriched_venues, 1):
-            try:
-                logger.info(f"[{i}/{len(unenriched_venues)}] Enriching venue: {venue.name} (id={venue.id})")
-                result = await orchestrator.enrich_entity(
-                    entity_type="venue",
-                    source_id=venue.id,
-                    name=venue.name,
-                    category=venue.category,
-                    description=venue.description,
-                    website=venue.website,
-                    instagram=venue.instagram,
-                    city=venue.city,
-                    country=venue.country,
-                    address=venue.address,
-                    latitude=venue.latitude,
-                    longitude=venue.longitude
-                )
-
-                if result.success:
-                    enriched += 1
-                    logger.info(f"  ✓ Success (confidence: {result.overall_confidence:.2f})")
-                else:
-                    failed += 1
-                    logger.warning(f"  ✗ Failed: {result.error}")
-
-            except Exception as e:
-                failed += 1
-                logger.error(f"  ✗ Exception: {e}")
+                    logger.error(f"  -> Exception: {e}")
 
         logger.info(f"\n=== ENRICHMENT COMPLETE ===")
         logger.info(f"Total processed: {total}")

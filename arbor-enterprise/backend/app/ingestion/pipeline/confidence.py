@@ -171,7 +171,13 @@ class ConfidenceAnalyzer:
         return disagreements
 
     def _count_relevant_facts(self, dimension: str, fact_sheet: FactSheet) -> int:
-        """Count facts relevant to a specific dimension."""
+        """Count facts relevant to a specific dimension.
+
+        Uses a known mapping for common dimension names.  For dimensions
+        not present in the mapping (i.e. domain-specific dimensions loaded
+        from DomainConfig), returns a base count of 1 so that confidence
+        is neither penalised nor artificially boosted.
+        """
         relevance_map = {
             "formality": ["interior_element", "lighting", "furniture_style", "brand_signal"],
             "craftsmanship": ["material", "material_visible", "specialty"],
@@ -180,10 +186,20 @@ class ConfidenceAnalyzer:
             "service_quality": ["service_indicator"],
             "exclusivity": ["brand_presentation", "neighborhood_type", "featured"],
             "modernity": ["furniture_style", "decor_element"],
+            # Universal / cross-domain dimensions
+            "quality": ["material", "specialty", "service_indicator"],
+            "price_positioning": ["price_point", "price_tier", "price_tier_estimated"],
+            "experience": ["interior_element", "lighting", "decor_element", "service_indicator"],
+            "uniqueness": ["brand_signal", "brand_presentation", "specialty"],
+            "accessibility": ["neighborhood_type", "location_context"],
         }
-        relevant_types = set(relevance_map.get(dimension, []))
+        relevant_types = relevance_map.get(dimension)
+        if relevant_types is None:
+            # Unknown dimension from a custom domain profile — return a
+            # neutral base count so confidence stays at a reasonable level.
+            return 1
         count = 0
         for fact in fact_sheet.all_facts():
-            if fact.fact_type in relevant_types:
+            if fact.fact_type in set(relevant_types):
                 count += 1
         return count

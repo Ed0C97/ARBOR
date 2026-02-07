@@ -220,6 +220,13 @@ class Settings(BaseSettings):
     source_schema_config: str = ""  # JSON array of entity type configs
     source_schema_config_file: str = ""  # Path to JSON config file
 
+    # Domain profile configuration (JSON or file path)
+    # Defines vibe dimensions, categories, prompts, and persona for the
+    # discovery domain.  If not set, the system uses universal defaults.
+    # Generate one using: python -m app.core.domain_profile_generator
+    domain_profile_config: str = ""  # JSON domain profile
+    domain_profile_config_file: str = ""  # Path to JSON profile file
+
     # -----------------------------------------------------------------------
     # DATABASE 2: arbor_db — READ-WRITE (enrichments, gold standard, feedback)
     # Hosted on Render (Virginia)
@@ -395,6 +402,35 @@ class Settings(BaseSettings):
         for config in self.get_entity_type_configs():
             if config.entity_type == entity_type:
                 return config
+        return None
+
+    def get_domain_profile(self) -> dict | None:
+        """Load domain profile from ENV or file, if configured.
+
+        Returns:
+            Parsed JSON dict ready for ``DomainExporter.import_domain_config``,
+            or ``None`` if no profile is configured.
+        """
+        # Try file first
+        if self.domain_profile_config_file:
+            path = Path(self.domain_profile_config_file)
+            if path.exists():
+                with open(path) as f:
+                    data = json.load(f)
+                    logger.info(f"Loaded domain profile from file: {path}")
+                    return data
+            else:
+                logger.warning(f"Domain profile file not found: {path}")
+
+        # Inline JSON
+        if self.domain_profile_config:
+            try:
+                data = json.loads(self.domain_profile_config)
+                logger.info("Loaded domain profile from DOMAIN_PROFILE_CONFIG env")
+                return data
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse DOMAIN_PROFILE_CONFIG: {e}")
+
         return None
 
     def get_effective_source_db_url(self) -> str:

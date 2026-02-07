@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres.repository import UnifiedEntityRepository
+from app.db.postgres.unified_manager import UnifiedRepositoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +27,10 @@ class MetadataAgent:
         if not self._session:
             return []
 
-        repo = UnifiedEntityRepository(self._session, self._arbor_session)
+        manager = UnifiedRepositoryManager(self._session, self._arbor_session)
+        await manager.initialize()
 
-        entities, total = await repo.list_all(
+        entities, total = await manager.list_all(
             category=filters.get("category"),
             city=filters.get("city"),
             is_active=filters.get("is_active", True),

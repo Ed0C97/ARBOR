@@ -193,7 +193,7 @@ class FeedbackCollector:
                         await repo.create(
                             user_id=fb.user_id,
                             entity_type=(
-                                fb.entity_id.split("_")[0] if "_" in fb.entity_id else "brand"
+                                fb.entity_id.split("_")[0] if "_" in fb.entity_id else "unknown"
                             ),
                             source_id=fb.entity_id,
                             query=fb.query,

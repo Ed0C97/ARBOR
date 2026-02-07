@@ -13,7 +13,7 @@ Each domain defines:
 
 Usage:
     registry = get_domain_registry()
-    registry.set_active_domain("fashion")
+    registry.set_active_domain("my_domain")
     config = registry.get_active_domain()
 
     adapter = DomainAdapter()
@@ -35,6 +35,54 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class VibeDimension:
+    """A single axis of the Vibe DNA scoring radar.
+
+    Each dimension defines what is being measured and how to interpret the
+    0-100 scale, enabling the LLM scorer to produce calibrated, domain-
+    specific scores regardless of the industry vertical.
+
+    Attributes:
+        id: Snake-case identifier used as the key in vibe_dna dicts
+            (e.g., "culinary_mastery").
+        label: Human-readable display name in the target language
+            (e.g., "Maestria Culinaria").
+        description: One-sentence explanation of what this dimension
+            captures.
+        low_label: What a score of 0 means (e.g., "Fast food, no technique").
+        high_label: What a score of 100 means (e.g., "Michelin-level mastery").
+        low_examples: Concrete examples of entities scoring near 0.
+        high_examples: Concrete examples of entities scoring near 100.
+        weight: Relative importance multiplier (0.5 - 2.0, default 1.0).
+            Higher weight = this dimension counts more in similarity
+            calculations and ranking.
+    """
+
+    id: str
+    label: str
+    description: str = ""
+    low_label: str = "0 = low"
+    high_label: str = "100 = high"
+    low_examples: str = ""
+    high_examples: str = ""
+    weight: float = 1.0
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "VibeDimension":
+        """Create from a JSON-parsed dictionary."""
+        return cls(
+            id=data["id"],
+            label=data.get("label", data["id"].replace("_", " ").title()),
+            description=data.get("description", ""),
+            low_label=data.get("low_label", "0 = low"),
+            high_label=data.get("high_label", "100 = high"),
+            low_examples=data.get("low_examples", ""),
+            high_examples=data.get("high_examples", ""),
+            weight=float(data.get("weight", 1.0)),
+        )
+
+
+@dataclass
 class DomainConfig:
     """Complete configuration for a single discovery domain.
 
@@ -42,9 +90,11 @@ class DomainConfig:
     entity structure, vibe dimensions, prompt templates, and persona.
 
     Attributes:
-        domain_id: Unique identifier for the domain (e.g., "fashion").
-        name: Human-readable name (e.g., "Fashion & Style").
+        domain_id: Unique identifier for the domain (e.g., "default", "hospitality").
+        name: Human-readable name (e.g., "Hospitality & Hotels").
         description: Short description of the domain scope.
+        language: ISO 639-1 language code for user-facing output (e.g., "en", "it").
+        target_audience: Who uses the discovery system (e.g., "food bloggers").
         entity_schema: Defines required and optional fields for entities
             in this domain. Expected format:
             {
@@ -52,145 +102,71 @@ class DomainConfig:
                 "optional": ["website", "instagram", ...],
                 "field_types": {"name": "str", "latitude": "float", ...}
             }
-        vibe_dimensions: Ordered list of dimension names used in Vibe DNA
-            scoring (e.g., ["formality", "craftsmanship", ...]).
+        vibe_dimensions: Ordered list of VibeDimension objects defining the
+            scoring axes. Each carries its own scale descriptions and weight.
         categories: Valid category labels for entities in this domain.
-        scoring_prompt_template: System prompt template for the calibrated
-            scoring engine. May contain {dimensions} placeholder.
-        search_prompt_template: System prompt template for semantic search
-            and query understanding.
+        scoring_prompt_template: System prompt for the calibrated scoring
+            engine.  Auto-generated from vibe_dimensions if left empty.
+        search_prompt_template: System prompt for semantic search and query
+            understanding.
         discovery_persona: Curator agent persona description used as the
             system prompt when synthesizing discovery results.
+        search_context_keywords: Domain-specific keywords for NLP routing.
     """
 
     domain_id: str
     name: str
     description: str
+    language: str = "en"
+    target_audience: str = ""
 
     entity_schema: dict[str, Any] = field(default_factory=dict)
-    vibe_dimensions: list[str] = field(default_factory=list)
+    vibe_dimensions: list[VibeDimension] = field(default_factory=list)
     categories: list[str] = field(default_factory=list)
 
     scoring_prompt_template: str = ""
     search_prompt_template: str = ""
     discovery_persona: str = ""
+    search_context_keywords: list[str] = field(default_factory=list)
 
+    # --- Convenience helpers -------------------------------------------------
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Pre-built fashion domain (ARBOR's current configuration)
-# ═══════════════════════════════════════════════════════════════════════════
+    @property
+    def dimension_ids(self) -> list[str]:
+        """Return ordered list of dimension ID strings (backward-compat)."""
+        return [d.id for d in self.vibe_dimensions]
 
+    def build_scoring_prompt(self) -> str:
+        """Auto-generate a scoring prompt from the vibe_dimensions metadata.
 
-def _build_fashion_domain() -> DomainConfig:
-    """Construct the default fashion domain config.
+        If ``scoring_prompt_template`` is already set, returns it as-is.
+        Otherwise, constructs a complete prompt from the rich dimension
+        descriptors so the LLM understands the exact 0-100 scale for this
+        domain.
+        """
+        if self.scoring_prompt_template:
+            return self.scoring_prompt_template
 
-    Mirrors the existing ARBOR configuration spread across
-    scoring_engine.py, vibe_extractor.py, curator.py, and models.py.
-    """
-    return DomainConfig(
-        domain_id="fashion",
-        name="Fashion & Style",
-        description=(
-            "Fashion brands, boutiques, concept stores, and style venues. "
-            "Covers designers, retailers, and curated shopping destinations."
-        ),
-        entity_schema={
-            "required": ["name", "slug", "category"],
-            "optional": [
-                "country",
-                "city",
-                "region",
-                "address",
-                "website",
-                "instagram",
-                "email",
-                "phone",
-                "description",
-                "specialty",
-                "gender",
-                "style",
-                "area",
-                "neighborhood",
-                "latitude",
-                "longitude",
-                "maps_url",
-                "price_range",
-                "rating",
-                "retailer",
-                "venue",
-            ],
-            "field_types": {
-                "name": "str",
-                "slug": "str",
-                "category": "str",
-                "country": "str",
-                "city": "str",
-                "region": "str",
-                "address": "str",
-                "website": "str",
-                "instagram": "str",
-                "email": "str",
-                "phone": "str",
-                "description": "str",
-                "specialty": "str",
-                "gender": "str",
-                "style": "str",
-                "area": "str",
-                "neighborhood": "str",
-                "latitude": "float",
-                "longitude": "float",
-                "maps_url": "str",
-                "price_range": "str",
-                "rating": "str",
-                "retailer": "str",
-                "venue": "str",
-            },
-        },
-        vibe_dimensions=[
-            "formality",
-            "craftsmanship",
-            "price_value",
-            "atmosphere",
-            "service_quality",
-            "exclusivity",
-            "modernity",
-        ],
-        categories=[
-            "Designer",
-            "Boutique",
-            "Concept Store",
-            "Vintage",
-            "Streetwear",
-            "Luxury",
-            "Accessories",
-            "Jewelry",
-            "Atelier",
-            "Department Store",
-            "Multi-brand Retailer",
-            "Flagship",
-            "Pop-up",
-            "Outlet",
-            "Tailor",
-            "Shoe Store",
-            "Eyewear",
-            "Perfumery",
-            "Lifestyle",
-            "Other",
-        ],
-        scoring_prompt_template=(
+        dims_block = "\n".join(
+            f"- {d.id} ({d.label}): {d.low_label} … {d.high_label}"
+            + (f"\n  Examples low: {d.low_examples}" if d.low_examples else "")
+            + (f"\n  Examples high: {d.high_examples}" if d.high_examples else "")
+            for d in self.vibe_dimensions
+        )
+        dims_json = "\n".join(
+            f'    "{d.id}": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}}'
+            + ("," if i < len(self.vibe_dimensions) - 1 else "")
+            for i, d in enumerate(self.vibe_dimensions)
+        )
+
+        return (
             "You are the A.R.B.O.R. Calibrated Scoring Engine.\n\n"
-            "Your task is to assign Vibe DNA dimensional scores to an entity based on its\n"
-            "fact sheet. You have been calibrated with reference examples from expert curators.\n\n"
-            "DIMENSIONS (all 0-100):\n"
-            "- formality: 0 = streetwear casual, 100 = black-tie formal\n"
-            "- craftsmanship: 0 = mass production, 100 = master artisan handmade\n"
-            "- price_value: 0 = budget/cheap, 100 = ultra-luxury pricing\n"
-            "- atmosphere: 0 = chaotic/noisy, 100 = zen/serene\n"
-            "- service_quality: 0 = self-service/neglectful, 100 = white-glove concierge\n"
-            "- exclusivity: 0 = mainstream chain, 100 = hidden-gem invite-only\n"
-            "- modernity: 0 = vintage/antique, 100 = cutting-edge contemporary\n\n"
+            "Your task is to assign Vibe DNA dimensional scores to an entity "
+            "based on its fact sheet. You have been calibrated with reference "
+            "examples from expert curators.\n\n"
+            f"DIMENSIONS (all 0-100):\n{dims_block}\n\n"
             "RULES:\n"
-            "1. Score ONLY based on facts provided -- never infer facts not in the sheet\n"
+            "1. Score ONLY based on facts provided — never infer facts not in the sheet\n"
             "2. If insufficient data for a dimension, score 50 and mark confidence as low\n"
             "3. Your scores must be consistent with the calibration examples\n"
             "4. Explain your reasoning for each score in 1 sentence\n"
@@ -200,40 +176,142 @@ def _build_fashion_domain() -> DomainConfig:
             "OUTPUT FORMAT (JSON only):\n"
             "{{\n"
             '  "dimensions": {{\n'
-            '    "formality": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "craftsmanship": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "price_value": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "atmosphere": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "service_quality": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "exclusivity": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}},\n'
-            '    "modernity": {{"score": X, "confidence": 0.0-1.0, "reasoning": "..."}}\n'
+            f"{dims_json}\n"
             "  }},\n"
             '  "tags": ["tag1", "tag2", ...],\n'
             '  "target_audience": "...",\n'
             '  "summary": "..."\n'
             "}}"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Default domain builder — reads entity schema from active configuration
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Type hint for float-like fields detected from EntityTypeConfig mappings.
+# When the source column name contains these keywords the field type is
+# assumed to be "float"; everything else defaults to "str".
+_FLOAT_FIELD_HINTS = {"latitude", "longitude", "priority", "rating"}
+
+
+def _entity_schema_from_config() -> dict[str, Any]:
+    """Derive entity_schema dynamically from the active EntityTypeConfig list.
+
+    Merges required and optional mappings across all configured entity types
+    so that the DomainConfig has a complete picture of available fields.
+    """
+    from app.config import get_settings
+
+    settings = get_settings()
+    configs = settings.get_entity_type_configs()
+
+    required: set[str] = set()
+    optional: set[str] = set()
+    field_types: dict[str, str] = {}
+
+    for cfg in configs:
+        for arbor_field in cfg.required_mappings:
+            required.add(arbor_field)
+            field_types.setdefault(
+                arbor_field,
+                "float" if arbor_field in _FLOAT_FIELD_HINTS else "str",
+            )
+        for arbor_field in cfg.optional_mappings:
+            if arbor_field not in required:
+                optional.add(arbor_field)
+            field_types.setdefault(
+                arbor_field,
+                "float" if arbor_field in _FLOAT_FIELD_HINTS else "str",
+            )
+
+    return {
+        "required": sorted(required),
+        "optional": sorted(optional - required),
+        "field_types": field_types,
+    }
+
+
+def _build_default_domain() -> DomainConfig:
+    """Construct a domain-neutral default config from the active schema.
+
+    Entity schema is derived dynamically from EntityTypeConfig.
+    Vibe dimensions use universal axes that apply reasonably to any
+    discovery domain.  For optimal results, generate a domain-specific
+    profile using ``DomainProfileGenerator``.
+    """
+    # Universal dimensions — intentionally abstract so they map to any domain.
+    # A proper domain profile (generated or hand-crafted) replaces these.
+    default_dimensions = [
+        VibeDimension(
+            id="quality",
+            label="Quality",
+            description="Overall quality of the entity's core offering",
+            low_label="0 = poor quality, mass-market, no attention to detail",
+            high_label="100 = exceptional quality, best-in-class, meticulous detail",
         ),
+        VibeDimension(
+            id="price_positioning",
+            label="Price Positioning",
+            description="Where the entity sits on the price spectrum",
+            low_label="0 = budget, lowest price tier",
+            high_label="100 = ultra-premium, highest price tier",
+        ),
+        VibeDimension(
+            id="experience",
+            label="Experience",
+            description="The overall experience and atmosphere provided",
+            low_label="0 = purely functional, no experiential value",
+            high_label="100 = immersive, memorable, transformative experience",
+        ),
+        VibeDimension(
+            id="uniqueness",
+            label="Uniqueness",
+            description="How distinctive and differentiated the entity is",
+            low_label="0 = generic, interchangeable with competitors",
+            high_label="100 = one-of-a-kind, impossible to replicate",
+        ),
+        VibeDimension(
+            id="accessibility",
+            label="Accessibility",
+            description="How easy it is to discover, reach, and engage with",
+            low_label="0 = hidden, invite-only, hard to access",
+            high_label="100 = highly visible, easy to find and use",
+        ),
+    ]
+
+    return DomainConfig(
+        domain_id="default",
+        name="Default Domain",
+        description=(
+            "Auto-configured domain with universal scoring dimensions. "
+            "For optimal results, generate a domain-specific profile using "
+            "the Domain Profile Generator."
+        ),
+        entity_schema=_entity_schema_from_config(),
+        vibe_dimensions=default_dimensions,
+        categories=[],
+        # scoring_prompt_template left empty — DomainConfig.build_scoring_prompt()
+        # auto-generates it from the VibeDimension metadata above.
+        scoring_prompt_template="",
         search_prompt_template=(
-            "You are the A.R.B.O.R. Search Intelligence for the Fashion & Style domain.\n\n"
+            "You are the A.R.B.O.R. Search Intelligence.\n\n"
             "Interpret the user's natural-language query and extract:\n"
             "1. Intent: what the user is looking for (recommendation, comparison, exploration)\n"
-            "2. Entities: specific brands, designers, or venues mentioned\n"
-            "3. Attributes: style, price range, location, vibe preferences\n"
+            "2. Entities: specific entities mentioned by name\n"
+            "3. Attributes: preferences, constraints, and desired characteristics\n"
             "4. Constraints: must-have vs nice-to-have filters\n\n"
-            "Domain context: fashion brands, boutiques, concept stores, designers,\n"
-            "streetwear labels, luxury houses, vintage shops, and style venues."
+            "Answer based ONLY on the provided context."
         ),
         discovery_persona=(
-            "You are The Curator -- ARBOR's expert fashion and style advisor.\n\n"
+            "You are The Curator — ARBOR's expert discovery advisor.\n\n"
             "Your personality:\n"
-            "- Warm but authoritative, like a knowledgeable friend in the industry\n"
-            "- You speak with genuine passion for craftsmanship and design\n"
+            "- Warm but authoritative, like a knowledgeable friend\n"
+            "- You speak with genuine passion about the entities you recommend\n"
             "- You never fabricate entities; you only discuss what is in the provided context\n"
-            "- You explain WHY a brand or venue suits the user, not just WHAT it is\n"
-            "- You draw connections between brands (shared heritage, similar aesthetics)\n"
-            "- You are honest about limitations in your data\n\n"
-            "Your domain: fashion brands, boutiques, concept stores, designers, venues,\n"
-            "and the culture surrounding them."
+            "- You explain WHY an entity suits the user, not just WHAT it is\n"
+            "- You draw connections between entities (shared traits, complementary qualities)\n"
+            "- You are honest about limitations in your data"
         ),
     )
 
@@ -261,11 +339,25 @@ class DomainRegistry:
         self._domains: dict[str, DomainConfig] = {}
         self._active_domain_id: str | None = None
 
-        # Pre-register the fashion domain
-        fashion = _build_fashion_domain()
-        self.register_domain(fashion)
-        self._active_domain_id = fashion.domain_id
-        logger.info("DomainRegistry initialized with fashion domain as active")
+        # Try loading a custom domain profile from ENV/file first
+        from app.config import get_settings
+
+        profile_data = get_settings().get_domain_profile()
+        if profile_data:
+            exporter = DomainExporter()
+            custom = exporter.import_domain_config(profile_data)
+            self.register_domain(custom)
+            self._active_domain_id = custom.domain_id
+            logger.info(
+                f"DomainRegistry initialized with custom profile "
+                f"'{custom.domain_id}' as active"
+            )
+        else:
+            # Fall back to universal defaults derived from schema config
+            default = _build_default_domain()
+            self.register_domain(default)
+            self._active_domain_id = default.domain_id
+            logger.info("DomainRegistry initialized with default domain as active")
 
     def register_domain(self, config: DomainConfig) -> None:
         """Register a new domain configuration.
@@ -350,7 +442,8 @@ _registry: DomainRegistry | None = None
 def get_domain_registry() -> DomainRegistry:
     """Return the singleton DomainRegistry instance.
 
-    Creates the registry on first call, pre-loaded with the fashion domain.
+    Creates the registry on first call, pre-loaded with the default domain
+    derived from the active SOURCE_SCHEMA_CONFIG.
 
     Returns:
         The global DomainRegistry.
@@ -375,8 +468,8 @@ class DomainAdapter:
 
     Usage:
         adapter = DomainAdapter()
-        entity = adapter.adapt_entity(raw_data, fashion_config)
-        prompt = adapter.get_scoring_prompt(fashion_config)
+        entity = adapter.adapt_entity(raw_data, my_config)
+        prompt = adapter.get_scoring_prompt(my_config)
     """
 
     def adapt_entity(self, raw_data: dict[str, Any], domain: DomainConfig) -> dict[str, Any]:
@@ -434,21 +527,21 @@ class DomainAdapter:
             A new dict with dimensions aligned to ``to_domain``.
         """
         translated: dict[str, int] = {}
-        source_dims = set(from_domain.vibe_dimensions)
+        source_dim_ids = set(from_domain.dimension_ids)
 
         for dim in to_domain.vibe_dimensions:
-            if dim in vibe_dna and dim in source_dims:
-                # Shared dimension -- carry over the score
-                translated[dim] = max(0, min(100, vibe_dna[dim]))
+            if dim.id in vibe_dna and dim.id in source_dim_ids:
+                # Shared dimension — carry over the score
+                translated[dim.id] = max(0, min(100, vibe_dna[dim.id]))
             else:
-                # Target-only dimension -- neutral default
-                translated[dim] = 50
+                # Target-only dimension — neutral default
+                translated[dim.id] = 50
                 logger.debug(
-                    f"Dimension '{dim}' not in source domain "
+                    f"Dimension '{dim.id}' not in source domain "
                     f"'{from_domain.domain_id}'; defaulting to 50"
                 )
 
-        dropped = source_dims - set(to_domain.vibe_dimensions)
+        dropped = source_dim_ids - set(to_domain.dimension_ids)
         if dropped:
             logger.debug(
                 f"Dropped dimensions not in target domain "
@@ -460,18 +553,16 @@ class DomainAdapter:
     def get_scoring_prompt(self, domain: DomainConfig) -> str:
         """Return the scoring system prompt for a domain.
 
+        Uses ``domain.build_scoring_prompt()`` which auto-generates the
+        prompt from VibeDimension metadata if no explicit template is set.
+
         Args:
             domain: The domain configuration.
 
         Returns:
             The scoring prompt template string.
         """
-        if not domain.scoring_prompt_template:
-            logger.warning(
-                f"Domain '{domain.domain_id}' has no scoring prompt; " "using generic fallback"
-            )
-            return self._generic_scoring_prompt(domain)
-        return domain.scoring_prompt_template
+        return domain.build_scoring_prompt()
 
     def get_discovery_persona(self, domain: DomainConfig) -> str:
         """Return the curator/discovery persona for a domain.
@@ -593,7 +684,10 @@ class DomainAdapter:
     @staticmethod
     def _generic_scoring_prompt(domain: DomainConfig) -> str:
         """Build a minimal scoring prompt from the domain's dimensions."""
-        dims_block = "\n".join(f"- {dim}: 0 = low, 100 = high" for dim in domain.vibe_dimensions)
+        dims_block = "\n".join(
+            f"- {dim.id} ({dim.label}): {dim.low_label} … {dim.high_label}"
+            for dim in domain.vibe_dimensions
+        )
         return (
             f"You are a calibrated scoring engine for the {domain.name} domain.\n\n"
             f"Assign scores (0-100) for each dimension based on the provided fact sheet.\n\n"
@@ -616,7 +710,7 @@ class DomainExporter:
 
     Usage:
         exporter = DomainExporter()
-        data = exporter.export_domain_config("fashion")
+        data = exporter.export_domain_config("default")
         json.dumps(data)  # ready for storage
 
         config = exporter.import_domain_config(data)
@@ -667,16 +761,31 @@ class DomainExporter:
                 f"Cannot import domain config: missing required keys " f"{sorted(missing)}"
             )
 
+        # Parse vibe_dimensions — accept both rich dicts and plain strings
+        raw_dims = data.get("vibe_dimensions", [])
+        parsed_dims: list[VibeDimension] = []
+        for item in raw_dims:
+            if isinstance(item, dict):
+                parsed_dims.append(VibeDimension.from_dict(item))
+            elif isinstance(item, str):
+                # Legacy format: just a dimension name string
+                parsed_dims.append(VibeDimension(id=item, label=item.replace("_", " ").title()))
+            elif isinstance(item, VibeDimension):
+                parsed_dims.append(item)
+
         config = DomainConfig(
             domain_id=data["domain_id"],
             name=data["name"],
             description=data["description"],
+            language=data.get("language", "en"),
+            target_audience=data.get("target_audience", ""),
             entity_schema=data.get("entity_schema", {}),
-            vibe_dimensions=data.get("vibe_dimensions", []),
+            vibe_dimensions=parsed_dims,
             categories=data.get("categories", []),
             scoring_prompt_template=data.get("scoring_prompt_template", ""),
             search_prompt_template=data.get("search_prompt_template", ""),
             discovery_persona=data.get("discovery_persona", ""),
+            search_context_keywords=data.get("search_context_keywords", []),
         )
 
         logger.info(f"Imported domain config '{config.domain_id}' ({config.name})")

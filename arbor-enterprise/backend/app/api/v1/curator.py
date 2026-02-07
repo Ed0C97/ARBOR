@@ -19,10 +19,8 @@ from app.db.postgres.models import (
     ArborEnrichment,
     ArborGoldStandard,
     ArborReviewQueue,
-    Brand,
-    Venue,
 )
-from app.db.postgres.repository import UnifiedEntityRepository
+from app.db.postgres.unified_manager import UnifiedRepositoryManager
 
 router = APIRouter(prefix="/curator")
 
@@ -376,21 +374,40 @@ async def trigger_single_enrichment(
 
     Runs synchronously (no Temporal) for immediate feedback.
     """
+    from dataclasses import asdict
+    from sqlalchemy import MetaData
+    from app.config import get_settings
+    from app.db.postgres.connection import magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.generic_repository import GenericEntityRepository
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
-    # Verify entity exists (Magazine DB)
-    if body.entity_type == "brand":
-        entity = await session.get(Brand, body.source_id)
-    elif body.entity_type == "venue":
-        entity = await session.get(Venue, body.source_id)
-    else:
-        raise HTTPException(status_code=400, detail="entity_type must be 'brand' or 'venue'")
+    settings = get_settings()
+    try:
+        config = settings.get_entity_config(body.entity_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Unknown entity_type: {body.entity_type}")
 
+    # Create dynamic repo
+    table = await create_dynamic_model(config, magazine_engine, MetaData())
+    repo = GenericEntityRepository(session, config, table)
+
+    # Fetch entity
+    entity = await repo.get_by_id(body.source_id)
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
 
     # Build kwargs
-    kwargs = _entity_to_enrichment_kwargs(entity, body.entity_type, body.source_id)
+    entity_dict = asdict(entity)
+    valid_args = {
+        "name", "category", "city", "description", "specialty", "notes",
+        "website", "instagram", "style", "gender", "rating", "price_range",
+        "address", "latitude", "longitude", "neighborhood", "country",
+        "maps_url", "is_featured"
+    }
+    kwargs = {k: v for k, v in entity_dict.items() if k in valid_args}
+    kwargs["entity_type"] = body.entity_type
+    kwargs["source_id"] = body.source_id
 
     # Run enrichment (Arbor DB)
     orchestrator = EnrichmentOrchestrator(arbor_session)
@@ -418,46 +435,61 @@ async def trigger_batch_enrichment(
     For large batches, prefer the Temporal workflow approach.
     This endpoint processes entities sequentially.
     """
-
+    from dataclasses import asdict
+    from sqlalchemy import MetaData
+    from app.config import get_settings
+    from app.db.postgres.connection import magazine_engine
+    from app.db.postgres.dynamic_model import create_dynamic_model
+    from app.db.postgres.generic_repository import GenericEntityRepository
     from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 
-    # Find unenriched brands (Need check against Arbor DB for exclusion)
-    # This logic is tricky: "not in arbor_enrichments".
-    # Since they are different DBs, we can't do a direct SQL subquery join unless fdw used.
-    # We must fetch IDs from Arbor first, then query Magazine.
+    settings = get_settings()
+
     # 1. Get existing enriched IDs from Arbor
     existing_enrichments_result = await arbor_session.execute(
         select(ArborEnrichment.entity_type, ArborEnrichment.source_id)
     )
     existing_map = {(row.entity_type, row.source_id) for row in existing_enrichments_result.all()}
 
-    # 2. Query Magazine for entities (fetch slightly more to handle client-side filtering)
-    # Warning: this is inefficient for large datasets, but acceptable for this batch endpoint logic
-    # Better approach: Iterate Magazine entities and skip if in set.
-
-    # Simpler implementation for prototype:
-    # Just fetch candidates from Magazine and check against local set.
-
+    # 2. Fetch candidates from Source DB
     candidates = []
-
-    if body.entity_type is None or body.entity_type == "brand":
-        res = await session.execute(
-            select(Brand).where(Brand.is_active).limit(body.max_entities * 2)
-        )
-        for b in res.scalars().all():
-            if ("brand", b.id) not in existing_map:
-                candidates.append(("brand", b))
-                if len(candidates) >= body.max_entities:
-                    break
-
-    remaining = body.max_entities - len(candidates)
-    if remaining > 0 and (body.entity_type is None or body.entity_type == "venue"):
-        res = await session.execute(select(Venue).where(Venue.is_active).limit(remaining * 5))
-        for v in res.scalars().all():
-            if ("venue", v.id) not in existing_map:
-                candidates.append(("venue", v))
-                if len(candidates) >= body.max_entities:
-                    break
+    
+    target_types = [body.entity_type] if body.entity_type else settings.get_entity_types()
+    
+    for etype in target_types:
+        remaining = body.max_entities - len(candidates)
+        if remaining <= 0:
+            break
+            
+        try:
+            config = settings.get_entity_config(etype)
+        except ValueError:
+            continue
+            
+        table = await create_dynamic_model(config, magazine_engine, MetaData())
+        repo = GenericEntityRepository(session, config, table)
+        
+        # We need a way to scan efficiently. 
+        # GenericRepo doesn't have scan, let's just list with limit * scalar
+        # Iterating is safer than fetching all IDs.
+        
+        # Simple fetch with limit. Filter in memory is okay for small batch endpoint.
+        # But better: select ID where ID not in existing list? 
+        # existing list is (type, id). We can filter Python side.
+        
+        # Let's fetch 2x remaining to have buffer for duplicates
+        scan_limit = remaining * 2
+        # list_entities returns UnifiedEntity objects
+        # We need to implement list_entities in GenericRepo or do raw query.
+        # list_entities exists!
+        
+        entities, _ = await repo.list_entities(limit=scan_limit)
+        
+        for ent in entities:
+             if (etype, int(ent.id)) not in existing_map:
+                 candidates.append((etype, ent))
+                 if len(candidates) >= body.max_entities:
+                     break
 
     if not candidates:
         return {"message": "No unenriched entities found", "total": 0, "enriched": 0, "failed": 0}
@@ -469,8 +501,20 @@ async def trigger_batch_enrichment(
     results = []
 
     for entity_type, entity in candidates:
-        source_id = entity.id
-        kwargs = _entity_to_enrichment_kwargs(entity, entity_type, source_id)
+        # Entity is UnifiedEntity
+        source_id = int(entity.id)
+        
+        entity_dict = asdict(entity)
+        valid_args = {
+            "name", "category", "city", "description", "specialty", "notes",
+            "website", "instagram", "style", "gender", "rating", "price_range",
+            "address", "latitude", "longitude", "neighborhood", "country",
+            "maps_url", "is_featured"
+        }
+        kwargs = {k: v for k, v in entity_dict.items() if k in valid_args}
+        kwargs["entity_type"] = entity_type
+        kwargs["source_id"] = source_id
+        
         result = await orchestrator.enrich_entity(**kwargs)
         if result.success:
             enriched += 1
@@ -498,8 +542,9 @@ async def get_enrichment_status(
     arbor_session: AsyncSession = Depends(get_arbor_db),
 ):
     """Get overall enrichment pipeline status and statistics."""
-    repo = UnifiedEntityRepository(session, arbor_session)
-    stats = await repo.stats()
+    manager = UnifiedRepositoryManager(session, arbor_session)
+    await manager.initialize()
+    stats = await manager.stats()
 
     pending_result = await arbor_session.execute(
         select(func.count())
@@ -564,43 +609,4 @@ async def analyze_feedback(
 # ---------------------------------------------------------------------------
 
 
-def _entity_to_enrichment_kwargs(entity, entity_type: str, source_id: int) -> dict:
-    """Convert a Brand or Venue ORM object to enrichment kwargs."""
-    base = {
-        "entity_type": entity_type,
-        "source_id": source_id,
-        "name": entity.name,
-        "category": entity.category,
-        "description": getattr(entity, "description", None),
-        "specialty": getattr(entity, "specialty", None),
-        "notes": getattr(entity, "notes", None),
-        "website": getattr(entity, "website", None),
-        "instagram": getattr(entity, "instagram", None),
-        "style": getattr(entity, "style", None),
-        "gender": getattr(entity, "gender", None),
-        "rating": getattr(entity, "rating", None),
-        "is_featured": getattr(entity, "is_featured", False),
-        "country": getattr(entity, "country", None),
-    }
 
-    if entity_type == "venue":
-        base.update(
-            {
-                "city": getattr(entity, "city", None),
-                "address": getattr(entity, "address", None),
-                "latitude": getattr(entity, "latitude", None),
-                "longitude": getattr(entity, "longitude", None),
-                "neighborhood": getattr(entity, "region", None),
-                "maps_url": getattr(entity, "maps_url", None),
-                "price_range": getattr(entity, "price_range", None),
-            }
-        )
-    else:
-        base.update(
-            {
-                "city": getattr(entity, "area", None),
-                "neighborhood": getattr(entity, "neighborhood", None),
-            }
-        )
-
-    return base

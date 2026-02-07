@@ -25,8 +25,10 @@ async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
     from app.db.postgres.connection import (
         arbor_session_factory,
         magazine_session_factory,
+        magazine_engine,
     )
-    from app.db.postgres.models import ArborEnrichment, Brand, Venue
+    from app.db.postgres.models import ArborEnrichment
+    from app.db.postgres.entity_resolver import resolve_entity_fields_batch
 
     # 1. Fetch from Arbor DB
     async with arbor_session_factory() as arbor_session:
@@ -41,43 +43,40 @@ async def fetch_unsynced_enrichments(batch_size: int = 100) -> list[dict]:
     if not enrichments:
         return []
 
+    # Group enrichments by entity_type for batch resolution
+    by_type: dict[str, list] = {}
+    for enr in enrichments:
+        by_type.setdefault(enr.entity_type, []).append(enr)
+
     items = []
 
-    # 2. Fetch details from Magazine DB
+    # 2. Fetch details from Source DB using schema-agnostic resolver
     async with magazine_session_factory() as mag_session:
-        for enr in enrichments:
-            # Resolve entity name and category from source table
-            name, category, city = None, None, None
-
-            if enr.entity_type == "brand":
-                brand = await mag_session.get(Brand, enr.source_id)
-                if brand:
-                    name = brand.name
-                    category = brand.category
-                    city = brand.area or brand.neighborhood
-            elif enr.entity_type == "venue":
-                venue = await mag_session.get(Venue, enr.source_id)
-                if venue:
-                    name = venue.name
-                    category = venue.category
-                    city = venue.city
-
-            if name is None:
-                continue
-
-            items.append(
-                {
-                    "enrichment_id": str(enr.id),
-                    "entity_type": enr.entity_type,
-                    "source_id": enr.source_id,
-                    "composite_id": f"{enr.entity_type}_{enr.source_id}",
-                    "name": name,
-                    "category": category or "",
-                    "city": city,
-                    "vibe_dna": enr.vibe_dna or {},
-                    "tags": enr.tags or [],
-                }
+        for etype, enrs in by_type.items():
+            source_ids = [e.source_id for e in enrs]
+            fields_map = await resolve_entity_fields_batch(
+                mag_session, etype, source_ids,
+                ["name", "category", "city"],
+                engine=magazine_engine,
             )
+            for enr in enrs:
+                f = fields_map.get(enr.source_id, {})
+                name = f.get("name")
+                if name is None:
+                    continue
+                items.append(
+                    {
+                        "enrichment_id": str(enr.id),
+                        "entity_type": enr.entity_type,
+                        "source_id": enr.source_id,
+                        "composite_id": f"{enr.entity_type}_{enr.source_id}",
+                        "name": name,
+                        "category": f.get("category") or "",
+                        "city": f.get("city"),
+                        "vibe_dna": enr.vibe_dna or {},
+                        "tags": enr.tags or [],
+                    }
+                )
 
     return items
 

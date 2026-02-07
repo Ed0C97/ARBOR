@@ -9,10 +9,13 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.db.postgres.connection import magazine_session_factory, arbor_session_factory
-from app.db.postgres.repository import EnrichmentRepository, UnifiedEntityRepository
+from app.db.postgres.repository import EnrichmentRepository
 from app.ingestion.pipeline.enrichment_orchestrator import EnrichmentOrchestrator
 from sqlalchemy import select, func
-from app.db.postgres.models import ArborEnrichment, Brand, Venue
+from app.db.postgres.models import ArborEnrichment
+from app.config import get_settings
+from app.db.postgres.dynamic_model import create_dynamic_model
+from app.db.postgres.connection import magazine_engine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,43 +29,42 @@ async def main():
     logger.info(f"Starting batch enrichment (max={max_entities}, type={entity_type})...")
 
     async with magazine_session_factory() as main_session, arbor_session_factory() as arbor_session:
-        # Get unified repository
-        unified_repo = UnifiedEntityRepository(main_session, arbor_session)
-
         # Find entities without enrichment
         logger.info("Finding entities without enrichment...")
 
-        # Get all entity IDs from main DB
+        # Get all entity IDs from main DB using dynamic models
+        from sqlalchemy import MetaData
+        settings = get_settings()
+        configs = settings.get_entity_type_configs()
+        target_configs = configs
+        if entity_type:
+            target_configs = [c for c in configs if c.entity_type == entity_type]
+
+        _metadata = MetaData()
         all_entities = []
 
-        # Get brands
-        if entity_type is None or entity_type == "brand":
-            result = await main_session.execute(
-                select(Brand.id, Brand.name)
-                .where(Brand.is_active == True)
-                .limit(max_entities * 2)
-            )
-            brands = result.all()
-            for brand_id, name in brands:
-                all_entities.append({
-                    "entity_type": "brand",
-                    "source_id": brand_id,
-                    "name": name
-                })
+        for config in target_configs:
+            table = await create_dynamic_model(config, magazine_engine, _metadata)
+            id_col = table.c[config.id_column]
+            # Build select with optional name column
+            cols = [id_col]
+            name_col_name = config.required_mappings.get("name") or config.all_mappings.get("name")
+            if name_col_name and name_col_name in table.c:
+                cols.append(table.c[name_col_name])
 
-        # Get venues
-        if entity_type is None or entity_type == "venue":
-            result = await main_session.execute(
-                select(Venue.id, Venue.name)
-                .where(Venue.is_active == True)
-                .limit(max_entities * 2)
-            )
-            venues = result.all()
-            for venue_id, name in venues:
+            stmt = select(*cols).limit(max_entities * 2)
+            # Apply active filter if configured
+            if config.active_filter_column and config.active_filter_column in table.c:
+                stmt = stmt.where(
+                    table.c[config.active_filter_column] == config.active_filter_value
+                )
+
+            result = await main_session.execute(stmt)
+            for row in result:
                 all_entities.append({
-                    "entity_type": "venue",
-                    "source_id": venue_id,
-                    "name": name
+                    "entity_type": config.entity_type,
+                    "source_id": row[0],
+                    "name": row[1] if len(cols) > 1 else f"{config.entity_type} #{row[0]}",
                 })
 
         # Filter out already enriched

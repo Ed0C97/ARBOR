@@ -11,7 +11,8 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres.models import ArborGoldStandard, Brand, Venue
+from app.db.postgres.models import ArborGoldStandard
+from app.db.postgres.entity_resolver import resolve_entity_fields
 from app.ingestion.pipeline.schemas import DimensionName, GoldStandardEntity
 
 logger = logging.getLogger(__name__)
@@ -20,8 +21,9 @@ logger = logging.getLogger(__name__)
 class GoldStandardRepository:
     """CRUD for the gold standard reference set."""
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, source_session: AsyncSession | None = None):
         self.session = session
+        self.source_session = source_session or session
 
     async def get(self, entity_type: str, source_id: int) -> ArborGoldStandard | None:
         result = await self.session.execute(
@@ -81,20 +83,18 @@ class GoldStandardRepository:
         return False
 
     async def _get_entity_category(self, entity_type: str, source_id: int) -> str | None:
-        if entity_type == "brand":
-            brand = await self.session.get(Brand, source_id)
-            return brand.category if brand else None
-        elif entity_type == "venue":
-            venue = await self.session.get(Venue, source_id)
-            return venue.category if venue else None
-        return None
+        fields = await resolve_entity_fields(
+            self.source_session, entity_type, source_id, ["category"]
+        )
+        return fields.get("category")
 
 
 class GoldStandardManager:
     """Business logic for managing the gold standard reference set."""
 
-    def __init__(self, session: AsyncSession):
-        self.repo = GoldStandardRepository(session)
+    def __init__(self, session: AsyncSession, source_session: AsyncSession | None = None):
+        self.source_session = source_session or session
+        self.repo = GoldStandardRepository(session, source_session=self.source_session)
         self.session = session
 
     async def add_gold_entity(
@@ -233,19 +233,13 @@ class GoldStandardManager:
         }
 
     async def _get_entity_name(self, entity_type: str, source_id: int) -> str | None:
-        if entity_type == "brand":
-            brand = await self.session.get(Brand, source_id)
-            return brand.name if brand else None
-        elif entity_type == "venue":
-            venue = await self.session.get(Venue, source_id)
-            return venue.name if venue else None
-        return None
+        fields = await resolve_entity_fields(
+            self.source_session, entity_type, source_id, ["name"]
+        )
+        return fields.get("name")
 
     async def _get_entity_category(self, entity_type: str, source_id: int) -> str | None:
-        if entity_type == "brand":
-            brand = await self.session.get(Brand, source_id)
-            return brand.category if brand else None
-        elif entity_type == "venue":
-            venue = await self.session.get(Venue, source_id)
-            return venue.category if venue else None
-        return None
+        fields = await resolve_entity_fields(
+            self.source_session, entity_type, source_id, ["category"]
+        )
+        return fields.get("category")

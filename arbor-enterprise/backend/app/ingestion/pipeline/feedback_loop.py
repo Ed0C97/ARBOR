@@ -46,7 +46,7 @@ class ContinuousLearner:
         """Apply a curator's score override and optionally promote to gold standard.
 
         Args:
-            entity_type: "brand" or "venue"
+            entity_type: Configured entity type (e.g. "brand", "venue", "product")
             source_id: Source table ID
             overridden_scores: Curator's corrected dimension scores
             overridden_tags: Curator's corrected tags

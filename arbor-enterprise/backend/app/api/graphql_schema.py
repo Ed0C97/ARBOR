@@ -18,11 +18,8 @@ from strawberry.scalars import JSON
 
 from app.config import get_settings
 from app.db.postgres.connection import arbor_session_factory, magazine_session_factory
-from app.db.postgres.repository import (
-    EnrichmentRepository,
-    FeedbackRepository,
-    UnifiedEntityRepository,
-)
+from app.db.postgres.repository import EnrichmentRepository, FeedbackRepository
+from app.db.postgres.unified_manager import UnifiedRepositoryManager
 from app.db.qdrant.hybrid_search import HybridSearch
 from app.llm.gateway import get_llm_gateway
 
@@ -48,7 +45,7 @@ class EntityType:
     description: str | None = None
     is_featured: bool = False
     is_active: bool = True
-    entity_type: str = "brand"  # "brand" | "venue"
+    entity_type: str = ""  # Configured entity type
     vibe_dna: JSON | None = None
     tags: list[str] | None = None
 
@@ -195,8 +192,9 @@ class Query:
             async with mag_session as session:
                 a_session_ctx = arb_session if arb_session else session
                 async with a_session_ctx as a_session:
-                    repo = UnifiedEntityRepository(session, a_session)
-                    entities, _total = await repo.list_all(
+                    manager = UnifiedRepositoryManager(session, a_session)
+                    await manager.initialize()
+                    entities, _total = await manager.list_all(
                         category=category,
                         city=city,
                         style=style,
@@ -223,8 +221,9 @@ class Query:
             async with mag_session as session:
                 a_session_ctx = arb_session if arb_session else session
                 async with a_session_ctx as a_session:
-                    repo = UnifiedEntityRepository(session, a_session)
-                    entity = await repo.get_by_composite_id(id)
+                    manager = UnifiedRepositoryManager(session, a_session)
+                    await manager.initialize()
+                    entity = await manager.get_by_composite_id(id)
                     return _unified_to_graphql(entity) if entity else None
         except Exception as exc:
             logger.exception("GraphQL entity resolver error: %s", exc)
@@ -557,8 +556,9 @@ class Subscription:
                         async with mag_session as session:
                             a_session_ctx = arb_session if arb_session else session
                             async with a_session_ctx as a_session:
-                                repo = UnifiedEntityRepository(session, a_session)
-                                entity = await repo.get_by_composite_id(entity_id)
+                                manager = UnifiedRepositoryManager(session, a_session)
+                                await manager.initialize()
+                                entity = await manager.get_by_composite_id(entity_id)
                                 if entity:
                                     yield _unified_to_graphql(entity)
         except Exception as exc:
@@ -572,8 +572,9 @@ class Subscription:
                         async with mag_session as session:
                             a_session_ctx = arb_session if arb_session else session
                             async with a_session_ctx as a_session:
-                                repo = UnifiedEntityRepository(session, a_session)
-                                entities, _ = await repo.list_all(
+                                manager = UnifiedRepositoryManager(session, a_session)
+                                await manager.initialize()
+                                entities, _ = await manager.list_all(
                                     entity_type=entity_type,
                                     limit=1,
                                 )

@@ -58,24 +58,36 @@ class VibeExtractor:
         }
 
     def _default_result(self) -> dict:
+        dim_ids = self._get_dimension_ids()
         return {
-            "dimensions": {
-                "formality": 50,
-                "craftsmanship": 50,
-                "price_value": 50,
-                "atmosphere": 50,
-                "service_quality": 50,
-                "exclusivity": 50,
-            },
+            "dimensions": {d: 50 for d in dim_ids},
             "tags": [],
             "signature_items": [],
             "target_audience": "General",
             "summary": "",
         }
 
+    @staticmethod
+    def _get_dimension_ids() -> list[str]:
+        """Return dimension IDs from the active DomainConfig.
+
+        Falls back to a minimal set if the domain registry is
+        unavailable (e.g. during Temporal activity serialization).
+        """
+        try:
+            from app.core.domain_portability import get_domain_registry
+            domain = get_domain_registry().get_active_domain()
+            return domain.dimension_ids
+        except Exception:
+            return [
+                "formality", "craftsmanship", "price_value",
+                "atmosphere", "service_quality", "exclusivity",
+            ]
+
     def _default_prompt(self) -> str:
+        dim_ids = self._get_dimension_ids()
+        dims_str = ", ".join(dim_ids)
         return (
             "Analyze reviews and extract dimensional scores as JSON. "
-            "Dimensions: formality, craftsmanship, price_value, atmosphere, "
-            "service_quality, exclusivity (all 0-100)."
+            f"Dimensions: {dims_str} (all 0-100)."
         )

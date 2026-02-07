@@ -1,11 +1,15 @@
 """SQLAlchemy ORM models for A.R.B.O.R. Enterprise.
 
 TWO separate declarative bases for TWO separate databases:
-- MagazineBase → magazine_h182 on Render (READ-ONLY: brands, venues)
+- MagazineBase → magazine_h182 on Render (READ-ONLY source tables)
 - ArborBase    → arbor_db (READ-WRITE: enrichments, users, feedback, gold standard)
 
-Brand / Venue still inherit from the shared "Base" for backwards compatibility
-with existing code that does `from app.db.postgres.models import Brand`.
+DEPRECATION NOTICE:
+The Brand and Venue ORM classes below are DEPRECATED. They are retained only for
+Alembic migration compatibility and as a reference for the default schema fallback.
+All business logic now uses the schema-agnostic GenericEntityRepository +
+UnifiedRepositoryManager backed by dynamically-reflected tables. Do NOT import
+Brand or Venue in new code — use entity_resolver.py or GenericEntityRepository.
 """
 
 import uuid
@@ -54,8 +58,10 @@ Base = MagazineBase
 
 
 class Brand(MagazineBase):
-    """Maps to the existing 'brands' table (read-only).
+    """DEPRECATED: Maps to the existing 'brands' table (read-only).
 
+    Retained for Alembic migrations and default-schema fallback only.
+    New code should use GenericEntityRepository with EntityTypeConfig instead.
     Column types match the ACTUAL magazine_h182 database schema exactly.
     """
 
@@ -102,8 +108,10 @@ class Brand(MagazineBase):
 
 
 class Venue(MagazineBase):
-    """Maps to the existing 'venues' table (read-only).
+    """DEPRECATED: Maps to the existing 'venues' table (read-only).
 
+    Retained for Alembic migrations and default-schema fallback only.
+    New code should use GenericEntityRepository with EntityTypeConfig instead.
     Column types match the ACTUAL magazine_h182 database schema exactly.
     """
 
@@ -153,14 +161,14 @@ class Venue(MagazineBase):
 class ArborEnrichment(ArborBase):
     """Stores ARBOR-generated enrichment data (vibe_dna, tags, embeddings).
 
-    Links to brands/venues via entity_type + source_id.
+    Links to source entities via entity_type + source_id.
     """
 
     __tablename__ = "arbor_enrichments"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    # Link to source: entity_type = "brand" | "venue", source_id = brands.id or venues.id
+    # Link to source: entity_type + source_id (any configured entity type)
     entity_type: Mapped[str] = mapped_column(String(10), nullable=False)
     source_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
@@ -284,7 +292,7 @@ class ArborReviewQueue(ArborBase):
 class ArborFeedback(ArborBase):
     """User feedback on discovery results.
 
-    Links to brands/venues via entity_type + source_id (no FK to avoid
+    Links to source entities via entity_type + source_id (no FK to avoid
     cross-table constraints on the read-only source tables).
     """
 

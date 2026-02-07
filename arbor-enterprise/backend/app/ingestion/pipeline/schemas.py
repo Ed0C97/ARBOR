@@ -39,7 +39,13 @@ class ReviewStatus(str, Enum):
 
 
 class DimensionName(str, Enum):
-    """Canonical Vibe DNA dimension names."""
+    """Legacy Vibe DNA dimension names (kept for backward compatibility).
+
+    New code should call ``DimensionName.all_names()`` which dynamically
+    reads dimension IDs from the active ``DomainConfig`` at runtime.
+    The enum members below serve only as fallback values if the domain
+    registry is unavailable (e.g. during Temporal activity serialization).
+    """
 
     FORMALITY = "formality"
     CRAFTSMANSHIP = "craftsmanship"
@@ -51,7 +57,18 @@ class DimensionName(str, Enum):
 
     @classmethod
     def all_names(cls) -> list[str]:
-        return [d.value for d in cls]
+        """Return dimension IDs from the active DomainConfig.
+
+        Falls back to the hardcoded enum members if the domain registry
+        is not yet initialised (avoids import-time errors during
+        Temporal activity serialization).
+        """
+        try:
+            from app.core.domain_portability import get_domain_registry
+            domain = get_domain_registry().get_active_domain()
+            return domain.dimension_ids
+        except Exception:
+            return [d.value for d in cls]
 
 
 # ---------------------------------------------------------------------------

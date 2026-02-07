@@ -180,6 +180,63 @@ class UnifiedRepositoryManager:
 
         return paginated, total
 
+    async def list_with_cursor(
+        self,
+        entity_type: str | None = None,
+        category: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        cursor_created_at: str | None = None,
+        cursor_id: int | None = None,
+        limit: int = 50,
+    ) -> tuple[list[UnifiedEntity], int]:
+        """List entities using keyset (cursor-based) pagination.
+
+        For a single entity_type, delegates to the repo's cursor method.
+        For all types, queries each repo and merges results.
+        """
+        if entity_type:
+            repo = self.get_repository(entity_type)
+            if repo is None:
+                return [], 0
+
+            entities, total = await repo.list_with_cursor(
+                category=category,
+                city=city,
+                country=country,
+                cursor_created_at=cursor_created_at,
+                cursor_id=cursor_id,
+                limit=limit,
+            )
+            await self._attach_enrichments(entities)
+            return entities, total
+
+        # All entity types: query each, merge, sort, trim
+        all_entities: list[UnifiedEntity] = []
+        total = 0
+        per_type_limit = max(limit, limit // max(len(self._repositories), 1))
+
+        for etype, repo in self._repositories.items():
+            entities, count = await repo.list_with_cursor(
+                category=category,
+                city=city,
+                country=country,
+                cursor_created_at=cursor_created_at,
+                cursor_id=cursor_id,
+                limit=per_type_limit,
+            )
+            all_entities.extend(entities)
+            total += count
+
+        # Sort by created_at desc, then source_id desc
+        all_entities.sort(
+            key=lambda e: (e.created_at or "", e.source_id),
+            reverse=True,
+        )
+        trimmed = all_entities[:limit]
+        await self._attach_enrichments(trimmed)
+        return trimmed, total
+
     async def _get_enrichment(
         self, entity_type: str, source_id: int
     ) -> ArborEnrichment | None:

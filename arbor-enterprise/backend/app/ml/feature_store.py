@@ -53,18 +53,21 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # ---------------------------------------------------------------------------
-# ARBOR vibe dimensions (canonical list from domain_portability)
+# ARBOR vibe dimensions — loaded dynamically from active domain config
 # ---------------------------------------------------------------------------
 
-VIBE_DIMENSIONS: list[str] = [
-    "formality",
-    "craftsmanship",
-    "price_value",
-    "atmosphere",
-    "service_quality",
-    "exclusivity",
-    "modernity",
-]
+
+def _get_vibe_dimensions() -> list[str]:
+    """Return dimension IDs from the active DomainConfig."""
+    try:
+        from app.core.domain_portability import get_domain_registry
+        return get_domain_registry().get_active_domain().dimension_ids
+    except Exception:
+        # Fallback for unit tests or early import before registry is ready
+        return ["quality", "price_positioning", "experience", "uniqueness", "accessibility"]
+
+
+VIBE_DIMENSIONS: list[str] = _get_vibe_dimensions()
 
 
 # ============================================================================

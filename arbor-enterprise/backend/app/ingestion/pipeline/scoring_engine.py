@@ -22,45 +22,32 @@ from app.llm.gateway import get_llm_gateway
 
 logger = logging.getLogger(__name__)
 
-SCORING_SYSTEM_PROMPT = """You are the A.R.B.O.R. Calibrated Scoring Engine.
 
-Your task is to assign Vibe DNA dimensional scores to an entity based on its
-fact sheet. You have been calibrated with reference examples from expert curators.
+def _get_scoring_system_prompt() -> str:
+    """Build the scoring system prompt from the active DomainConfig.
 
-DIMENSIONS (all 0-100):
-- formality: 0 = streetwear casual, 100 = black-tie formal
-- craftsmanship: 0 = mass production, 100 = master artisan handmade
-- price_value: 0 = budget/cheap, 100 = ultra-luxury pricing
-- atmosphere: 0 = chaotic/noisy, 100 = zen/serene
-- service_quality: 0 = self-service/neglectful, 100 = white-glove concierge
-- exclusivity: 0 = mainstream chain, 100 = hidden-gem invite-only
-- modernity: 0 = vintage/antique, 100 = cutting-edge contemporary
+    Uses ``DomainConfig.build_scoring_prompt()`` which auto-generates
+    the prompt from VibeDimension metadata so that dimensions are never
+    hardcoded.
 
-RULES:
-1. Score ONLY based on facts provided — never infer facts not in the sheet
-2. If insufficient data for a dimension, score 50 and mark confidence as low
-3. Your scores must be consistent with the calibration examples
-4. Explain your reasoning for each score in 1 sentence
-5. Assign 5-10 descriptive tags
-6. Identify the target audience in 1-2 words
-7. Write a 1-sentence summary of the entity's vibe
-
-OUTPUT FORMAT (JSON only):
-{
-  "dimensions": {
-    "formality": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "craftsmanship": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "price_value": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "atmosphere": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "service_quality": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "exclusivity": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."},
-    "modernity": {"score": X, "confidence": 0.0-1.0, "reasoning": "..."}
-  },
-  "tags": ["tag1", "tag2", ...],
-  "target_audience": "...",
-  "summary": "..."
-}
-"""
+    Falls back to a minimal generic prompt if the domain registry is
+    unavailable (e.g. during Temporal activity deserialization).
+    """
+    try:
+        from app.core.domain_portability import get_domain_registry
+        domain = get_domain_registry().get_active_domain()
+        return domain.build_scoring_prompt()
+    except Exception:
+        logger.warning(
+            "Could not load scoring prompt from DomainConfig; "
+            "using minimal fallback prompt"
+        )
+        return (
+            "You are the A.R.B.O.R. Calibrated Scoring Engine.\n\n"
+            "Assign Vibe DNA dimensional scores (0-100) to an entity "
+            "based on its fact sheet. Output JSON with 'dimensions', "
+            "'tags', 'target_audience', and 'summary'."
+        )
 
 
 class CalibratedScoringEngine:
@@ -84,7 +71,7 @@ class CalibratedScoringEngine:
             ScoredVibeDNA with per-dimension scores, confidence, and metadata.
         """
         # Build the prompt with optional few-shot examples
-        messages = [{"role": "system", "content": SCORING_SYSTEM_PROMPT}]
+        messages = [{"role": "system", "content": _get_scoring_system_prompt()}]
 
         # Add few-shot examples from gold standard
         if gold_examples:
