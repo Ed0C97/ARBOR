@@ -1,0 +1,1163 @@
+{
+  "iteration_id": 7,
+  "seed": 49,
+  "vertical": "hotel",
+  "schema_name": "test_hotel_49",
+  "timestamp": "2026-02-07T12:15:05.506614+00:00",
+  "success": true,
+  "summary": {
+    "tables": 11,
+    "columns": 149,
+    "rows": 5476,
+    "fk_relationships": 1
+  },
+  "timing": {
+    "schema_generation_s": 0.0009747089999994074,
+    "data_population_s": 0.7055159170000005,
+    "test_execution_s": 2.7625000000419675e-05,
+    "cleanup_s": 1.56669999995529e-05,
+    "total_s": 0.7065651670000008
+  },
+  "memory": {
+    "before_mb": 37.11,
+    "after_mb": 37.69,
+    "delta_mb": 0.5799999999999983
+  },
+  "tests": {
+    "passed": 4,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "details": [
+      {
+        "name": "schema_has_tables",
+        "passed": true,
+        "message": "Schema has 11 tables",
+        "duration_s": 0.0
+      },
+      {
+        "name": "tables_have_pk",
+        "passed": true,
+        "message": "11/11 tables have PK",
+        "duration_s": 0.0
+      },
+      {
+        "name": "schema_queryable",
+        "passed": true,
+        "message": "Mock connection (test skipped)",
+        "duration_s": 0.0
+      },
+      {
+        "name": "valid_column_names",
+        "passed": true,
+        "message": "All column names valid",
+        "duration_s": 0.0
+      }
+    ]
+  },
+  "schema_details": {
+    "schema_name": "test_hotel_49",
+    "vertical": "hotel",
+    "tables": [
+      {
+        "name": "bookings",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_priority",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_size",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size_63",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_height",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_status",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_size",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size_62",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_status",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "staff",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_priority",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_url",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_width",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating_41",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "services",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_level",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_length",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "avg_status",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "complaints",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_length",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_notes",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_phone",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_width",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating_41",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "guests_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "loyalty_members",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_comment",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_amount",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number_27",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "reviews",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_value",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_code",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_number",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "rooms",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_width",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_height",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_address",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes_76",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_width",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_value",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_rating",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score_69",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_size",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_time",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes_71",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "housekeeping",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_level",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_comment",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_size",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_value",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_size",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating_19",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length_52",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "invoices",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_address",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_width",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "guests",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_length",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_comment",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_weight",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_number",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "events",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rate",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_level",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_address",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      }
+    ],
+    "seed": 49
+  },
+  "errors": []
+}

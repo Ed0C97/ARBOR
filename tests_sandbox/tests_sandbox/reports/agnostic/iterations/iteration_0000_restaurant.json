@@ -1,0 +1,845 @@
+{
+  "iteration_id": 0,
+  "seed": 42,
+  "vertical": "restaurant",
+  "schema_name": "test_restaurant_42",
+  "timestamp": "2026-02-07T12:42:05.527051+00:00",
+  "success": true,
+  "summary": {
+    "tables": 6,
+    "columns": 72,
+    "rows": 2472,
+    "fk_relationships": 1
+  },
+  "timing": {
+    "schema_generation_s": 0.0008907499999999957,
+    "data_population_s": 0.282437041,
+    "test_execution_s": 2.6999999999999247e-05,
+    "cleanup_s": 2.1959000000015827e-05,
+    "total_s": 0.284161958
+  },
+  "memory": {
+    "before_mb": 32.66,
+    "after_mb": 34.58,
+    "delta_mb": 1.9200000000000017
+  },
+  "tests": {
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "details": [
+      {
+        "name": "schema_has_tables",
+        "passed": true,
+        "message": "Schema has 6 tables",
+        "duration_s": 0.0
+      },
+      {
+        "name": "tables_have_pk",
+        "passed": true,
+        "message": "6/6 tables have PK",
+        "duration_s": 0.0
+      },
+      {
+        "name": "schema_queryable",
+        "passed": true,
+        "message": "Mock connection (test skipped)",
+        "duration_s": 0.0
+      },
+      {
+        "name": "valid_column_names",
+        "passed": true,
+        "message": "All column names valid",
+        "duration_s": 0.0
+      },
+      {
+        "name": "config_covers_all_tables",
+        "passed": true,
+        "message": "All 6 tables mapped",
+        "duration_s": 0.0
+      },
+      {
+        "name": "configs_have_name_mapping",
+        "passed": true,
+        "message": "6/6 have name mapping",
+        "duration_s": 0.0
+      },
+      {
+        "name": "domain_profile_valid",
+        "passed": true,
+        "message": "dims:8 aspects:5 entities:6",
+        "duration_s": 0.0
+      },
+      {
+        "name": "profile_matches_vertical",
+        "passed": true,
+        "message": "Profile: restaurant, Schema: restaurant",
+        "duration_s": 0.0
+      }
+    ]
+  },
+  "schema_details": {
+    "schema_name": "test_restaurant_42",
+    "vertical": "restaurant",
+    "tables": [
+      {
+        "name": "promotions",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_comment",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_date",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "orders",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_type",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "tables_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "menu_items",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_type",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_priority",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_phone",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_notes",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_amount",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "tables",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_priority",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_height",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_level",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_date",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type_40",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status_69",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "reservations",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_number",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_score",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "categories",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_status",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_type",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "avg_time",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      }
+    ],
+    "seed": 42,
+    "arbor_config": {
+      "schema_config": [
+        {
+          "entity_type": "promotions",
+          "table_name": "promotions",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "value"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "orders",
+          "table_name": "orders",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "rating": "rating",
+            "category": "first_type"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "rating",
+            "notes"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "menu_items",
+          "table_name": "menu_items",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "category": "max_type"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "primary_phone",
+            "time",
+            "external_amount"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "tables",
+          "table_name": "tables",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "status": "status_69",
+            "category": "type_40"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "num_priority",
+            "last_date"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "reservations",
+          "table_name": "reservations",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "first_number"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "categories",
+          "table_name": "categories",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "status": "has_status",
+            "category": "primary_type"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "height",
+            "length",
+            "type"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        }
+      ],
+      "domain_profile": {
+        "vertical": "restaurant",
+        "language": "it",
+        "entity_types": [
+          "promotions",
+          "orders",
+          "menu_items",
+          "tables",
+          "reservations",
+          "categories"
+        ],
+        "vibe_dimensions": [
+          {
+            "name": "qualita_cibo",
+            "description": "Gusto, freschezza e presentazione dei piatti",
+            "weight": 5
+          },
+          {
+            "name": "atmosfera",
+            "description": "Qualit\u00e0 dell'ambiente e dell'arredamento",
+            "weight": 5
+          },
+          {
+            "name": "menu_varieta",
+            "description": "Ampiezza e originalit\u00e0 delle proposte",
+            "weight": 3
+          },
+          {
+            "name": "servizio",
+            "description": "Cortesia e professionalit\u00e0 del personale",
+            "weight": 4
+          },
+          {
+            "name": "rumorosita",
+            "description": "Livello di rumore e tranquillit\u00e0",
+            "weight": 2
+          },
+          {
+            "name": "pulizia",
+            "description": "Igiene e cura degli spazi",
+            "weight": 4
+          },
+          {
+            "name": "location",
+            "description": "Posizione e accessibilit\u00e0 del locale",
+            "weight": 3
+          },
+          {
+            "name": "rapporto_qualita_prezzo",
+            "description": "Valore percepito rispetto al costo",
+            "weight": 4
+          }
+        ],
+        "quality_aspects": [
+          "gusto",
+          "presentazione",
+          "freschezza",
+          "porzioni",
+          "originalit\u00e0"
+        ],
+        "calibration_samples": {
+          "best": [
+            {
+              "entity_type": "promotions",
+              "name": "Esempio Eccellente - Caracciolo, Asmundo e Leone e figli",
+              "description": "Ragazzo pranzo straniero azzurro."
+            },
+            {
+              "entity_type": "orders",
+              "name": "Esempio Eccellente - Giannini SPA",
+              "description": "Punta professore indicare lago dubbio. Ricordo collo infatti."
+            }
+          ],
+          "average": [
+            {
+              "entity_type": "promotions",
+              "name": "Esempio Medio - Balbi-Baggio SPA"
+            },
+            {
+              "entity_type": "orders",
+              "name": "Esempio Medio - Cremonesi-Gabrieli Group"
+            }
+          ]
+        },
+        "persona": {
+          "name": "Gusto",
+          "role": "esperto gastronomico",
+          "tone": "appassionato e competente",
+          "focus": "qualit\u00e0 del cibo e dell'esperienza culinaria"
+        }
+      }
+    }
+  },
+  "errors": []
+}

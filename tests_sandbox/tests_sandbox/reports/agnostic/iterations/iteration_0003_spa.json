@@ -1,0 +1,1948 @@
+{
+  "iteration_id": 3,
+  "seed": 45,
+  "vertical": "spa",
+  "schema_name": "test_spa_45",
+  "timestamp": "2026-02-07T12:42:07.185675+00:00",
+  "success": true,
+  "summary": {
+    "tables": 14,
+    "columns": 200,
+    "rows": 7284,
+    "fk_relationships": 3
+  },
+  "timing": {
+    "schema_generation_s": 0.0011368749999998151,
+    "data_population_s": 1.050096625,
+    "test_execution_s": 4.362499999999159e-05,
+    "cleanup_s": 1.4999999999876223e-05,
+    "total_s": 1.0523839999999998
+  },
+  "memory": {
+    "before_mb": 37.12,
+    "after_mb": 38.61,
+    "delta_mb": 1.490000000000002
+  },
+  "tests": {
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "details": [
+      {
+        "name": "schema_has_tables",
+        "passed": true,
+        "message": "Schema has 14 tables",
+        "duration_s": 0.0
+      },
+      {
+        "name": "tables_have_pk",
+        "passed": true,
+        "message": "14/14 tables have PK",
+        "duration_s": 0.0
+      },
+      {
+        "name": "schema_queryable",
+        "passed": true,
+        "message": "Mock connection (test skipped)",
+        "duration_s": 0.0
+      },
+      {
+        "name": "valid_column_names",
+        "passed": true,
+        "message": "All column names valid",
+        "duration_s": 0.0
+      },
+      {
+        "name": "config_covers_all_tables",
+        "passed": true,
+        "message": "All 14 tables mapped",
+        "duration_s": 0.0
+      },
+      {
+        "name": "configs_have_name_mapping",
+        "passed": true,
+        "message": "14/14 have name mapping",
+        "duration_s": 0.0
+      },
+      {
+        "name": "domain_profile_valid",
+        "passed": true,
+        "message": "dims:7 aspects:5 entities:14",
+        "duration_s": 0.0
+      },
+      {
+        "name": "profile_matches_vertical",
+        "passed": true,
+        "message": "Profile: spa, Schema: spa",
+        "duration_s": 0.0
+      }
+    ]
+  },
+  "schema_details": {
+    "schema_name": "test_spa_45",
+    "vertical": "spa",
+    "tables": [
+      {
+        "name": "rooms",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_amount",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_status",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_type",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_level",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_priority",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "packages",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity_66",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity_14",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_priority",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_level",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_status",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity_21",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_notes",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level_52",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "memberships",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_width",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_url",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_phone",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_amount",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority_35",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity_2",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_status",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "inventory",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_phone",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_phone",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_url",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "gift_cards_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "appointments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_address",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_weight",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "promotions",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_size",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_length",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount_38",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number_6",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone_69",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_url",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number_88",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_score",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "products",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_code",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_amount",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_width",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_score",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight_44",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_rating",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value_88",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "clients_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "treatments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_priority",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_address",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address_44",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_weight",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number_84",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_level",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "suppliers",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_priority",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_value",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_notes",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_priority",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_code",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone_59",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone_49",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "therapists",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_width",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_rating",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "equipment",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_weight",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "reviews",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_length",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_rating",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "gift_cards",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_notes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_date",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_phone",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_level",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "clients_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "clients",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "duration_minutes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_level",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight_78",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_comment",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight_76",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_time",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "url",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight_91",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_size",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_status",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      }
+    ],
+    "seed": 45,
+    "arbor_config": {
+      "schema_config": [
+        {
+          "entity_type": "rooms",
+          "table_name": "rooms",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "status": "num_status",
+            "category": "has_type"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "comment",
+            "amount"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "packages",
+          "table_name": "packages",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "address": "address",
+            "status": "external_status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "quantity",
+            "quantity_66"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "memberships",
+          "table_name": "memberships",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "status": "primary_status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "time",
+            "last_phone"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "inventory",
+          "table_name": "inventory",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "min_phone"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "appointments",
+          "table_name": "appointments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "category": "type",
+            "address": "min_address"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "type",
+            "height"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "promotions",
+          "table_name": "promotions",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "min_size",
+            "phone"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "products",
+          "table_name": "products",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "status": "status",
+            "rating": "max_rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "status",
+            "total_amount"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "treatments",
+          "table_name": "treatments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "address": "address_44",
+            "status": "status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "priority",
+            "is_address"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "suppliers",
+          "table_name": "suppliers",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "rating": "rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "quantity"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "therapists",
+          "table_name": "therapists",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "rating": "first_rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "rating"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "equipment",
+          "table_name": "equipment",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "reviews",
+          "table_name": "reviews",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "rating": "max_rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "rating",
+            "max_rating"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "gift_cards",
+          "table_name": "gift_cards",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "min_notes",
+            "height"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "clients",
+          "table_name": "clients",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "address": "address",
+            "status": "primary_status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "duration_minutes",
+            "weight_78",
+            "total_comment"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        }
+      ],
+      "domain_profile": {
+        "vertical": "spa",
+        "language": "it",
+        "entity_types": [
+          "rooms",
+          "packages",
+          "memberships",
+          "inventory",
+          "appointments",
+          "promotions",
+          "products",
+          "treatments",
+          "suppliers",
+          "therapists",
+          "equipment",
+          "reviews",
+          "gift_cards",
+          "clients"
+        ],
+        "vibe_dimensions": [
+          {
+            "name": "prenotazione",
+            "description": "Facilit\u00e0 di prenotazione",
+            "weight": 2
+          },
+          {
+            "name": "pulizia",
+            "description": "Igiene di spazi e attrezzature",
+            "weight": 5
+          },
+          {
+            "name": "personale",
+            "description": "Competenza e cortesia degli operatori",
+            "weight": 4
+          },
+          {
+            "name": "qualita_trattamenti",
+            "description": "Efficacia e professionalit\u00e0 dei servizi",
+            "weight": 5
+          },
+          {
+            "name": "prodotti",
+            "description": "Qualit\u00e0 dei prodotti utilizzati",
+            "weight": 3
+          },
+          {
+            "name": "ambiente",
+            "description": "Atmosfera rilassante e curata",
+            "weight": 5
+          },
+          {
+            "name": "rapporto_qualita_prezzo",
+            "description": "Valore percepito rispetto al costo",
+            "weight": 4
+          }
+        ],
+        "quality_aspects": [
+          "relax",
+          "efficacia",
+          "durata",
+          "profumi",
+          "benessere"
+        ],
+        "calibration_samples": {
+          "best": [
+            {
+              "entity_type": "rooms",
+              "name": "Esempio Eccellente - Procacci-Sraffa Group",
+              "description": "Finch\u00e9 atto accorgersi eccetera camminare."
+            },
+            {
+              "entity_type": "packages",
+              "name": "Esempio Eccellente - Cossiga-Franceschi s.r.l.",
+              "description": "Immaginare produzione termine completamente direttore risultato valore bastare."
+            }
+          ],
+          "average": [
+            {
+              "entity_type": "rooms",
+              "name": "Esempio Medio - Barcaccia-Boiardo e figli"
+            },
+            {
+              "entity_type": "packages",
+              "name": "Esempio Medio - Argentero Group"
+            }
+          ]
+        },
+        "persona": {
+          "name": "Wellness",
+          "role": "esperto di benessere",
+          "tone": "rilassante e professionale",
+          "focus": "qualit\u00e0 dei trattamenti e relax"
+        }
+      }
+    }
+  },
+  "errors": []
+}

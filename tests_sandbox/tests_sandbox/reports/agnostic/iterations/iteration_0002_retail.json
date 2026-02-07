@@ -1,0 +1,1619 @@
+{
+  "iteration_id": 2,
+  "seed": 44,
+  "vertical": "retail",
+  "schema_name": "test_retail_44",
+  "timestamp": "2026-02-07T12:42:06.287535+00:00",
+  "success": true,
+  "summary": {
+    "tables": 13,
+    "columns": 157,
+    "rows": 7193,
+    "fk_relationships": 1
+  },
+  "timing": {
+    "schema_generation_s": 0.0010242500000000598,
+    "data_population_s": 0.894036416,
+    "test_execution_s": 3.766699999996348e-05,
+    "cleanup_s": 1.4999999999876223e-05,
+    "total_s": 0.8959127080000001
+  },
+  "memory": {
+    "before_mb": 35.64,
+    "after_mb": 37.62,
+    "delta_mb": 1.9799999999999969
+  },
+  "tests": {
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "details": [
+      {
+        "name": "schema_has_tables",
+        "passed": true,
+        "message": "Schema has 13 tables",
+        "duration_s": 0.0
+      },
+      {
+        "name": "tables_have_pk",
+        "passed": true,
+        "message": "13/13 tables have PK",
+        "duration_s": 0.0
+      },
+      {
+        "name": "schema_queryable",
+        "passed": true,
+        "message": "Mock connection (test skipped)",
+        "duration_s": 0.0
+      },
+      {
+        "name": "valid_column_names",
+        "passed": true,
+        "message": "All column names valid",
+        "duration_s": 0.0
+      },
+      {
+        "name": "config_covers_all_tables",
+        "passed": true,
+        "message": "All 13 tables mapped",
+        "duration_s": 0.0
+      },
+      {
+        "name": "configs_have_name_mapping",
+        "passed": true,
+        "message": "13/13 have name mapping",
+        "duration_s": 0.0
+      },
+      {
+        "name": "domain_profile_valid",
+        "passed": true,
+        "message": "dims:7 aspects:5 entities:13",
+        "duration_s": 0.0
+      },
+      {
+        "name": "profile_matches_vertical",
+        "passed": true,
+        "message": "Profile: retail, Schema: retail",
+        "duration_s": 0.0
+      }
+    ]
+  },
+  "schema_details": {
+    "schema_name": "test_retail_44",
+    "vertical": "retail",
+    "tables": [
+      {
+        "name": "warehouses",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_quantity",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "returns",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_phone",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight_95",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type_15",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "carts",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_amount",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "orders",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "avg_level",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "width",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_level",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_email",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "weight",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_status",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "customers",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_code",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_code",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_address",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_score",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_date",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "payment_transactions",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_status",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_notes",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_url",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_number",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "categories",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_date",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "external_number",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_type",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "BOOLEAN",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_notes",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "BIGINT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_number",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes_84",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_weight",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "promotions",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "value",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_email",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_length",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_status",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code_32",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_size",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_rating",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "priority",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_email",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date_79",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "returns_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "products",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "number",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time_26",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "last_rating",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "reviews",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_priority",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "min_value",
+            "type": "DATE",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "suppliers",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "level",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "comment",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_value",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_size",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_quantity",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "total_code",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "size_89",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating_23",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_score",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "wishlists",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "amount",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "shipments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "price",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "first_time",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      }
+    ],
+    "seed": 44,
+    "arbor_config": {
+      "schema_config": [
+        {
+          "entity_type": "warehouses",
+          "table_name": "warehouses",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "rating": "rating",
+            "status": "status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "returns",
+          "table_name": "returns",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "category": "type_15",
+            "address": "address"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "comment"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "carts",
+          "table_name": "carts",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "orders",
+          "table_name": "orders",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "status": "count_status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "avg_level",
+            "first_email",
+            "length"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "customers",
+          "table_name": "customers",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "address": "primary_address"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "time",
+            "has_score"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "payment_transactions",
+          "table_name": "payment_transactions",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "status": "secondary_status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "secondary_status",
+            "date",
+            "height"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "categories",
+          "table_name": "categories",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "category": "num_type",
+            "status": "status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "last_date",
+            "external_number",
+            "score"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "promotions",
+          "table_name": "promotions",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "status": "max_status",
+            "rating": "num_rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "status",
+            "code",
+            "code_32"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "products",
+          "table_name": "products",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "rating": "last_rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "number",
+            "last_rating",
+            "level"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "reviews",
+          "table_name": "reviews",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "suppliers",
+          "table_name": "suppliers",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price",
+            "rating": "rating_23"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "is_value",
+            "size",
+            "total_code"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "wishlists",
+          "table_name": "wishlists",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "shipments",
+          "table_name": "shipments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "price": "price"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        }
+      ],
+      "domain_profile": {
+        "vertical": "retail",
+        "language": "it",
+        "entity_types": [
+          "warehouses",
+          "returns",
+          "carts",
+          "orders",
+          "customers",
+          "payment_transactions",
+          "categories",
+          "promotions",
+          "products",
+          "reviews",
+          "suppliers",
+          "wishlists",
+          "shipments"
+        ],
+        "vibe_dimensions": [
+          {
+            "name": "prezzi",
+            "description": "Competitivit\u00e0 e trasparenza dei prezzi",
+            "weight": 4
+          },
+          {
+            "name": "sostenibilita",
+            "description": "Impegno ambientale e sociale",
+            "weight": 2
+          },
+          {
+            "name": "spedizione",
+            "description": "Velocit\u00e0 e affidabilit\u00e0 delle consegne",
+            "weight": 4
+          },
+          {
+            "name": "resi",
+            "description": "Politica di reso e rimborsi",
+            "weight": 3
+          },
+          {
+            "name": "assistenza_clienti",
+            "description": "Supporto pre e post vendita",
+            "weight": 4
+          },
+          {
+            "name": "qualita_prodotti",
+            "description": "Standard e affidabilit\u00e0 dei prodotti",
+            "weight": 5
+          },
+          {
+            "name": "facilita_acquisto",
+            "description": "Semplicit\u00e0 del processo d'acquisto",
+            "weight": 3
+          }
+        ],
+        "quality_aspects": [
+          "durabilit\u00e0",
+          "design",
+          "packaging",
+          "funzionalit\u00e0",
+          "materiali"
+        ],
+        "calibration_samples": {
+          "best": [
+            {
+              "entity_type": "warehouses",
+              "name": "Esempio Eccellente - Trebbi-Venditti SPA",
+              "description": "Dare alzare camera accompagnare civilt\u00e0 messa."
+            },
+            {
+              "entity_type": "returns",
+              "name": "Esempio Eccellente - Borghese-Morgagni Group",
+              "description": "Buttare attimo battaglia uso. Tuo sembrare elettrico fiume."
+            }
+          ],
+          "average": [
+            {
+              "entity_type": "warehouses",
+              "name": "Esempio Medio - Pareto-Pirelli Group"
+            },
+            {
+              "entity_type": "returns",
+              "name": "Esempio Medio - Sismondi s.r.l."
+            }
+          ]
+        },
+        "persona": {
+          "name": "Shopper",
+          "role": "consulente acquisti",
+          "tone": "pratico e obiettivo",
+          "focus": "qualit\u00e0 e valore dei prodotti"
+        }
+      }
+    }
+  },
+  "errors": []
+}

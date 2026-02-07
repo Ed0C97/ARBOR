@@ -1,0 +1,6 @@
+# Generated reports directory
+# This file ensures the directory is tracked in git
+
+*.json
+*.html
+!.gitkeep

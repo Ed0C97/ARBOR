@@ -1,0 +1,46 @@
+# Test sandbox configuration
+test:
+  # Database configuration for tests
+  database:
+    # Use testcontainers for isolated DB
+    use_testcontainers: true
+    # Or specify a test database
+    postgres_db: arbor_test
+    postgres_host: localhost
+    postgres_port: 5432
+  
+  # LLM configuration
+  llm:
+    # Use mock LLM for fast tests
+    use_mock: false
+    # Real LLM for integration tests
+    model: gemini-2.0-flash
+    temperature: 0.3
+  
+  # Test data generation
+  data_generation:
+    # Number of entities to generate per scenario
+    entities_per_scenario: 100
+    # Locales for Faker
+    locales:
+      - it_IT
+      - en_US
+    # Seed for reproducibility
+    seed: 42
+  
+  # Performance thresholds
+  performance:
+    # Max latency in ms
+    max_latency_p50: 200
+    max_latency_p95: 500
+    max_latency_p99: 1000
+    # Max memory in MB
+    max_memory_mb: 512
+  
+  # Report configuration
+  reports:
+    output_dir: reports
+    formats:
+      - html
+      - json
+    include_plots: true

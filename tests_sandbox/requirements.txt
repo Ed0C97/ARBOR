@@ -1,0 +1,28 @@
+# Test framework
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-benchmark>=4.0.0
+pytest-xdist>=3.5.0
+pytest-html>=4.1.0
+
+# Data generation
+faker>=22.0.0
+factory-boy>=3.3.0
+hypothesis>=6.92.0
+
+# Profiling
+py-spy>=0.3.14
+memory-profiler>=0.61.0
+
+# ML evaluation
+mlflow>=2.10.0
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+# Data quality
+great-expectations>=0.18.0
+
+# Reporting
+rich>=13.7.0
+plotly>=5.18.0
+jinja2>=3.1.0

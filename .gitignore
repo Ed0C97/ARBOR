@@ -45,3 +45,8 @@ out/
 # Documentation and AI
 .claude/
 
+# Test sandbox (non-committed diagnostic tests)
+#tests_sandbox/
+#!tests_sandbox/README.md
+#!tests_sandbox/requirements.txt
+

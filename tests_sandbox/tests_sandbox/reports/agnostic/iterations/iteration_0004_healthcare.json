@@ -1,0 +1,858 @@
+{
+  "iteration_id": 4,
+  "seed": 46,
+  "vertical": "healthcare",
+  "schema_name": "test_healthcare_46",
+  "timestamp": "2026-02-07T12:42:08.240555+00:00",
+  "success": true,
+  "summary": {
+    "tables": 8,
+    "columns": 69,
+    "rows": 4441,
+    "fk_relationships": 1
+  },
+  "timing": {
+    "schema_generation_s": 0.0007872500000001281,
+    "data_population_s": 0.544082,
+    "test_execution_s": 2.8665999999955005e-05,
+    "cleanup_s": 1.5000000000320313e-05,
+    "total_s": 0.5456866659999999
+  },
+  "memory": {
+    "before_mb": 38.11,
+    "after_mb": 38.5,
+    "delta_mb": 0.39000000000000057
+  },
+  "tests": {
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "details": [
+      {
+        "name": "schema_has_tables",
+        "passed": true,
+        "message": "Schema has 8 tables",
+        "duration_s": 0.0
+      },
+      {
+        "name": "tables_have_pk",
+        "passed": true,
+        "message": "8/8 tables have PK",
+        "duration_s": 0.0
+      },
+      {
+        "name": "schema_queryable",
+        "passed": true,
+        "message": "Mock connection (test skipped)",
+        "duration_s": 0.0
+      },
+      {
+        "name": "valid_column_names",
+        "passed": true,
+        "message": "All column names valid",
+        "duration_s": 0.0
+      },
+      {
+        "name": "config_covers_all_tables",
+        "passed": true,
+        "message": "All 8 tables mapped",
+        "duration_s": 0.0
+      },
+      {
+        "name": "configs_have_name_mapping",
+        "passed": true,
+        "message": "8/8 have name mapping",
+        "duration_s": 0.0
+      },
+      {
+        "name": "domain_profile_valid",
+        "passed": true,
+        "message": "dims:6 aspects:5 entities:8",
+        "duration_s": 0.0
+      },
+      {
+        "name": "profile_matches_vertical",
+        "passed": true,
+        "message": "Profile: healthcare, Schema: healthcare",
+        "duration_s": 0.0
+      }
+    ]
+  },
+  "schema_details": {
+    "schema_name": "test_healthcare_46",
+    "vertical": "healthcare",
+    "tables": [
+      {
+        "name": "appointments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "medical_records",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "status",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_time",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "patients",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "email",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "max_type",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_address",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_height",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "primary_url",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "quantity_44",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "notes",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "address",
+            "type": "TIMESTAMP",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "billing",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "time",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "rooms",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "count_quantity",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "date",
+            "type": "TIMESTAMP",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "rating",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score_6",
+            "type": "TEXT",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_address",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_width",
+            "type": "INTEGER",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "is_phone",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "departments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "avg_code",
+            "type": "DECIMAL(10,2)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      },
+      {
+        "name": "doctors",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "score",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_phone",
+            "type": "DECIMAL(10,2)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "height",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_phone",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "secondary_length",
+            "type": "JSONB",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "type",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "has_priority",
+            "type": "BIGINT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "billing_id",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": true
+          }
+        ]
+      },
+      {
+        "name": "treatments",
+        "columns": [
+          {
+            "name": "id",
+            "type": "SERIAL",
+            "nullable": false,
+            "is_pk": true,
+            "is_fk": false
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(255)",
+            "nullable": false,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "code",
+            "type": "VARCHAR(255)",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "length",
+            "type": "INTEGER",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_length",
+            "type": "BOOLEAN",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          },
+          {
+            "name": "num_number",
+            "type": "DATE",
+            "nullable": true,
+            "is_pk": false,
+            "is_fk": false
+          }
+        ]
+      }
+    ],
+    "seed": 46,
+    "arbor_config": {
+      "schema_config": [
+        {
+          "entity_type": "appointments",
+          "table_name": "appointments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "rating": "rating"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "medical_records",
+          "table_name": "medical_records",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "status": "status"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code",
+            "num_time"
+          ],
+          "active_filter_column": "status",
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "patients",
+          "table_name": "patients",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "category": "max_type",
+            "address": "address"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code",
+            "quantity",
+            "secondary_address"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "billing",
+          "table_name": "billing",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code",
+            "phone"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "rooms",
+          "table_name": "rooms",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "rating": "rating",
+            "address": "has_address"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code",
+            "rating",
+            "score_6"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "departments",
+          "table_name": "departments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "doctors",
+          "table_name": "doctors",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description",
+            "category": "type"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code",
+            "score",
+            "height"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        },
+        {
+          "entity_type": "treatments",
+          "table_name": "treatments",
+          "id_column": "id",
+          "required_mappings": {
+            "name": "name"
+          },
+          "optional_mappings": {
+            "description": "description"
+          },
+          "text_fields_for_embedding": [
+            "name",
+            "description",
+            "code"
+          ],
+          "active_filter_column": null,
+          "active_filter_value": true
+        }
+      ],
+      "domain_profile": {
+        "vertical": "healthcare",
+        "language": "it",
+        "entity_types": [
+          "appointments",
+          "medical_records",
+          "patients",
+          "billing",
+          "rooms",
+          "departments",
+          "doctors",
+          "treatments"
+        ],
+        "vibe_dimensions": [
+          {
+            "name": "comunicazione",
+            "description": "Chiarezza nelle spiegazioni",
+            "weight": 4
+          },
+          {
+            "name": "competenza_medica",
+            "description": "Preparazione e aggiornamento dei medici",
+            "weight": 5
+          },
+          {
+            "name": "tecnologia",
+            "description": "Modernit\u00e0 delle attrezzature",
+            "weight": 3
+          },
+          {
+            "name": "accessibilita",
+            "description": "Facilit\u00e0 di accesso e parcheggio",
+            "weight": 3
+          },
+          {
+            "name": "tempi_attesa",
+            "description": "Rapidit\u00e0 nelle visite e referti",
+            "weight": 4
+          },
+          {
+            "name": "cortesia_personale",
+            "description": "Umanit\u00e0 e disponibilit\u00e0 dello staff",
+            "weight": 4
+          }
+        ],
+        "quality_aspects": [
+          "accuratezza",
+          "rapidit\u00e0",
+          "chiarezza",
+          "empatia",
+          "follow-up"
+        ],
+        "calibration_samples": {
+          "best": [
+            {
+              "entity_type": "appointments",
+              "name": "Esempio Eccellente - Piccinni SPA",
+              "description": "Sorgere decisione mettere oltre udire amico attenzione fantasia. Sino celebrare tempo."
+            },
+            {
+              "entity_type": "medical_records",
+              "name": "Esempio Eccellente - Crespi-Semitecolo s.r.l.",
+              "description": "Rendere naturale brutto davanti memoria ritrovare dottore."
+            }
+          ],
+          "average": [
+            {
+              "entity_type": "appointments",
+              "name": "Esempio Medio - Monicelli, Caboto e Pezzali s.r.l."
+            },
+            {
+              "entity_type": "medical_records",
+              "name": "Esempio Medio - Nonis SPA"
+            }
+          ]
+        },
+        "persona": {
+          "name": "Salus",
+          "role": "consulente sanitario",
+          "tone": "rassicurante e competente",
+          "focus": "qualit\u00e0 delle cure e attenzione al paziente"
+        }
+      }
+    }
+  },
+  "errors": []
+}

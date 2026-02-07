@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARBOR Diagnostic Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .summary { display: flex; gap: 20px; margin: 20px 0; }
+        .stat { background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: center; flex: 1; }
+        .stat-value { font-size: 2em; font-weight: bold; }
+        .stat-label { color: #666; }
+        .passed { color: #28a745; }
+        .failed { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .layer { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .layer h3 { margin-top: 0; }
+        .test { padding: 8px; margin: 5px 0; background: white; border-radius: 4px; }
+        .test.pass { border-left: 3px solid #28a745; }
+        .test.fail { border-left: 3px solid #dc3545; }
+        .test.warn { border-left: 3px solid #ffc107; }
+        .fix { color: #666; font-style: italic; margin-left: 20px; }
+        .issues { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .issues h3 { color: #856404; margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 ARBOR Diagnostic Report</h1>
+        <p>Generated: 2026-02-07T11:42:45.405173+00:00</p>
+        
+        <div class="summary">
+            <div class="stat">
+                <div class="stat-value">29</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value passed">27</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value failed">2</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">5.9s</div>
+                <div class="stat-label">Duration</div>
+            </div>
+        </div>
+        
+        <div class="issues">
+            <h3>🎯 Top Issues to Fix</h3>
+            <p><strong>[Input Validation]</strong> 1 values out of range<br><span class="fix">→ Validate and clamp values to valid ranges in input pipeline</span></p><p><strong>[ML Pipeline]</strong> High variance in scoring: std_dev=6.06<br><span class="fix">→ Check for non-deterministic behavior in scoring (temperature > 0?)</span></p>
+        </div>
+        
+        
+        <div class="layer">
+            <h3>Layer 1: Input Validation</h3>
+            <div class="test pass">✅ <strong>Required Fields</strong>: All 20 entities have required fields</div><div class="test pass">✅ <strong>Field Types</strong>: All field types are correct</div><div class="test fail">❌ <strong>Value Ranges</strong>: 1 values out of range<div class="fix">FIX: Validate and clamp values to valid ranges in input pipeline</div></div><div class="test pass">✅ <strong>Unicode Handling</strong>: All 5 unicode variants handled correctly</div><div class="test pass">✅ <strong>Special Characters</strong>: All special characters handled correctly</div><div class="test pass">✅ <strong>Empty Values Detection</strong>: Detected 1 empty values (detection working)</div><div class="test pass">✅ <strong>JSON Serialization</strong>: All 20 entities serialize correctly</div><div class="test pass">✅ <strong>Large Payload</strong>: 500 entities (0.60MB) processed in 0.05s</div>
+        </div>
+        
+        <div class="layer">
+            <h3>Layer 2: Domain Profile</h3>
+            <div class="test pass">✅ <strong>Required Fields</strong>: All required fields present</div><div class="test pass">✅ <strong>Dimension Count</strong>: 8 dimensions configured</div><div class="test pass">✅ <strong>Dimension Distinctness</strong>: 1 potentially similar dimensions</div><div class="test pass">✅ <strong>Weight Distribution</strong>: Good weight distribution (avg: 3.1, std: 1.1)</div><div class="test pass">✅ <strong>Language Consistency</strong>: Language appears consistent (it)</div><div class="test pass">✅ <strong>Entity Type Coverage</strong>: 2 entity types defined</div><div class="test pass">✅ <strong>Quality Aspect Coverage</strong>: 8 quality aspects with good coverage</div><div class="test pass">✅ <strong>Calibration Samples</strong>: 3 best + 2 average calibration entities</div>
+        </div>
+        
+        <div class="layer">
+            <h3>Layer 3: ML Pipeline</h3>
+            <div class="test fail">❌ <strong>Scoring Consistency</strong>: High variance in scoring: std_dev=6.06<div class="fix">FIX: Check for non-deterministic behavior in scoring (temperature > 0?)</div></div><div class="test pass">✅ <strong>Inference Latency</strong>: Good latency: p50=32ms, p95=48ms</div><div class="test pass">✅ <strong>Score Distribution</strong>: Good distribution: avg=66, range=[33-99]</div><div class="test pass">✅ <strong>Vibe Score Ranges</strong>: All vibe scores in valid range [0.0-1.0]</div><div class="test pass">✅ <strong>Profile-Score Correlation</strong>: Scores correctly correlate with entity profiles</div><div class="test pass">✅ <strong>Batch Consistency</strong>: Single scoring working (20 entities)</div>
+        </div>
+        
+        <div class="layer">
+            <h3>Layer 4: API & Integration</h3>
+            <div class="test pass">✅ <strong>Endpoint Availability</strong>: All 4 endpoints available</div><div class="test pass">✅ <strong>Health Endpoint</strong>: Health OK: status=healthy</div><div class="test pass">✅ <strong>Entities Format</strong>: 5 entities with valid format</div><div class="test pass">✅ <strong>Discovery Flow</strong>: Discovery returned 5 results</div><div class="test pass">✅ <strong>Error Handling</strong>: Errors handled gracefully</div><div class="test pass">✅ <strong>Response Times</strong>: All responses <500ms</div><div class="test pass">✅ <strong>Data Consistency</strong>: Data consistent across endpoints</div>
+        </div>
+        
+    </div>
+</body>
+</html>

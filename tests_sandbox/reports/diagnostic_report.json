@@ -1,0 +1,414 @@
+{
+  "timestamp": "2026-02-07T11:42:45.405173+00:00",
+  "duration_seconds": 5.94,
+  "summary": {
+    "total_tests": 29,
+    "passed": 27,
+    "failed": 2,
+    "pass_rate": 93.1,
+    "is_healthy": true
+  },
+  "top_issues": [
+    {
+      "layer": "Layer 1: Input Validation",
+      "test": "Value Ranges",
+      "message": "1 values out of range",
+      "severity": "error",
+      "fix_action": "Validate and clamp values to valid ranges in input pipeline",
+      "severity_order": 1
+    },
+    {
+      "layer": "Layer 3: ML Pipeline",
+      "test": "Scoring Consistency",
+      "message": "High variance in scoring: std_dev=6.06",
+      "severity": "error",
+      "fix_action": "Check for non-deterministic behavior in scoring (temperature > 0?)",
+      "severity_order": 1
+    }
+  ],
+  "layers": {
+    "layer1": {
+      "layer_name": "Layer 1: Input Validation",
+      "timestamp": "2026-02-07T11:42:45.405359+00:00",
+      "summary": {
+        "passed": 7,
+        "failed": 1,
+        "warnings": 0,
+        "is_healthy": true
+      },
+      "results": [
+        {
+          "test_name": "Required Fields",
+          "passed": true,
+          "message": "All 20 entities have required fields",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Field Types",
+          "passed": true,
+          "message": "All field types are correct",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Value Ranges",
+          "passed": false,
+          "message": "1 values out of range",
+          "severity": "error",
+          "details": {
+            "errors": [
+              "Entity 21: price_tier=99 (valid: 1-5)"
+            ]
+          },
+          "fix_action": "Validate and clamp values to valid ranges in input pipeline"
+        },
+        {
+          "test_name": "Unicode Handling",
+          "passed": true,
+          "message": "All 5 unicode variants handled correctly",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Special Characters",
+          "passed": true,
+          "message": "All special characters handled correctly",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Empty Values Detection",
+          "passed": true,
+          "message": "Detected 1 empty values (detection working)",
+          "severity": "info",
+          "details": {
+            "empty_values": [
+              "Entity 0: 'description' is empty"
+            ]
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "JSON Serialization",
+          "passed": true,
+          "message": "All 20 entities serialize correctly",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Large Payload",
+          "passed": true,
+          "message": "500 entities (0.60MB) processed in 0.05s",
+          "severity": "info",
+          "details": {
+            "entities": 500,
+            "size_mb": 0.6,
+            "total_time_s": 0.05
+          },
+          "fix_action": null
+        }
+      ]
+    },
+    "layer2": {
+      "layer_name": "Layer 2: Domain Profile",
+      "timestamp": "2026-02-07T11:42:45.463171+00:00",
+      "summary": {
+        "passed": 8,
+        "failed": 0,
+        "warnings": 0,
+        "is_healthy": true
+      },
+      "results": [
+        {
+          "test_name": "Required Fields",
+          "passed": true,
+          "message": "All required fields present",
+          "severity": "info",
+          "details": {
+            "domain_name": "Directory Antonimina",
+            "vertical": "DomainVertical.HEALTH_WELLNESS",
+            "language": "it"
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Dimension Count",
+          "passed": true,
+          "message": "8 dimensions configured",
+          "severity": "info",
+          "details": {
+            "count": 8,
+            "aspect_ids": [
+              "practitioner_quality",
+              "treatment_range",
+              "facility_quality",
+              "results_effectiveness",
+              "patient_experience",
+              "innovation",
+              "accessibility",
+              "price_value"
+            ]
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Dimension Distinctness",
+          "passed": true,
+          "message": "1 potentially similar dimensions",
+          "severity": "info",
+          "details": {
+            "similar_pairs": [
+              [
+                "practitioner_quality",
+                "facility_quality"
+              ]
+            ]
+          },
+          "fix_action": "Review similar dimensions to ensure they measure different qualities"
+        },
+        {
+          "test_name": "Weight Distribution",
+          "passed": true,
+          "message": "Good weight distribution (avg: 3.1, std: 1.1)",
+          "severity": "info",
+          "details": {
+            "avg_importance": 3.12,
+            "min": 1,
+            "max": 4,
+            "std_dev": 1.05
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Language Consistency",
+          "passed": true,
+          "message": "Language appears consistent (it)",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Entity Type Coverage",
+          "passed": true,
+          "message": "2 entity types defined",
+          "severity": "info",
+          "details": {
+            "types": [
+              "provider",
+              "establishment"
+            ]
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Quality Aspect Coverage",
+          "passed": true,
+          "message": "8 quality aspects with good coverage",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Calibration Samples",
+          "passed": true,
+          "message": "3 best + 2 average calibration entities",
+          "severity": "info",
+          "details": {
+            "best_entities": [
+              "Top Provider A",
+              "Excellence B",
+              "Best C"
+            ],
+            "average_entities": [
+              "Standard D",
+              "Regular E"
+            ]
+          },
+          "fix_action": null
+        }
+      ]
+    },
+    "layer3": {
+      "layer_name": "Layer 3: ML Pipeline",
+      "timestamp": "2026-02-07T11:42:45.463353+00:00",
+      "summary": {
+        "passed": 5,
+        "failed": 1,
+        "warnings": 0,
+        "is_healthy": true
+      },
+      "results": [
+        {
+          "test_name": "Scoring Consistency",
+          "passed": false,
+          "message": "High variance in scoring: std_dev=6.06",
+          "severity": "error",
+          "details": {
+            "scores": [
+              74.45755466021093,
+              81.00106599095916,
+              89.6538773540255,
+              91.02665970102578,
+              82.35460409606753
+            ],
+            "avg": 83.7,
+            "std_dev": 6.06
+          },
+          "fix_action": "Check for non-deterministic behavior in scoring (temperature > 0?)"
+        },
+        {
+          "test_name": "Inference Latency",
+          "passed": true,
+          "message": "Good latency: p50=32ms, p95=48ms",
+          "severity": "info",
+          "details": {
+            "p50_ms": 32.4,
+            "p95_ms": 48.1,
+            "p99_ms": 54.9,
+            "samples": 30
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Score Distribution",
+          "passed": true,
+          "message": "Good distribution: avg=66, range=[33-99]",
+          "severity": "info",
+          "details": {
+            "avg": 65.7,
+            "std_dev": 17.7,
+            "min": 33.1,
+            "max": 98.6
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Vibe Score Ranges",
+          "passed": true,
+          "message": "All vibe scores in valid range [0.0-1.0]",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Profile-Score Correlation",
+          "passed": true,
+          "message": "Scores correctly correlate with entity profiles",
+          "severity": "info",
+          "details": {
+            "avg_by_profile": {
+              "fine_dining": 84.5,
+              "trattoria": 65.1,
+              "casual": 46.9
+            }
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Batch Consistency",
+          "passed": true,
+          "message": "Single scoring working (20 entities)",
+          "severity": "info",
+          "details": {
+            "entities_scored": 20
+          },
+          "fix_action": null
+        }
+      ]
+    },
+    "layer4": {
+      "layer_name": "Layer 4: API & Integration",
+      "timestamp": "2026-02-07T11:42:50.554515+00:00",
+      "summary": {
+        "passed": 7,
+        "failed": 0,
+        "warnings": 0,
+        "is_healthy": true
+      },
+      "results": [
+        {
+          "test_name": "Endpoint Availability",
+          "passed": true,
+          "message": "All 4 endpoints available",
+          "severity": "info",
+          "details": {
+            "endpoints": [
+              "Health",
+              "Entities",
+              "Discovery",
+              "Enrichment"
+            ]
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Health Endpoint",
+          "passed": true,
+          "message": "Health OK: status=healthy",
+          "severity": "info",
+          "details": {
+            "status": "healthy",
+            "version": "2.0.0"
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Entities Format",
+          "passed": true,
+          "message": "5 entities with valid format",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Discovery Flow",
+          "passed": true,
+          "message": "Discovery returned 5 results",
+          "severity": "info",
+          "details": {
+            "query": "romantic fine dining",
+            "result_count": 5,
+            "took_ms": 150
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Error Handling",
+          "passed": true,
+          "message": "Errors handled gracefully",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        },
+        {
+          "test_name": "Response Times",
+          "passed": true,
+          "message": "All responses <500ms",
+          "severity": "info",
+          "details": {
+            "timings_ms": {
+              "Health": 55.1,
+              "Entities": 58.6,
+              "Discovery": 60.5
+            }
+          },
+          "fix_action": null
+        },
+        {
+          "test_name": "Data Consistency",
+          "passed": true,
+          "message": "Data consistent across endpoints",
+          "severity": "info",
+          "details": {},
+          "fix_action": null
+        }
+      ]
+    }
+  }
+}
