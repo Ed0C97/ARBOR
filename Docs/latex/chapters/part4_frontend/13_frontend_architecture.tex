@@ -43,23 +43,21 @@ Zustand & Client state management \\
 
 \subsection{Directory Organization}
 
-\begin{lstlisting}[caption={Frontend directory structure}]
 frontend/
-├── src/
-│   ├── app/                # Next.js App Router
-│   │   ├── (discover)/     # Discovery routes
-│   │   ├── (admin)/        # Admin routes
-│   │   └── api/            # API routes
-│   ├── components/
-│   │   ├── ui/             # shadcn primitives
-│   │   ├── discovery/      # Discovery-specific
-│   │   └── admin/          # Admin-specific
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utilities
-│   └── types/              # TypeScript types
-├── public/                 # Static assets
-└── tests/                  # Test files
-\end{lstlisting}
+|-- src/
+|   |-- app/                # Next.js App Router
+|   |   |-- (discover)/     # Discovery routes
+|   |   |-- (admin)/        # Admin routes
+|   |   `-- api/            # API routes
+|   |-- components/
+|   |   |-- ui/             # shadcn primitives
+|   |   |-- discovery/      # Discovery-specific
+|   |   `-- admin/          # Admin-specific
+|   |-- hooks/              # Custom React hooks
+|   |-- lib/                # Utilities
+|   `-- types/              # TypeScript types
+|-- public/                 # Static assets
+`-- tests/                  # Test files
 
 \subsection{Routing Strategy}
 

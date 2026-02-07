@@ -91,17 +91,17 @@ Cloud infrastructure is defined in Terraform:
 
 \begin{lstlisting}[caption={Terraform module structure}]
 infrastructure/
-├── terraform/
-│   ├── modules/
-│   │   ├── networking/
-│   │   ├── kubernetes/
-│   │   ├── databases/
-│   │   └── observability/
-│   ├── environments/
-│   │   ├── dev/
-│   │   ├── staging/
-│   │   └── production/
-│   └── main.tf
+|-- terraform/
+|   |-- modules/
+|   |   |-- networking/
+|   |   |-- kubernetes/
+|   |   |-- databases/
+|   |   `-- observability/
+|   |-- environments/
+|   |   |-- dev/
+|   |   |-- staging/
+|   |   `-- production/
+|   `-- main.tf
 \end{lstlisting}
 
 \subsection{Environment Parity}
